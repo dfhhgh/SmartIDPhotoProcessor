@@ -37,11 +37,11 @@ class FaceDetector:
             raise TypeError("Input image must be a NumPy ndarray.")
 
         if image.size == 0:
-            raise ValueError("Input image is empty.")
+            raise ValueError("Input image cannot be empty.")
 
         if image.ndim not in (2, 3):
             raise ValueError(
-                "Input image must be a 2D grayscale or 3D color image."
+                "Input image must have 2 or 3 dimensions."
             )
         logger.info("Starting face detection.")
         try:
