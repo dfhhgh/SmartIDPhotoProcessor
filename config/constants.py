@@ -27,12 +27,16 @@ FACE_ALIGNMENT_SIZE = (112, 112)
 
 
 # -------------------------------
-# Smart Crop
+# Face Export (Optional)
 # -------------------------------
 
 OUTPUT_WIDTH = 600
 OUTPUT_HEIGHT = 800
 
-TOP_PADDING = 0.25
-BOTTOM_PADDING = 0.30
-SIDE_PADDING = 0.18
+# -------------------------------
+# Face Cropping
+# -------------------------------
+
+TOP_PADDING_RATIO = 0.25
+BOTTOM_PADDING_RATIO = 0.30
+SIDE_PADDING_RATIO = 0.18

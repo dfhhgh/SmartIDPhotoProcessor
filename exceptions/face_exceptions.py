@@ -18,3 +18,8 @@ class FaceSelectionError(FacePipelineError):
     """
     Raised when selecting the primary face fails.
     """
+
+class FaceCroppingError(FacePipelineError):
+    """
+    Raised when face cropping fails.
+    """
