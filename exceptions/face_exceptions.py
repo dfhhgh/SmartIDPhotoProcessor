@@ -13,3 +13,8 @@ class FaceDetectionError(FacePipelineError):
     """
     Raised when face detection fails.
     """
+
+class FaceSelectionError(FacePipelineError):
+    """
+    Raised when selecting the primary face fails.
+    """
