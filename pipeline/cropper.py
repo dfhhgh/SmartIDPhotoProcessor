@@ -217,7 +217,7 @@ class FaceCropper:
             )
 
         if not isinstance(image, np.ndarray):
-            logger.error(
+            logger.exception(
                 "Input image must be a NumPy ndarray."
             )
 
@@ -226,7 +226,7 @@ class FaceCropper:
             )
 
         if image.size == 0:
-            logger.error(
+            logger.exception(
             "Input image cannot be empty."
             )
 
@@ -235,7 +235,7 @@ class FaceCropper:
             )
 
         if image.ndim not in (2, 3):
-            logger.error(
+            logger.exception(
                 "Input image must have 2 or 3 dimensions."
             )
 
