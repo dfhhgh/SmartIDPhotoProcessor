@@ -23,3 +23,8 @@ class FaceCroppingError(FacePipelineError):
     """
     Raised when face cropping fails.
     """
+
+class FaceAlignmentError(FacePipelineError):
+    """
+    Raised when face alignment fails.
+    """

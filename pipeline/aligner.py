@@ -155,11 +155,11 @@ class FaceAligner:
 
         if landmarks is None:
             logger.error(
-                "Facial landmarks cannot be None."
+                "Face landmarks cannot be None."
             )
 
             raise FaceAlignmentError(
-                "Facial landmarks cannot be None."
+                "Face landmarks cannot be None."
             )
 
         if not isinstance(landmarks, np.ndarray):
