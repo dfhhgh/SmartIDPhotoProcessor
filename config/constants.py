@@ -22,6 +22,19 @@ MIN_SECONDARY_FACE_RATIO = 0.20
 
 
 # -------------------------------
+# Blur Validation
+# -------------------------------
+
+# Initial conservative default values for a university student ID system.
+# These values are designed to reject only obviously blurry images, not to
+# require professional-quality photos. They are not scientifically fixed and
+# should be calibrated later using a representative dataset of real student ID
+# photos.
+BLUR_THRESHOLD = 60.0
+BLUR_MAX_EXPECTED_VALUE = 1000.0
+
+
+# -------------------------------
 # Face Alignment
 # -------------------------------
 
