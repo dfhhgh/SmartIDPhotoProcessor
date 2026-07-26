@@ -22,6 +22,21 @@ MIN_SECONDARY_FACE_RATIO = 0.20
 
 
 # -------------------------------
+# Face Size Validation
+# -------------------------------
+
+# Initial conservative default values for a university student ID system.
+# These thresholds define the acceptable range for the face area ratio
+# (face_area / image_area). The ideal ratio equals the midpoint of the
+# acceptable range, which is used to compute the quality score.
+# They are not scientifically fixed and should be calibrated later using
+# a representative dataset of real student ID photos.
+FACE_SIZE_MIN_RATIO = 0.15
+FACE_SIZE_IDEAL_RATIO = 0.40
+FACE_SIZE_MAX_RATIO = 0.65
+FLOAT_COMPARISON_EPSILON = 1e-6
+
+# -------------------------------
 # Blur Validation
 # -------------------------------
 
