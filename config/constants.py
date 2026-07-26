@@ -35,6 +35,19 @@ BLUR_MAX_EXPECTED_VALUE = 1000.0
 
 
 # -------------------------------
+# Brightness Validation
+# -------------------------------
+
+# Conservative default values for a university student ID system.
+# These thresholds reject only extremely dark or washed-out photos and
+# are not scientifically fixed. They should be calibrated later using a
+# representative dataset of real student ID photos.
+BRIGHTNESS_MIN_THRESHOLD = 40.0
+BRIGHTNESS_MAX_THRESHOLD = 220.0
+BRIGHTNESS_MAX_EXPECTED_VALUE = 255.0
+
+
+# -------------------------------
 # Face Alignment
 # -------------------------------
 
