@@ -79,3 +79,15 @@ OUTPUT_HEIGHT = 800
 TOP_PADDING_RATIO = 0.25
 BOTTOM_PADDING_RATIO = 0.30
 SIDE_PADDING_RATIO = 0.18
+
+
+# Contrast validation thresholds.
+#
+# Minimum acceptable grayscale standard deviation for student ID photos.
+# Images below this threshold are considered low contrast.
+CONTRAST_MIN_THRESHOLD = 30.0
+
+# Expected upper bound for contrast normalization.
+# Used only to normalize the quality score into the range [0.0, 1.0].
+# Values above this threshold are clamped to 1.0.
+CONTRAST_MAX_EXPECTED_VALUE = 100.0
