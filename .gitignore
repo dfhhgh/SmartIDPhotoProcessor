@@ -1,4 +1,4 @@
-models/
+ai_models//
 outputs/
 .venv/
 __pycache__/
