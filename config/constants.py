@@ -106,3 +106,46 @@ CONTRAST_MIN_THRESHOLD = 30.0
 # Used only to normalize the quality score into the range [0.0, 1.0].
 # Values above this threshold are clamped to 1.0.
 CONTRAST_MAX_EXPECTED_VALUE = 100.0
+
+from models.parsing.face_part import FacePart
+
+# -------------------------------
+# Face Visibility Validation
+# -------------------------------
+
+# Mandatory anatomical regions for a valid student ID photograph.
+FACE_VISIBILITY_REQUIRED_PARTS: tuple[FacePart, ...] = (
+    FacePart.LEFT_EYE,
+    FacePart.RIGHT_EYE,
+    FacePart.LEFT_BROW,
+    FacePart.RIGHT_BROW,
+    FacePart.NOSE,
+    FacePart.MOUTH,
+    FacePart.UPPER_LIP,
+    FacePart.LOWER_LIP,
+)
+
+# Minimum acceptable ratio of (part pixel area / TOTAL IMAGE area) for each
+# mandatory region. These are relative to the whole frame, not the face
+# bounding box, so they are intentionally small: a typical ID photo face
+# occupies roughly FACE_SIZE_MIN_RATIO to FACE_SIZE_MAX_RATIO of the image
+# (see Face Size Validation above), and each individual feature is only a
+# small fraction of the face itself.
+# Initial conservative defaults for a university student ID system; not
+# scientifically fixed and should be calibrated later using a
+# representative dataset of real student ID photos.
+FACE_VISIBILITY_MIN_PART_RATIOS: dict[FacePart, float] = {
+    FacePart.LEFT_EYE: 0.0015,
+    FacePart.RIGHT_EYE: 0.0015,
+    FacePart.LEFT_BROW: 0.0010,
+    FacePart.RIGHT_BROW: 0.0010,
+    FacePart.NOSE: 0.0050,
+    FacePart.MOUTH: 0.0008,
+    FacePart.UPPER_LIP: 0.0020,
+    FacePart.LOWER_LIP: 0.0020,
+}
+
+# Fraction of a region's full scoring weight that is deducted when the
+# region is present but below its minimum visibility ratio, as opposed to
+# being entirely missing (which deducts the region's full weight).
+FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR = 0.5
