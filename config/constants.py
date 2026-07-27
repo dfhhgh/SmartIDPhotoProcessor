@@ -149,3 +149,16 @@ FACE_VISIBILITY_MIN_PART_RATIOS: dict[FacePart, float] = {
 # region is present but below its minimum visibility ratio, as opposed to
 # being entirely missing (which deducts the region's full weight).
 FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR = 0.5
+
+# -------------------------------
+# Head Pose Validation
+# -------------------------------
+
+# Initial conservative default values for a university student ID system.
+# These thresholds define the acceptable absolute deviation, in degrees,
+# for each pose axis relative to a perfectly frontal (0.0) pose. They are
+# not scientifically fixed and should be calibrated later using a
+# representative dataset of real student ID photos.
+HEAD_POSE_PITCH_MAX_DEGREES = 15.0
+HEAD_POSE_YAW_MAX_DEGREES = 15.0
+HEAD_POSE_ROLL_MAX_DEGREES = 10.0
