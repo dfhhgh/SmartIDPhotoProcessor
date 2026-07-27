@@ -1,4 +1,4 @@
-"""Tests for FaceParserService — Stage 1 (Lifecycle & Config) and Stage 2 (Validation & Preprocessing)."""
+"""Tests for FaceParserService — Stage 1 (Lifecycle & Config), Stage 2 (Validation & Preprocessing), Stage 3 (Inference), Stage 4 (Postprocessing), and Stage 5 (Parse Pipeline)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+from models.parsing.face_part import FacePart
+from models.parsing.face_parsing_result import FaceParsingResult
 from services.face_parser_service import (
     FaceParserError,
     FaceParserService,
@@ -77,6 +79,15 @@ def fake_onnx_session() -> MagicMock:
     """A stand-in for onnxruntime.InferenceSession."""
     session = MagicMock()
     session.get_providers.return_value = ["CPUExecutionProvider"]
+
+    input_meta = MagicMock()
+    input_meta.name = "input_image"
+    session.get_inputs.return_value = [input_meta]
+
+    # Default mock output logits of shape (1, 19, 512, 512)
+    fake_logits = np.zeros((1, 19, 512, 512), dtype=np.float32)
+    session.run.return_value = [fake_logits]
+
     return session
 
 
@@ -561,3 +572,408 @@ class TestPreprocess:
 
         # Assert
         assert np.isfinite(tensor).all()
+
+
+# ================================================================== #
+# 6. Stage 3: Inference Execution (_run_inference)                   #
+# ================================================================== #
+
+
+class TestRunInference:
+    """Verify ONNX Runtime model execution in _run_inference()."""
+
+    def test_session_run_called_exactly_once(self, service, fake_onnx_session):
+        """session.run() must be invoked exactly once per inference call."""
+        # Arrange
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        fake_onnx_session.run.assert_called_once()
+
+    def test_correct_input_tensor_passed_to_onnx(self, service, fake_onnx_session):
+        """The exact input tensor array object must be passed into session.run()."""
+        # Arrange
+        input_tensor = np.ones((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        _, args = fake_onnx_session.run.call_args
+        feed_dict = args if isinstance(args, dict) and args else fake_onnx_session.run.call_args[0][1]
+        assert feed_dict["input_image"] is input_tensor
+
+    def test_correct_input_tensor_name_used(self, service, fake_onnx_session):
+        """The input node name queried from session.get_inputs() must be used as the feed key."""
+        # Arrange
+        fake_onnx_session.get_inputs()[0].name = "custom_tensor_node_name"
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        feed_dict = fake_onnx_session.run.call_args[0][1]
+        assert "custom_tensor_node_name" in feed_dict
+
+    def test_returned_logits_propagated_correctly(self, service, fake_onnx_session):
+        """The raw logits output array returned by session.run() must be returned by _run_inference()."""
+        # Arrange
+        expected_logits = np.random.randn(1, 19, 512, 512).astype(np.float32)
+        fake_onnx_session.run.return_value = [expected_logits]
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        result_logits = service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        assert np.array_equal(result_logits, expected_logits)
+
+    def test_session_run_raises_runtime_error_propagates(self, service, fake_onnx_session):
+        """RuntimeError raised directly by ONNX Session propagates from _run_inference."""
+        # Arrange
+        fake_onnx_session.run.side_effect = RuntimeError("ONNX execution error")
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act & Assert
+        with pytest.raises(RuntimeError, match="ONNX execution error"):
+            service._run_inference(fake_onnx_session, input_tensor)
+
+    @pytest.mark.parametrize(
+        "outputs, expected_msg",
+        [
+            pytest.param([], "Expected exactly one model output, got 0", id="empty_output_list"),
+            pytest.param(
+                [
+                    np.zeros((1, 19, 512, 512), dtype=np.float32),
+                    np.zeros((1, 19, 512, 512), dtype=np.float32),
+                ],
+                "Expected exactly one model output, got 2",
+                id="multiple_outputs",
+            ),
+            pytest.param(
+                [np.zeros((19, 512, 512), dtype=np.float32)],
+                "Unexpected BiSeNet output shape",
+                id="missing_batch_dim_3d",
+            ),
+            pytest.param(
+                [np.zeros((2, 19, 512, 512), dtype=np.float32)],
+                "Unexpected BiSeNet output shape",
+                id="batch_size_greater_than_1",
+            ),
+            pytest.param(
+                [np.zeros((1, 10, 512, 512), dtype=np.float32)],
+                "Model output has 10 class channels, but 19 FacePart classes are defined",
+                id="wrong_class_channels",
+            ),
+        ],
+    )
+    def test_invalid_output_shapes_raise_face_parser_error(
+        self, service, fake_onnx_session, outputs, expected_msg
+    ):
+        """Unexpected model output shapes or counts must raise FaceParserError."""
+        # Arrange
+        fake_onnx_session.run.return_value = outputs
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act & Assert
+        with pytest.raises(FaceParserError, match=expected_msg):
+            service._run_inference(fake_onnx_session, input_tensor)
+
+    def test_large_output_tensors_handled_correctly(self, service, fake_onnx_session):
+        """Large output logits tensors (e.g. 1024x1024 spatial) must be processed without error."""
+        # Arrange
+        large_logits = np.zeros((1, 19, 1024, 1024), dtype=np.float32)
+        fake_onnx_session.run.return_value = [large_logits]
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        result = service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        assert result.shape == (1, 19, 1024, 1024)
+
+    def test_output_dtype_preserved(self, service, fake_onnx_session):
+        """The float32 data type of returned logits must be preserved."""
+        # Arrange
+        logits = np.zeros((1, 19, 512, 512), dtype=np.float32)
+        fake_onnx_session.run.return_value = [logits]
+        input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        # Act
+        result = service._run_inference(fake_onnx_session, input_tensor)
+
+        # Assert
+        assert result.dtype == np.float32
+
+
+# ================================================================== #
+# 7. Stage 4: Post-processing (_postprocess)                        #
+# ================================================================== #
+
+
+class TestPostprocess:
+    """Verify conversion of raw network logits to FaceParsingResult in _postprocess()."""
+
+    def test_argmax_produces_expected_labels(self, service):
+        """Pixel label map must equal the class channel index with maximum logit value."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 4, 4), dtype=np.float32)
+        # Set class index 4 (LEFT_EYE) to highest value at (0, 0)
+        raw_output[0, 4, 0, 0] = 100.0
+        # Set class index 10 (NOSE) to highest value at (1, 1)
+        raw_output[0, 10, 1, 1] = 100.0
+
+        # Act
+        result = service._postprocess(raw_output, original_height=4, original_width=4)
+
+        # Assert
+        assert result.mask[0, 0] == int(FacePart.LEFT_EYE)
+        assert result.mask[1, 1] == int(FacePart.NOSE)
+
+    def test_output_mask_dtype_is_integer(self, service):
+        """Segmentation mask in FaceParsingResult must have integer dtype."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 512, 512), dtype=np.float32)
+
+        # Act
+        result = service._postprocess(raw_output, original_height=512, original_width=512)
+
+        # Assert
+        assert np.issubdtype(result.mask.dtype, np.integer)
+
+    def test_output_shape_matches_original_image_dimensions(self, service):
+        """When original height/width differ from model output, mask must be resized back."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 512, 512), dtype=np.float32)
+        orig_h, orig_w = 300, 400
+
+        # Act
+        result = service._postprocess(raw_output, original_height=orig_h, original_width=orig_w)
+
+        # Assert
+        assert result.mask.shape == (300, 400)
+        assert result.image_height == 300
+        assert result.image_width == 400
+
+    def test_single_class_output(self, service):
+        """When a single class dominates all logits, the mask must contain only that class."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 64, 64), dtype=np.float32)
+        raw_output[0, 1, :, :] = 50.0  # Class 1 (SKIN) highest everywhere
+
+        # Act
+        result = service._postprocess(raw_output, original_height=64, original_width=64)
+
+        # Assert
+        assert (result.mask == int(FacePart.SKIN)).all()
+
+    def test_multiple_class_output(self, service):
+        """Logits predicting distinct regions must yield corresponding multi-part mask."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 2, 2), dtype=np.float32)
+        raw_output[0, 0, 0, 0] = 10.0  # BACKGROUND
+        raw_output[0, 1, 0, 1] = 10.0  # SKIN
+        raw_output[0, 2, 1, 0] = 10.0  # LEFT_BROW
+        raw_output[0, 10, 1, 1] = 10.0 # NOSE
+
+        # Act
+        result = service._postprocess(raw_output, original_height=2, original_width=2)
+
+        # Assert
+        expected_mask = np.array(
+            [[0, 1], [2, 10]], dtype=np.int32
+        )
+        assert np.array_equal(result.mask, expected_mask)
+
+    def test_uniform_logits_defaults_to_first_class(self, service):
+        """Equal logits across all classes argmax to class 0 (BACKGROUND)."""
+        # Arrange
+        raw_output = np.ones((1, 19, 16, 16), dtype=np.float32)
+
+        # Act
+        result = service._postprocess(raw_output, original_height=16, original_width=16)
+
+        # Assert
+        assert (result.mask == int(FacePart.BACKGROUND)).all()
+
+    def test_negative_logits_handled_correctly(self, service):
+        """Argmax must correctly identify the maximum index even when all logits are negative."""
+        # Arrange
+        raw_output = np.full((1, 19, 4, 4), fill_value=-100.0, dtype=np.float32)
+        raw_output[0, 17, 2, 2] = -5.0  # Class 17 (HAIR) is highest (-5 > -100)
+
+        # Act
+        result = service._postprocess(raw_output, original_height=4, original_width=4)
+
+        # Assert
+        assert result.mask[2, 2] == int(FacePart.HAIR)
+
+    @pytest.mark.parametrize("scale", [1e6, 1e-6])
+    def test_extreme_magnitude_logits(self, service, scale):
+        """Argmax must perform correctly with very large or very small numeric scales."""
+        # Arrange
+        raw_output = np.zeros((1, 19, 4, 4), dtype=np.float32)
+        raw_output[0, 5, 0, 0] = scale  # Class 5 (RIGHT_EYE)
+
+        # Act
+        result = service._postprocess(raw_output, original_height=4, original_width=4)
+
+        # Assert
+        assert result.mask[0, 0] == int(FacePart.RIGHT_EYE)
+
+    def test_output_values_contain_no_nan_or_inf(self, service):
+        """The output mask must be completely finite without NaN or Inf values."""
+        # Arrange
+        raw_output = np.random.randn(1, 19, 32, 32).astype(np.float32)
+
+        # Act
+        result = service._postprocess(raw_output, original_height=32, original_width=32)
+
+        # Assert
+        assert np.isfinite(result.mask).all()
+
+    def test_postprocess_is_deterministic(self, service):
+        """Calling _postprocess twice with identical input produces identical FaceParsingResult masks."""
+        # Arrange
+        raw_output = np.random.randn(1, 19, 64, 64).astype(np.float32)
+
+        # Act
+        res1 = service._postprocess(raw_output, original_height=64, original_width=64)
+        res2 = service._postprocess(raw_output, original_height=64, original_width=64)
+
+        # Assert
+        assert np.array_equal(res1.mask, res2.mask)
+
+
+# ================================================================== #
+# 8. Stage 5: Pipeline Orchestration (parse)                       #
+# ================================================================== #
+
+
+class TestParsePipeline:
+    """Verify complete orchestration and data flow in parse()."""
+
+    def test_happy_path_returns_face_parsing_result(self, service, fake_onnx_session):
+        """parse() given a valid uint8 image returns a FaceParsingResult."""
+        # Arrange
+        image = np.zeros((100, 200, 3), dtype=np.uint8)
+
+        with patch.object(service, "_ensure_loaded", return_value=fake_onnx_session):
+            # Act
+            result = service.parse(image)
+
+        # Assert
+        assert isinstance(result, FaceParsingResult)
+        assert result.image_height == 100
+        assert result.image_width == 200
+        assert result.mask.shape == (100, 200)
+
+    def test_pipeline_method_execution_order(self, service, fake_onnx_session):
+        """validate -> preprocess -> run_inference -> postprocess order must be maintained."""
+        # Arrange
+        image = np.zeros((50, 50, 3), dtype=np.uint8)
+        call_order: list[str] = []
+
+        def spy_validate(img):
+            call_order.append("validate")
+
+        def spy_preprocess(img):
+            call_order.append("preprocess")
+            return np.zeros((1, 3, 512, 512), dtype=np.float32)
+
+        def spy_inference(sess, tensor):
+            call_order.append("inference")
+            return np.zeros((1, 19, 512, 512), dtype=np.float32)
+
+        def spy_postprocess(raw, h, w):
+            call_order.append("postprocess")
+            return FaceParsingResult(mask=np.zeros((h, w), dtype=np.int32), image_height=h, image_width=w)
+
+        with (
+            patch.object(service, "_ensure_loaded", return_value=fake_onnx_session),
+            patch.object(service, "_validate_image", side_effect=spy_validate),
+            patch.object(service, "_preprocess", side_effect=spy_preprocess),
+            patch.object(service, "_run_inference", side_effect=spy_inference),
+            patch.object(service, "_postprocess", side_effect=spy_postprocess),
+        ):
+            # Act
+            service.parse(image)
+
+        # Assert
+        assert call_order == ["validate", "preprocess", "inference", "postprocess"]
+
+    def test_invalid_image_propagates_validation_exception(self, service):
+        """Invalid images (e.g. empty or non-uint8) must raise validation error from parse()."""
+        # Arrange
+        invalid_image = np.zeros((100, 100, 3), dtype=np.float32)
+
+        # Act & Assert
+        with pytest.raises(TypeError, match="image dtype must be uint8"):
+            service.parse(invalid_image)
+
+    def test_inference_failure_becomes_face_parser_error(self, service, fake_onnx_session):
+        """Exceptions raised during model execution must be wrapped in FaceParserError."""
+        # Arrange
+        image = np.zeros((100, 100, 3), dtype=np.uint8)
+        fake_onnx_session.run.side_effect = RuntimeError("GPU memory exhausted")
+
+        with patch.object(service, "_ensure_loaded", return_value=fake_onnx_session):
+            # Act & Assert
+            with pytest.raises(FaceParserError, match="Face-parsing inference failed"):
+                service.parse(image)
+
+    def test_postprocessing_failure_becomes_face_parser_error(self, service, fake_onnx_session):
+        """Exceptions raised during post-processing must be wrapped in FaceParserError."""
+        # Arrange
+        image = np.zeros((100, 100, 3), dtype=np.uint8)
+
+        with (
+            patch.object(service, "_ensure_loaded", return_value=fake_onnx_session),
+            patch.object(service, "_postprocess", side_effect=RuntimeError("Resizing failed")),
+        ):
+            # Act & Assert
+            with pytest.raises(FaceParserError, match="Face-parsing post-processing failed"):
+                service.parse(image)
+
+    def test_repeated_parse_calls_reuse_loaded_session(self, service, fake_onnx_session):
+        """Subsequent parse() calls must reuse the cached session and not reload."""
+        # Arrange
+        image = np.zeros((100, 100, 3), dtype=np.uint8)
+
+        with patch.object(service, "_load_model") as mock_load:
+            service._session = fake_onnx_session
+
+            # Act
+            service.parse(image)
+            service.parse(image)
+
+        # Assert
+        mock_load.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "height, width",
+        [
+            pytest.param(120, 120, id="small_square"),
+            pytest.param(1080, 1920, id="large_hd_landscape"),
+            pytest.param(800, 600, id="portrait_aspect_ratio"),
+        ],
+    )
+    def test_varying_image_sizes_produce_correctly_sized_results(
+        self, service, fake_onnx_session, height, width
+    ):
+        """parse() must produce a result mask with dimensions matching any input image size."""
+        # Arrange
+        image = np.zeros((height, width, 3), dtype=np.uint8)
+
+        with patch.object(service, "_ensure_loaded", return_value=fake_onnx_session):
+            # Act
+            result = service.parse(image)
+
+        # Assert
+        assert result.image_height == height
+        assert result.image_width == width
+        assert result.mask.shape == (height, width)
