@@ -162,3 +162,22 @@ FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR = 0.5
 HEAD_POSE_PITCH_MAX_DEGREES = 15.0
 HEAD_POSE_YAW_MAX_DEGREES = 15.0
 HEAD_POSE_ROLL_MAX_DEGREES = 10.0
+
+# -------------------------------
+# Occlusion Validation
+# -------------------------------
+
+# Semantic classes that are never acceptable in a student ID photo.
+#
+# Notably absent:
+#   - FacePart.EYE_GLASS: normal eyeglasses are allowed. A future
+#     GlassesValidator will distinguish normal glasses from sunglasses;
+#     OcclusionValidator must not treat eyeglasses as an occlusion.
+#   - FacePart.HAIR: hair is allowed. Hair covering the eyes already
+#     reduces eye visibility, which FaceVisibilityValidator handles.
+#
+# New prohibited classes can be appended here without changing
+# OcclusionValidator itself.
+OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = (
+    FacePart.HAT,
+)
