@@ -188,3 +188,10 @@ OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = (
 
 GLASSES_SUCCESS_MESSAGE = "Acceptable eyewear detected."
 GLASSES_FAILURE_MESSAGE = "Sunglasses are not permitted."
+# Decision thresholds for the glasses-detector binary classifiers.
+# Both classifiers output a probability in [0.0, 1.0]; a value strictly
+# greater than the threshold is treated as a positive detection.
+# Not scientifically fixed; calibrate later against a representative
+# dataset of real student ID photos.
+GLASSES_SUNGLASSES_PROBABILITY_THRESHOLD = 0.5
+GLASSES_EYEGLASSES_PROBABILITY_THRESHOLD = 0.5
