@@ -181,3 +181,10 @@ HEAD_POSE_ROLL_MAX_DEGREES = 10.0
 OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = (
     FacePart.HAT,
 )
+
+# -------------------------------
+# Glasses Validation
+# -------------------------------
+
+GLASSES_SUCCESS_MESSAGE = "Acceptable eyewear detected."
+GLASSES_FAILURE_MESSAGE = "Sunglasses are not permitted."
