@@ -15,7 +15,10 @@ import threading
 
 import cv2
 import numpy as np
-from glasses_detector import GlassesClassifier
+try:
+    from glasses_detector import GlassesClassifier
+except ImportError:
+    GlassesClassifier = None  # type: ignore[assignment, misc]
 from insightface.app.common import Face
 
 from config.constants import (
