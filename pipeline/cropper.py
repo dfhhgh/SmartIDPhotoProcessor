@@ -20,6 +20,7 @@ from config.constants import (
     SIDE_PADDING_RATIO,
 )
 from exceptions.face_exceptions import FaceCroppingError
+from models.crop_result import CropResult
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class FaceCropper:
         self,
         image: np.ndarray,
         face: Face,
-    ) -> np.ndarray:
+    ) -> CropResult:
         """
         Crop the selected face from the original image.
 
@@ -48,7 +49,7 @@ class FaceCropper:
                 Selected InsightFace face.
 
         Returns:
-            Cropped face image.
+            A CropResult containing the cropped face image and crop origin coordinates.
 
         Raises:
             FaceCroppingError:
@@ -87,7 +88,11 @@ class FaceCropper:
                 "Face cropped successfully."
             )
 
-            return cropped_image
+            return CropResult(
+                image=cropped_image,
+                crop_x=x1,
+                crop_y=y1,
+            )
 
         except FaceCroppingError:
             raise
@@ -100,12 +105,6 @@ class FaceCropper:
             raise FaceCroppingError(
                 "Failed to crop face."
             ) from error
-
-    
-
-    
-
-    
 
     def _clamp_bbox(
         self,
@@ -154,8 +153,6 @@ class FaceCropper:
             y2,
         )
 
-
-
     def _crop_image(
         self,
         image: np.ndarray,
@@ -189,8 +186,6 @@ class FaceCropper:
 
         return image[y1:y2, x1:x2]
 
-
-
     def _validate_image(
         self,
         image: np.ndarray,
@@ -213,7 +208,7 @@ class FaceCropper:
             )
 
             raise FaceCroppingError(
-            "    Input image cannot be None."
+                "Input image cannot be None."
             )
 
         if not isinstance(image, np.ndarray):
@@ -227,11 +222,11 @@ class FaceCropper:
 
         if image.size == 0:
             logger.exception(
-            "Input image cannot be empty."
+                "Input image cannot be empty."
             )
 
             raise FaceCroppingError(
-            "Input image cannot be empty."
+                "Input image cannot be empty."
             )
 
         if image.ndim not in (2, 3):
@@ -240,11 +235,9 @@ class FaceCropper:
             )
 
             raise FaceCroppingError(
-            "Input image must have 2 or 3 dimensions."
+                "Input image must have 2 or 3 dimensions."
             )
 
-
-    
     def _expand_bbox(
         self,
         x1: float,
