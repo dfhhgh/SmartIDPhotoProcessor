@@ -231,3 +231,54 @@ def test_propagates_validator_exceptions():
         orchestrator.validate(
             image=np.zeros((1, 1, 3), dtype=np.uint8),
         )
+
+
+# ------------------------------------------------------------------ #
+# 7. Default Validator Collection Verification
+# ------------------------------------------------------------------ #
+
+
+def test_validation_orchestrator_executes_default_validators():
+    """Verify that ValidationOrchestrator successfully executes the default validator collection."""
+    from unittest.mock import MagicMock
+    from insightface.app.common import Face
+from unittest.mock import MagicMock, patch
+
+from models.parsing.face_parsing_result import FaceParsingResult
+    from services.eyewear_classifier import EyewearClassifier
+
+    # Create dummy inputs that satisfy all validators
+    image = np.zeros((100, 100, 3), dtype=np.uint8)
+    face = Face()
+    face.bbox = np.array([10, 10, 50, 50], dtype=np.float32)
+    face.pose = [0.0, 0.0, 0.0]
+
+    parsing_result = MagicMock(spec=FaceParsingResult)
+    parsing_result.has_part.return_value = True
+    parsing_result.part_ratio.return_value = 0.5
+
+    # Mock the eyewear classifier used by GlassesValidator
+    mock_classifier = MagicMock(spec=EyewearClassifier)
+    from models.eyewear_prediction import EyewearPrediction
+    from models.eyewear_type import EyewearType
+    mock_classifier.classify.return_value = EyewearPrediction(
+        eyewear_type=EyewearType.NONE,
+        confidence=1.0,
+    )
+
+    # Use patched constructor or factories to build actual default validators
+    from pipeline.validator_factory import create_default_validators
+    with patch("pipeline.validator_factory.GlassesDetectorClassifier", return_value=mock_classifier):
+        orchestrator = ValidationOrchestrator()  # Loads defaults automatically
+
+    # This should run through all validators (Blur, Brightness, Contrast, FaceSize,
+    # HeadPose, Glasses, FaceVisibility, Occlusion) without any signature TypeError exceptions.
+    result = orchestrator.validate(
+        image=image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    assert isinstance(result, ValidationResult)
+    assert len(result.metrics) > 0
+

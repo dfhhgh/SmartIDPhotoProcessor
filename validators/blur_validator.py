@@ -10,6 +10,7 @@ from config.constants import (
     BLUR_MAX_EXPECTED_VALUE,
     BLUR_THRESHOLD,
 )
+from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
 from validators.base_validator import BaseValidator
@@ -22,12 +23,14 @@ class BlurValidator(BaseValidator):
         self,
         image: np.ndarray,
         face: Face | None = None,
+        parsing_result: FaceParsingResult | None = None,
     ) -> ValidationMetric:
         """Validate image sharpness using variance of the Laplacian.
 
         Args:
             image: Image data to validate.
             face: Optional detected face. Unused by this validator.
+            parsing_result: Optional face parsing result. Unused by this validator.
 
         Returns:
             A normalized score clamped to the range [0.0, 1.0]..
@@ -37,6 +40,7 @@ class BlurValidator(BaseValidator):
             ValueError: If image is None or empty.
         """
         _ = face
+        _ = parsing_result
 
         if image is None:
             raise ValueError(

@@ -15,6 +15,7 @@ from insightface.app.common import Face
 
 from config.constants import ALIGNED_FACE_SIZE, ARCFACE_TEMPLATE
 from exceptions.face_exceptions import FaceAlignmentError
+from models.alignment_result import AlignmentResult
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class FaceAligner:
         self,
         image: np.ndarray,
         face: Face,
-    ) -> np.ndarray:
+    ) -> AlignmentResult:
         """
         Align the selected face.
 
@@ -43,7 +44,8 @@ class FaceAligner:
                 Selected InsightFace face.
 
         Returns:
-            The aligned face image.
+            The complete alignment result containing the aligned image,
+            aligned face metadata, and affine transform.
 
         Raises:
             FaceAlignmentError:
@@ -65,11 +67,20 @@ class FaceAligner:
                 transform,
             )
 
+            aligned_face = self._transform_face(
+                face,
+                transform,
+            )
+
             logger.info(
                 "Face aligned successfully."
             )
 
-            return aligned_image
+            return AlignmentResult(
+                aligned_image=aligned_image,
+                aligned_face=aligned_face,
+                transform=transform,
+            )
 
         except FaceAlignmentError:
             raise
@@ -398,3 +409,152 @@ class FaceAligner:
             raise FaceAlignmentError(
                 "Similarity transform could not be applied."
             ) from exc
+
+    def _transform_face(
+        self,
+        face: Face,
+        transform: np.ndarray,
+    ) -> Face:
+        """
+        Transform face coordinates into the aligned image coordinate system.
+
+        The returned Face preserves non-spatial metadata from the input face
+        while replacing bbox and kps with affine-transformed coordinates.
+        """
+        if not isinstance(face, Face):
+            logger.error(
+                "Face must be a Face instance."
+            )
+
+            raise FaceAlignmentError(
+                "Face must be a Face instance."
+            )
+
+        if not isinstance(transform, np.ndarray):
+            logger.error(
+                "Similarity transform must be a NumPy ndarray."
+            )
+
+            raise FaceAlignmentError(
+                "Similarity transform must be a NumPy ndarray."
+            )
+
+        if transform.shape != (2, 3):
+            logger.error(
+                "Similarity transform must have shape (2, 3)."
+            )
+
+            raise FaceAlignmentError(
+                "Similarity transform must have shape (2, 3)."
+            )
+
+        self._validate_landmarks(face)
+
+        bbox = getattr(face, "bbox", None)
+
+        if bbox is None:
+            logger.error(
+                "Face bounding box cannot be None."
+            )
+
+            raise FaceAlignmentError(
+                "Face bounding box cannot be None."
+            )
+
+        if not isinstance(bbox, np.ndarray):
+            logger.error(
+                "Face bounding box must be a NumPy ndarray."
+            )
+
+            raise FaceAlignmentError(
+                "Face bounding box must be a NumPy ndarray."
+            )
+
+        if bbox.shape != (4,):
+            logger.error(
+                "Face bounding box must have shape (4,)."
+            )
+
+            raise FaceAlignmentError(
+                "Face bounding box must have shape (4,)."
+            )
+
+        aligned_face = Face(dict(face))
+        aligned_face.bbox = self._transform_bbox(
+            bbox,
+            transform,
+        )
+        aligned_face.kps = self._transform_landmarks(
+            face.kps,
+            transform,
+        )
+
+        return aligned_face
+
+    def _transform_bbox(
+        self,
+        bbox: np.ndarray,
+        transform: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Transform a bbox by applying the affine transform to all four corners.
+        """
+        x1, y1, x2, y2 = bbox.astype(np.float32)
+        corners = np.array(
+            [
+                [x1, y1],
+                [x2, y1],
+                [x2, y2],
+                [x1, y2],
+            ],
+            dtype=np.float32,
+        )
+        transformed_corners = self._apply_affine_to_points(
+            corners,
+            transform,
+        )
+
+        min_x = float(transformed_corners[:, 0].min())
+        min_y = float(transformed_corners[:, 1].min())
+        max_x = float(transformed_corners[:, 0].max())
+        max_y = float(transformed_corners[:, 1].max())
+
+        return np.array(
+            [min_x, min_y, max_x, max_y],
+            dtype=np.float32,
+        )
+
+    def _transform_landmarks(
+        self,
+        landmarks: np.ndarray,
+        transform: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Transform landmark points into aligned image coordinates.
+        """
+        return self._apply_affine_to_points(
+            landmarks.astype(np.float32),
+            transform,
+        )
+
+    def _apply_affine_to_points(
+        self,
+        points: np.ndarray,
+        transform: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Apply a 2x3 affine transform to an Nx2 point array.
+        """
+        homogeneous_points = np.hstack(
+            [
+                points.astype(np.float32),
+                np.ones(
+                    (points.shape[0], 1),
+                    dtype=np.float32,
+                ),
+            ]
+        )
+
+        return (
+            homogeneous_points @ transform.astype(np.float32).T
+        ).astype(np.float32)

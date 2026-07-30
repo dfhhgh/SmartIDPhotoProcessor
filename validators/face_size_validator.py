@@ -11,6 +11,7 @@ from config.constants import (
     FACE_SIZE_MIN_RATIO,
     FLOAT_COMPARISON_EPSILON
 )
+from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
 from validators.base_validator import BaseValidator
@@ -23,12 +24,14 @@ class FaceSizeValidator(BaseValidator):
         self,
         image: np.ndarray,
         face: Face | None = None,
+        parsing_result: FaceParsingResult | None = None,
     ) -> ValidationMetric:
         """Validate face size using the ratio of face area to image area.
 
         Args:
             image: Image data to validate.
             face: Detected face with bounding box information.
+            parsing_result: Optional face parsing result. Unused by this validator.
 
         Returns:
             A ValidationMetric containing a quality score clamped to the
@@ -38,6 +41,7 @@ class FaceSizeValidator(BaseValidator):
             TypeError: If image is not a NumPy array.
             ValueError: If image is None, empty, or face is None.
         """
+        _ = parsing_result
         if image is None:
             raise ValueError(
                 "Image must not be None."

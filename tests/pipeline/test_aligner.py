@@ -3,6 +3,8 @@ import numpy as np
 import pytest
 
 from config.constants import ALIGNED_FACE_SIZE, ARCFACE_TEMPLATE
+from insightface.app.common import Face
+from models.alignment_result import AlignmentResult
 from pipeline.aligner import FaceAligner
 from exceptions.face_exceptions import FaceAlignmentError
 from unittest.mock import MagicMock, patch
@@ -25,8 +27,11 @@ from unittest.mock import MagicMock
 
 @pytest.fixture
 def valid_face():
-    face = MagicMock()
-
+    face = Face()
+    face.bbox = np.array(
+        [20.0, 30.0, 100.0, 120.0],
+        dtype=np.float32,
+    )
     face.kps = np.array(
         [
             [38.0, 51.0],
@@ -598,7 +603,7 @@ def test_apply_transform_warp_affine_error(
 
 def test_align_success(
     aligner: FaceAligner,
-    valid_face: MagicMock,
+    valid_face: Face,
 ):
     image = np.zeros(
         (200, 200, 3),
@@ -631,6 +636,7 @@ def test_align_success(
         ),
         dtype=np.uint8,
     )
+    expected_face = Face(dict(valid_face))
 
     with (
         patch.object(
@@ -661,6 +667,12 @@ def test_align_success(
             "_apply_transform",
             return_value=expected_image,
         ) as mock_apply,
+
+        patch.object(
+            aligner,
+            "_transform_face",
+            return_value=expected_face,
+        ) as mock_transform_face,
     ):
 
         result = aligner.align(
@@ -684,15 +696,101 @@ def test_align_success(
         transform,
     )
 
-    np.testing.assert_array_equal(
-        result,
-        expected_image,
+    mock_transform_face.assert_called_once_with(
+        valid_face,
+        transform,
     )
+
+    assert isinstance(result, AlignmentResult)
+    assert result.aligned_image is expected_image
+    assert result.aligned_face is expected_face
+    assert result.transform is transform
+
+
+def test_transform_face_returns_aligned_coordinate_face(
+    aligner: FaceAligner,
+    valid_face: Face,
+):
+    transform = np.array(
+        [
+            [2.0, 0.0, 10.0],
+            [0.0, 2.0, 20.0],
+        ],
+        dtype=np.float32,
+    )
+
+    result = aligner._transform_face(
+        valid_face,
+        transform,
+    )
+
+    expected_bbox = np.array(
+        [50.0, 80.0, 210.0, 260.0],
+        dtype=np.float32,
+    )
+    expected_kps = valid_face.kps * 2.0 + np.array(
+        [10.0, 20.0],
+        dtype=np.float32,
+    )
+
+    assert result is not valid_face
+    np.testing.assert_array_equal(result.bbox, expected_bbox)
+    np.testing.assert_array_equal(result.kps, expected_kps)
+
+
+def test_align_result_image_and_face_share_aligned_coordinate_system(
+    aligner: FaceAligner,
+    valid_face: Face,
+):
+    image = np.zeros(
+        (140, 140, 3),
+        dtype=np.uint8,
+    )
+    transform = np.array(
+        [
+            [1.0, 0.0, -10.0],
+            [0.0, 1.0, -20.0],
+        ],
+        dtype=np.float32,
+    )
+    aligned_image = np.zeros(
+        (
+            ALIGNED_FACE_SIZE[1],
+            ALIGNED_FACE_SIZE[0],
+            3,
+        ),
+        dtype=np.uint8,
+    )
+
+    with (
+        patch.object(
+            aligner,
+            "_compute_similarity_transform",
+            return_value=transform,
+        ),
+        patch.object(
+            aligner,
+            "_apply_transform",
+            return_value=aligned_image,
+        ),
+    ):
+        result = aligner.align(
+            image,
+            valid_face,
+        )
+
+    expected_bbox = np.array(
+        [10.0, 10.0, 90.0, 100.0],
+        dtype=np.float32,
+    )
+
+    assert result.aligned_image is aligned_image
+    np.testing.assert_array_equal(result.aligned_face.bbox, expected_bbox)
 
 
 def test_align_reraises_face_alignment_error(
     aligner: FaceAligner,
-    valid_face: MagicMock,
+    valid_face: Face,
 ):
     image = np.zeros(
         (200, 200, 3),
@@ -717,7 +815,7 @@ def test_align_reraises_face_alignment_error(
 
 def test_align_wraps_unexpected_exception(
     aligner: FaceAligner,
-    valid_face: MagicMock,
+    valid_face: Face,
 ):
     image = np.zeros(
         (200, 200, 3),

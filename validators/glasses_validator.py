@@ -10,6 +10,7 @@ from config.constants import (
     GLASSES_SUCCESS_MESSAGE,
 )
 from models.eyewear_type import EyewearType
+from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
 from services.eyewear_classifier import EyewearClassifier
@@ -59,12 +60,14 @@ class GlassesValidator(BaseValidator):
         self,
         image: np.ndarray,
         face: Face | None = None,
+        parsing_result: FaceParsingResult | None = None,
     ) -> ValidationMetric:
         """Validate eyewear policy using the injected classifier.
 
         Args:
             image: Image data to validate.
             face: Detected face required for eyewear classification.
+            parsing_result: Optional face parsing result. Unused by this validator.
 
         Returns:
             A ValidationMetric using ValidationType.GLASSES, with the
@@ -76,6 +79,7 @@ class GlassesValidator(BaseValidator):
                 Face instance.
             ValueError: If image is None/empty, or face is None.
         """
+        _ = parsing_result
         if image is None:
             raise ValueError(
                 "Image must not be None."

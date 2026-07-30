@@ -10,6 +10,7 @@ from config.constants import (
     HEAD_POSE_ROLL_MAX_DEGREES,
     HEAD_POSE_YAW_MAX_DEGREES,
 )
+from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
 from validators.base_validator import BaseValidator
@@ -28,12 +29,14 @@ class HeadPoseValidator(BaseValidator):
         self,
         image: np.ndarray,
         face: Face | None = None,
+        parsing_result: FaceParsingResult | None = None,
     ) -> ValidationMetric:
         """Validate head pose using pitch, yaw, and roll angles.
 
         Args:
             image: Image data to validate.
             face: Detected face with pose information.
+            parsing_result: Optional face parsing result. Unused by this validator.
 
         Returns:
             A ValidationMetric containing a quality score clamped to the
@@ -45,6 +48,7 @@ class HeadPoseValidator(BaseValidator):
             ValueError: If image is None, empty, face is None, or face has
                 no usable pose attribute.
         """
+        _ = parsing_result
         if image is None:
             raise ValueError(
                 "Image must not be None."

@@ -123,6 +123,23 @@ class TestRoiExtraction:
         roi = classifier._extract_face_roi(valid_image, mock_face)
         assert roi.shape == (40, 40, 3)
 
+    def test_extracts_roi_from_matching_aligned_coordinates(self, classifier):
+        """Aligned-image coordinates must slice the corresponding aligned image region."""
+        aligned_image = np.arange(
+            112 * 112 * 3,
+            dtype=np.uint16,
+        ).reshape(112, 112, 3)
+        face = Face()
+        face.bbox = np.array([20.0, 30.0, 80.0, 90.0], dtype=np.float32)
+
+        roi = classifier._extract_face_roi(
+            aligned_image,
+            face,
+        )
+
+        expected = aligned_image[30:90, 20:80]
+        assert np.array_equal(roi, expected)
+
     def test_bbox_clamping(self, classifier, valid_image, mock_face):
         """Bounding box coordinates extending beyond image bounds are clamped."""
         mock_face.bbox = np.array([-50, -50, 300, 300], dtype=np.float32)

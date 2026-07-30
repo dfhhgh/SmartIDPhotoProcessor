@@ -1,8 +1,8 @@
 """
 Photo validation pipeline orchestration module.
 
-Connects the detection, selection, alignment, parsing, and validation
-components into a single sequential workflow.
+Connects the detection, selection, cropping, coordinate transformation,
+alignment, parsing, and validation components into a single sequential workflow.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import numpy as np
 
 from models.photo_processing_result import PhotoProcessingResult
 from pipeline.aligner import FaceAligner
+from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.cropper import FaceCropper
 from pipeline.detector import FaceDetector
 from pipeline.selector import FaceSelector
@@ -28,11 +29,12 @@ class PhotoValidationPipeline:
     Execution steps:
     1. Detect all faces in the image.
     2. Select the primary face.
-    3. Align the selected face.
-    4. Run face parsing on the aligned face.
-    5. Execute validation orchestrator on the aligned image, face, and parsing result.
-    6. Conditionally crop the face if validation succeeds.
-    7. Return PhotoProcessingResult.
+    3. Crop the selected face (producing CropResult with image and crop offset).
+    4. Transform face coordinates using FaceCoordinateTransformer.
+    5. Align the cropped image and face into aligned coordinate space.
+    6. Run face parsing on the aligned face.
+    7. Execute validation orchestrator on the aligned image, aligned face, and parsing result.
+    8. Return PhotoProcessingResult (containing crop_result.image if validation succeeds, else None).
     """
 
     def __init__(
@@ -40,6 +42,7 @@ class PhotoValidationPipeline:
         detector: FaceDetector | None = None,
         selector: FaceSelector | None = None,
         cropper: FaceCropper | None = None,
+        coordinate_transformer: FaceCoordinateTransformer | None = None,
         aligner: FaceAligner | None = None,
         parser_service: FaceParserService | None = None,
         orchestrator: ValidationOrchestrator | None = None,
@@ -48,6 +51,11 @@ class PhotoValidationPipeline:
         self._detector = detector if detector is not None else FaceDetector()
         self._selector = selector if selector is not None else FaceSelector()
         self._cropper = cropper if cropper is not None else FaceCropper()
+        self._coordinate_transformer = (
+            coordinate_transformer
+            if coordinate_transformer is not None
+            else FaceCoordinateTransformer()
+        )
         self._aligner = aligner if aligner is not None else FaceAligner()
         self._parser_service = (
             parser_service if parser_service is not None else FaceParserService()
@@ -67,6 +75,7 @@ class PhotoValidationPipeline:
 
         Raises:
             ValueError, TypeError, FaceDetectionError, FaceSelectionError,
+            FaceCroppingError, FaceCoordinateTransformationError,
             FaceAlignmentError, FaceParserError, etc. from underlying components.
         """
         logger.info("Starting photo validation pipeline.")
@@ -77,29 +86,36 @@ class PhotoValidationPipeline:
         # 2. Select the best face
         selected_face = self._selector.select(faces, image.shape)
 
-        # 3. Align the selected face
-        aligned_image = self._aligner.align(image, selected_face)
+        # 3. Crop the selected face
+        crop_result = self._cropper.crop(image, selected_face)
 
-        # 4. Run FaceParserService on the aligned face
-        parsing_result = self._parser_service.parse(aligned_image)
+        # 4. Transform face coordinates into cropped image coordinate space
+        transformed_face = self._coordinate_transformer.transform(
+            selected_face,
+            crop_result.crop_x,
+            crop_result.crop_y,
+        )
 
-        # 5. Execute ValidationOrchestrator
+        # 5. Align the cropped image and face using transformed landmarks
+        alignment_result = self._aligner.align(crop_result.image, transformed_face)
+
+        # 6. Run FaceParserService on the aligned face
+        parsing_result = self._parser_service.parse(alignment_result.aligned_image)
+
+        # 7. Execute ValidationOrchestrator
         validation_result = self._orchestrator.validate(
-            image=aligned_image,
-            face=selected_face,
+            image=alignment_result.aligned_image,
+            face=alignment_result.aligned_face,
             parsing_result=parsing_result,
         )
 
-        # 6. Conditionally crop if validation succeeds
-        if validation_result.is_valid:
-            cropped_image = self._cropper.crop(image, selected_face)
-        else:
-            cropped_image = None
+        # 8. Set cropped image based on validation success
+        cropped_image = crop_result.image if validation_result.is_valid else None
 
         logger.info("Photo validation pipeline completed successfully.")
         return PhotoProcessingResult(
             validation_result=validation_result,
             selected_face=selected_face,
-            aligned_image=aligned_image,
+            aligned_image=alignment_result.aligned_image,
             cropped_image=cropped_image,
         )

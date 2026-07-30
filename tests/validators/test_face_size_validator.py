@@ -988,3 +988,29 @@ def test_validate_rectangular_image(
     assert metric.score == pytest.approx(
         _expected_score(expected_ratio),
     )
+
+
+def test_validate_uses_face_coordinates_matching_the_provided_image(
+    validator: FaceSizeValidator,
+):
+    """Face ratio must be computed from the face bbox and image in one coordinate system."""
+    aligned_image = _create_image(
+        height=112,
+        width=112,
+    )
+    aligned_face = _create_face(
+        x1=28.0,
+        y1=28.0,
+        x2=84.0,
+        y2=84.0,
+    )
+    expected_ratio = (56.0 * 56.0) / (112.0 * 112.0)
+
+    metric = validator.validate(
+        image=aligned_image,
+        face=aligned_face,
+    )
+
+    assert metric.score == pytest.approx(
+        _expected_score(expected_ratio),
+    )
