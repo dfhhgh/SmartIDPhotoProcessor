@@ -28,3 +28,8 @@ class FaceAlignmentError(FacePipelineError):
     """
     Raised when face alignment fails.
     """
+
+class FaceCoordinateTransformationError(FacePipelineError):
+    """
+    Raised when face coordinate transformation fails.
+    """

@@ -1,9 +1,10 @@
 import numpy as np
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from pipeline.cropper import FaceCropper
 from exceptions.face_exceptions import FaceCroppingError
+from models.crop_result import CropResult
 
 @pytest.fixture
 def cropper():
@@ -222,13 +223,23 @@ def test_crop_returns_cropped_image(
     face = MagicMock()
     face.bbox = [100, 100, 200, 200]
 
-    cropped = cropper.crop(
+    result = cropper.crop(
         image,
         face,
     )
 
-    assert cropped.ndim == 3
-    assert cropped.size > 0
+    assert isinstance(result, CropResult)
+    assert isinstance(result.image, np.ndarray)
+    assert result.image.ndim == 3
+    assert result.image.size > 0
+    assert isinstance(result.crop_x, int)
+    assert isinstance(result.crop_y, int)
+
+    expected = image[
+        result.crop_y : result.crop_y + result.image.shape[0],
+        result.crop_x : result.crop_x + result.image.shape[1],
+    ]
+    assert np.array_equal(result.image, expected)
 
 def test_crop_raises_for_invalid_image(
     cropper: FaceCropper,
@@ -267,7 +278,6 @@ def test_crop_raises_for_invalid_bbox(
 
 def test_crop_wraps_unexpected_exception(
     cropper: FaceCropper,
-    mocker,
 ):
     image = np.zeros(
         (300, 300, 3),
@@ -277,16 +287,15 @@ def test_crop_wraps_unexpected_exception(
     face = MagicMock()
     face.bbox = [10, 10, 50, 50]
 
-    mocker.patch.object(
+    with patch.object(
         cropper,
         "_crop_image",
         side_effect=RuntimeError("Unexpected error"),
-    )
-
-    with pytest.raises(
-        FaceCroppingError,
     ):
-        cropper.crop(
-            image,
-            face,
-        )
+        with pytest.raises(
+            FaceCroppingError,
+        ):
+            cropper.crop(
+                image,
+                face,
+            )
