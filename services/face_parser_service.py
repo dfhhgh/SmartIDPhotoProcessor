@@ -201,28 +201,57 @@ class FaceParserService:
     ) -> npt.NDArray[np.float32]:
         """Execute the ONNX graph and return raw logits, validating shape."""
         input_name = session.get_inputs()[0].name
+        output_metas = session.get_outputs()
         outputs = session.run(None, {input_name: tensor})
 
-        if len(outputs) != 1:
+        if not outputs or not output_metas:
+            raise FaceParserError("Model returned no outputs.")
+
+        valid_outputs = []
+        for meta, arr in zip(output_metas, outputs):
+            if (
+                isinstance(arr, np.ndarray)
+                and arr.ndim == 4
+                and arr.shape[0] == 1
+                and arr.shape[1] == len(FacePart)
+            ):
+                valid_outputs.append((meta.name, arr))
+
+        if not valid_outputs:
             raise FaceParserError(
-                f"Expected exactly one model output, got {len(outputs)}."
+                f"No valid segmentation output found matching expected shape (1, {len(FacePart)}, H, W)."
             )
 
-        output = outputs[0]
+        if len(valid_outputs) > 1:
+            logger.warning(
+                "Multiple valid segmentation outputs detected (%d). Selecting based on rules.",
+                len(valid_outputs),
+            )
 
-        if output.ndim != 4 or output.shape[0] != 1:
+        # Prefer output whose metadata name is "output"
+        selected_output = None
+        for name, arr in valid_outputs:
+            if name == "output":
+                selected_output = arr
+                break
+
+        # If no output named "output" exists, select the first valid output
+        if selected_output is None:
+            selected_output = valid_outputs[0][1]
+
+        if selected_output.ndim != 4 or selected_output.shape[0] != 1:
             raise FaceParserError(
-                f"Unexpected BiSeNet output shape {output.shape}; "
+                f"Unexpected BiSeNet output shape {selected_output.shape}; "
                 "expected (1, C, H, W)."
             )
 
-        if output.shape[1] != len(FacePart):
+        if selected_output.shape[1] != len(FacePart):
             raise FaceParserError(
-                f"Model output has {output.shape[1]} class channels, "
+                f"Model output has {selected_output.shape[1]} class channels, "
                 f"but {len(FacePart)} FacePart classes are defined."
             )
 
-        return output
+        return selected_output
 
     # ------------------------------------------------------------------ #
     # Post-processing

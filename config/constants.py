@@ -91,9 +91,26 @@ OUTPUT_HEIGHT = 800
 # Face Cropping
 # -------------------------------
 
-TOP_PADDING_RATIO = 0.25
-BOTTOM_PADDING_RATIO = 0.30
-SIDE_PADDING_RATIO = 0.18
+# Padding ratios for face cropping, calibrated for official student ID /
+# passport style photographs.
+#
+# InsightFace bounding boxes typically span from the eyebrows/forehead to the chin.
+# To transform this into a standard ID portrait containing the complete head,
+# forehead, hair/head covering, visible ears, neck, and shoulders, asymmetric
+# and calibrated padding ratios are applied:
+#
+# - TOP_PADDING_RATIO (0.45): Provides generous space above the detected
+#   bounding box top to fully include the forehead, top of the head, and hair or
+#   head covering.
+# - BOTTOM_PADDING_RATIO (0.75): Provides substantial padding below the chin
+#   to capture the neck and a portion of the shoulders, adhering to passport/ID
+#   composition guidelines.
+# - SIDE_PADDING_RATIO (0.30): Provides moderate horizontal padding on both
+#   sides to encompass ears (when visible) and side hair while avoiding
+#   excessive lateral background.
+TOP_PADDING_RATIO = 0.45
+BOTTOM_PADDING_RATIO = 0.75
+SIDE_PADDING_RATIO = 0.30
 
 
 # Contrast validation thresholds.

@@ -84,6 +84,10 @@ def fake_onnx_session() -> MagicMock:
     input_meta.name = "input_image"
     session.get_inputs.return_value = [input_meta]
 
+    output_meta = MagicMock()
+    output_meta.name = "output"
+    session.get_outputs.return_value = [output_meta]
+
     # Default mock output logits of shape (1, 19, 512, 512)
     fake_logits = np.zeros((1, 19, 512, 512), dtype=np.float32)
     session.run.return_value = [fake_logits]
@@ -645,28 +649,20 @@ class TestRunInference:
     @pytest.mark.parametrize(
         "outputs, expected_msg",
         [
-            pytest.param([], "Expected exactly one model output, got 0", id="empty_output_list"),
-            pytest.param(
-                [
-                    np.zeros((1, 19, 512, 512), dtype=np.float32),
-                    np.zeros((1, 19, 512, 512), dtype=np.float32),
-                ],
-                "Expected exactly one model output, got 2",
-                id="multiple_outputs",
-            ),
+            pytest.param([], "Model returned no outputs", id="empty_output_list"),
             pytest.param(
                 [np.zeros((19, 512, 512), dtype=np.float32)],
-                "Unexpected BiSeNet output shape",
+                "No valid segmentation output found",
                 id="missing_batch_dim_3d",
             ),
             pytest.param(
                 [np.zeros((2, 19, 512, 512), dtype=np.float32)],
-                "Unexpected BiSeNet output shape",
+                "No valid segmentation output found",
                 id="batch_size_greater_than_1",
             ),
             pytest.param(
                 [np.zeros((1, 10, 512, 512), dtype=np.float32)],
-                "Model output has 10 class channels, but 19 FacePart classes are defined",
+                "No valid segmentation output found",
                 id="wrong_class_channels",
             ),
         ],
@@ -677,11 +673,44 @@ class TestRunInference:
         """Unexpected model output shapes or counts must raise FaceParserError."""
         # Arrange
         fake_onnx_session.run.return_value = outputs
+        fake_onnx_session.get_outputs.return_value = [MagicMock(name=str(i)) for i in range(len(outputs))]
         input_tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
 
         # Act & Assert
         with pytest.raises(FaceParserError, match=expected_msg):
             service._run_inference(fake_onnx_session, input_tensor)
+
+    def test_multiple_outputs_prefers_output_named_output(self, service, fake_onnx_session):
+        """When multiple valid outputs exist, prefer the one named 'output'."""
+        out1 = MagicMock()
+        out1.name = "aux_output"
+        out2 = MagicMock()
+        out2.name = "output"
+        fake_onnx_session.get_outputs.return_value = [out1, out2]
+
+        arr1 = np.ones((1, 19, 512, 512), dtype=np.float32) * 1.0
+        arr2 = np.ones((1, 19, 512, 512), dtype=np.float32) * 2.0
+        fake_onnx_session.run.return_value = [arr1, arr2]
+
+        tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+        result = service._run_inference(fake_onnx_session, tensor)
+        assert np.array_equal(result, arr2)
+
+    def test_multiple_outputs_selects_first_valid_if_no_output_name(self, service, fake_onnx_session):
+        """When multiple valid outputs exist and none is named 'output', select the first valid output."""
+        out1 = MagicMock()
+        out1.name = "first"
+        out2 = MagicMock()
+        out2.name = "second"
+        fake_onnx_session.get_outputs.return_value = [out1, out2]
+
+        arr1 = np.ones((1, 19, 512, 512), dtype=np.float32) * 5.0
+        arr2 = np.ones((1, 19, 512, 512), dtype=np.float32) * 6.0
+        fake_onnx_session.run.return_value = [arr1, arr2]
+
+        tensor = np.zeros((1, 3, 512, 512), dtype=np.float32)
+        result = service._run_inference(fake_onnx_session, tensor)
+        assert np.array_equal(result, arr1)
 
     def test_large_output_tensors_handled_correctly(self, service, fake_onnx_session):
         """Large output logits tensors (e.g. 1024x1024 spatial) must be processed without error."""

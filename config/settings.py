@@ -12,7 +12,7 @@ class Settings:
 
     # InsightFace
     MODEL_NAME: str = "buffalo_l"
-    MODEL_ROOT: Path = BASE_DIR / "models"
+    MODEL_ROOT: Path = BASE_DIR / "ai_models"
 
     # Hardware
     USE_GPU: bool = True

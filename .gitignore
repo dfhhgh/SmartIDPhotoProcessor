@@ -1,5 +1,5 @@
-ai_models//
+ai_models/
 outputs/
-.venv/
+.venv312/
 __pycache__/
 *.pyc

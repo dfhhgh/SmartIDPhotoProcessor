@@ -324,6 +324,16 @@ class GlassesDetectorClassifier(EyewearClassifier):
 
         roi_bgr = self._extract_face_roi(image, face)
         roi_rgb = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2RGB)
+        roi_bgr = self._extract_face_roi(image, face)
+
+        # للتجربة فقط
+        roi_rgb = cv2.resize(roi_rgb, (224, 224))
+
+        print("=" * 60)
+        print("ROI shape after resize:", roi_rgb.shape)
+        print("=" * 60)
+
+
 
         eyeglasses_classifier, sunglasses_classifier = self._ensure_loaded()
 

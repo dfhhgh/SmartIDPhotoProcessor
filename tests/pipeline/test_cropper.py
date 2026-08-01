@@ -73,10 +73,10 @@ def test_expand_bbox_returns_expected_coordinates(
     )
 
     assert result == (
-        82,
-        75,
-        218,
+        70,
+        55,
         230,
+        275,
     )
 
 def test_clamp_bbox_returns_same_coordinates_when_inside_image(
