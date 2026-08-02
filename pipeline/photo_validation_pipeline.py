@@ -12,6 +12,7 @@ import logging
 import numpy as np
 
 from models.photo_processing_result import PhotoProcessingResult
+from models.validation_execution_mode import ValidationExecutionMode
 from pipeline.aligner import FaceAligner
 from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.cropper import FaceCropper
@@ -46,8 +47,15 @@ class PhotoValidationPipeline:
         aligner: FaceAligner | None = None,
         parser_service: FaceParserService | None = None,
         orchestrator: ValidationOrchestrator | None = None,
+        execution_mode: ValidationExecutionMode = ValidationExecutionMode.PRODUCTION,
     ) -> None:
-        """Initialise pipeline components with optional dependency injection."""
+        """Initialise pipeline components with optional dependency injection.
+
+        Args:
+            execution_mode: Only used when `orchestrator` is not injected --
+                controls whether the default ValidationOrchestrator short-circuits
+                (PRODUCTION) or runs every validator unconditionally (DEVELOPMENT).
+        """
         self._detector = detector if detector is not None else FaceDetector()
         self._selector = selector if selector is not None else FaceSelector()
         self._cropper = cropper if cropper is not None else FaceCropper()
@@ -61,7 +69,12 @@ class PhotoValidationPipeline:
             parser_service if parser_service is not None else FaceParserService()
         )
         self._orchestrator = (
-            orchestrator if orchestrator is not None else ValidationOrchestrator()
+            orchestrator
+            if orchestrator is not None
+            else ValidationOrchestrator(
+                parser_service=self._parser_service,
+                execution_mode=execution_mode,
+            )
         )
 
     def validate(self, image: np.ndarray) -> PhotoProcessingResult:
@@ -99,15 +112,20 @@ class PhotoValidationPipeline:
         # 5. Align the cropped image and face using transformed landmarks
         alignment_result = self._aligner.align(crop_result.image, transformed_face)
 
-        # 6. Run FaceParserService on the aligned face
-        parsing_result = self._parser_service.parse(alignment_result.aligned_image)
-
-        # 7. Execute ValidationOrchestrator
-        validation_result = self._orchestrator.validate(
-            image=alignment_result.aligned_image,
-            face=alignment_result.aligned_face,
-            parsing_result=parsing_result,
-        )
+        # 6. Execute ValidationOrchestrator with optimized staging / lazy parsing
+        if isinstance(self._orchestrator, ValidationOrchestrator):
+            validation_result = self._orchestrator.validate(
+                image=alignment_result.aligned_image,
+                face=alignment_result.aligned_face,
+                parsing_result=None,
+            )
+        else:
+            parsing_result = self._parser_service.parse(alignment_result.aligned_image)
+            validation_result = self._orchestrator.validate(
+                image=alignment_result.aligned_image,
+                face=alignment_result.aligned_face,
+                parsing_result=parsing_result,
+            )
 
         # 8. Set cropped image based on validation success
         cropped_image = crop_result.image if validation_result.is_valid else None

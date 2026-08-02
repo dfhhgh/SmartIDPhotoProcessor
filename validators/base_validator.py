@@ -9,10 +9,17 @@ from insightface.app.common import Face
 
 from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
+from models.validation_stage import ValidationStage
 
 
 class BaseValidator(ABC):
     """Defines the contract for all image validation rules."""
+
+    @property
+    @abstractmethod
+    def stage(self) -> ValidationStage:
+        """Return the validation stage for this validator."""
+        pass
 
     @abstractmethod
     def validate(

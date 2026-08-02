@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
@@ -9,6 +10,7 @@ from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_result import ValidationResult
 from models.validation_type import ValidationType
+from models.validation_stage import ValidationStage
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from validators.base_validator import BaseValidator
 
@@ -35,6 +37,10 @@ class _RecordingValidator(BaseValidator):
         self.received_face = None
         self.received_parsing_result = None
 
+    @property
+    def stage(self) -> ValidationStage:
+        return ValidationStage.CHEAP
+
     def validate(
         self,
         image: np.ndarray,
@@ -53,6 +59,10 @@ class _RaisingValidator(BaseValidator):
 
     def __init__(self, message: str = "boom") -> None:
         self._message = message
+
+    @property
+    def stage(self) -> ValidationStage:
+        return ValidationStage.CHEAP
 
     def validate(
         self,
@@ -240,11 +250,10 @@ def test_propagates_validator_exceptions():
 
 def test_validation_orchestrator_executes_default_validators():
     """Verify that ValidationOrchestrator successfully executes the default validator collection."""
-    from unittest.mock import MagicMock
+    from unittest.mock import MagicMock, patch
     from insightface.app.common import Face
-from unittest.mock import MagicMock, patch
 
-from models.parsing.face_parsing_result import FaceParsingResult
+    from models.parsing.face_parsing_result import FaceParsingResult
     from services.eyewear_classifier import EyewearClassifier
 
     # Create dummy inputs that satisfy all validators
@@ -281,4 +290,28 @@ from models.parsing.face_parsing_result import FaceParsingResult
 
     assert isinstance(result, ValidationResult)
     assert len(result.metrics) > 0
+
+
+def test_validation_orchestrator_short_circuits_on_stage1_failure():
+    """If a Stage 1 default validator fails, execution stops immediately and FaceParserService is not called."""
+    mock_parser = MagicMock()
+
+    v1 = MagicMock()
+    v1.validate.return_value = _metric(ValidationType.BLUR, passed=False, score=0.1)
+    v2 = MagicMock()
+    v3 = MagicMock()
+    v4 = MagicMock()
+    v5 = MagicMock()
+    v6 = MagicMock()
+    v7 = MagicMock()
+    v8 = MagicMock()
+
+    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2, v3, v4, v5, v6, v7, v8)):
+        orchestrator = ValidationOrchestrator(parser_service=mock_parser)
+        result = orchestrator.validate(image=np.zeros((10, 10, 3), dtype=np.uint8))
+
+    assert len(result.metrics) == 1
+    assert result.metrics[0].passed is False
+    mock_parser.parse.assert_not_called()
+    v2.validate.assert_not_called()
 

@@ -13,6 +13,7 @@ from config.constants import (
 from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
+from models.validation_stage import ValidationStage
 from validators.base_validator import BaseValidator
 
 
@@ -24,6 +25,11 @@ class HeadPoseValidator(BaseValidator):
     validator does not estimate pose itself; it only interprets the values
     already produced by the upstream face detection model.
     """
+
+    @property
+    def stage(self) -> ValidationStage:
+        """Return the validation stage for this validator."""
+        return ValidationStage.CHEAP
 
     def validate(
         self,

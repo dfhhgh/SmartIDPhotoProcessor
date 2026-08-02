@@ -13,6 +13,7 @@ from models.eyewear_type import EyewearType
 from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
+from models.validation_stage import ValidationStage
 from services.eyewear_classifier import EyewearClassifier
 from validators.base_validator import BaseValidator
 
@@ -24,6 +25,11 @@ class GlassesValidator(BaseValidator):
     enforces the document policy regarding eyewear. Normal eyeglasses and
     bare faces are accepted; sunglasses are rejected.
     """
+
+    @property
+    def stage(self) -> ValidationStage:
+        """Return the validation stage for this validator."""
+        return ValidationStage.GLASSES
 
     _ACCEPTED_EYEWEAR: frozenset[EyewearType] = frozenset(
         {

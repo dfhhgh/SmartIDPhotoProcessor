@@ -106,8 +106,12 @@ def process_image(
             transformer = FaceCoordinateTransformer()
             aligner = FaceAligner()
             parser_service = FaceParserService()
-            orchestrator = ValidationOrchestrator()
+            from models.validation_execution_mode import ValidationExecutionMode
 
+            orchestrator = ValidationOrchestrator(
+                parser_service=parser_service,
+                execution_mode=ValidationExecutionMode.DEVELOPMENT,
+            )
             faces = detector.detect(image)
             selected_face = selector.select(faces, image.shape)
             crop_result = cropper.crop(image, selected_face)

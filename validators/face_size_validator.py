@@ -14,11 +14,17 @@ from config.constants import (
 from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
+from models.validation_stage import ValidationStage
 from validators.base_validator import BaseValidator
 
 
 class FaceSizeValidator(BaseValidator):
     """Validates whether the detected face occupies an acceptable proportion of the image."""
+
+    @property
+    def stage(self) -> ValidationStage:
+        """Return the validation stage for this validator."""
+        return ValidationStage.CHEAP
 
     def validate(
         self,
