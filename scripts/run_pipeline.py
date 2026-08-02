@@ -26,6 +26,8 @@ from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.aligner import FaceAligner
 from services.face_parser_service import FaceParserService
 from pipeline.validation_orchestrator import ValidationOrchestrator
+from validators.face_ambiguity_validator import FaceAmbiguityValidator
+from models.validation_result import ValidationResult
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
@@ -105,6 +107,7 @@ def process_image(
             cropper = FaceCropper()
             transformer = FaceCoordinateTransformer()
             aligner = FaceAligner()
+            ambiguity_validator = FaceAmbiguityValidator()
             parser_service = FaceParserService()
             from models.validation_execution_mode import ValidationExecutionMode
 
@@ -113,32 +116,38 @@ def process_image(
                 execution_mode=ValidationExecutionMode.DEVELOPMENT,
             )
             faces = detector.detect(image)
-            selected_face = selector.select(faces, image.shape)
-            crop_result = cropper.crop(image, selected_face)
+            selection_result = selector.select(faces, image.shape)
+            ambiguity_metric = ambiguity_validator.validate(selection_result)
 
-            # Save cropped image immediately after FaceCropper succeeds
-            if crop_result.image is not None and isinstance(crop_result.image, np.ndarray) and crop_result.image.size > 0:
-                cropped_output_path = cropped_dir / img_path.name
-                cv2.imwrite(str(cropped_output_path), crop_result.image)
+            if not ambiguity_metric.passed:
+                validation_result = ValidationResult(metrics=[ambiguity_metric])
+            else:
+                selected_face = selection_result.selected_face
+                crop_result = cropper.crop(image, selected_face)
 
-            transformed_face = transformer.transform(
-                selected_face,
-                crop_result.crop_x,
-                crop_result.crop_y,
-            )
-            alignment_result = aligner.align(crop_result.image, transformed_face)
+                # Save cropped image immediately after FaceCropper succeeds
+                if crop_result.image is not None and isinstance(crop_result.image, np.ndarray) and crop_result.image.size > 0:
+                    cropped_output_path = cropped_dir / img_path.name
+                    cv2.imwrite(str(cropped_output_path), crop_result.image)
 
-            # Save aligned image immediately after FaceAligner succeeds
-            if alignment_result.aligned_image is not None and isinstance(alignment_result.aligned_image, np.ndarray) and alignment_result.aligned_image.size > 0:
-                aligned_output_path = aligned_dir / img_path.name
-                cv2.imwrite(str(aligned_output_path), alignment_result.aligned_image)
+                transformed_face = transformer.transform(
+                    selected_face,
+                    crop_result.crop_x,
+                    crop_result.crop_y,
+                )
+                alignment_result = aligner.align(crop_result.image, transformed_face)
 
-            parsing_result = parser_service.parse(alignment_result.aligned_image)
-            validation_result = orchestrator.validate(
-                image=alignment_result.aligned_image,
-                face=alignment_result.aligned_face,
-                parsing_result=parsing_result,
-            )
+                # Save aligned image immediately after FaceAligner succeeds
+                if alignment_result.aligned_image is not None and isinstance(alignment_result.aligned_image, np.ndarray) and alignment_result.aligned_image.size > 0:
+                    aligned_output_path = aligned_dir / img_path.name
+                    cv2.imwrite(str(aligned_output_path), alignment_result.aligned_image)
+
+                parsing_result = parser_service.parse(alignment_result.aligned_image)
+                validation_result = orchestrator.validate(
+                    image=alignment_result.aligned_image,
+                    face=alignment_result.aligned_face,
+                    parsing_result=parsing_result,
+                )
 
         except Exception as e:
             raise PipelineExecutionError(f"Pipeline validation failed: {e}") from e

@@ -8,7 +8,35 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+from models.ranked_face import RankedFace
+from models.selection_result import SelectionResult
+from models.validation_metric import ValidationMetric
+from models.validation_type import ValidationType
 from scripts.run_pipeline import collect_image_paths, process_image
+from tests.factories import create_face
+
+
+def _make_selection_result(selected_face=None) -> SelectionResult:
+    face = selected_face if selected_face is not None else create_face()
+    ranked_face = RankedFace(face=face, score=0.9)
+    return SelectionResult(
+        selected_face=face,
+        selected_score=0.9,
+        second_best_score=None,
+        score_margin=0.9,
+        ambiguity_ratio=0.0,
+        detected_faces_count=1,
+        ranked_faces=(ranked_face,),
+    )
+
+
+def _make_ambiguity_metric(passed: bool = True) -> ValidationMetric:
+    return ValidationMetric(
+        type=ValidationType.FACE_AMBIGUITY,
+        passed=passed,
+        score=1.0 if passed else 0.1,
+        message="" if passed else "Ambiguous face selection.",
+    )
 
 
 def test_collect_image_paths_single_file(tmp_path):
@@ -60,6 +88,8 @@ def test_process_image_success_valid(tmp_path):
     cropped_dir.mkdir(parents=True, exist_ok=True)
     reports_dir.mkdir(parents=True, exist_ok=True)
 
+    image = np.zeros((200, 200, 3), dtype=np.uint8)
+
     with patch("scripts.run_pipeline.FaceDetector") as mock_det_cls, \
          patch("scripts.run_pipeline.FaceSelector") as mock_sel_cls, \
          patch("scripts.run_pipeline.FaceCropper") as mock_crop_cls, \
@@ -67,11 +97,15 @@ def test_process_image_success_valid(tmp_path):
          patch("scripts.run_pipeline.FaceAligner") as mock_align_cls, \
          patch("scripts.run_pipeline.FaceParserService") as mock_parse_cls, \
          patch("scripts.run_pipeline.ValidationOrchestrator") as mock_orch_cls, \
-         patch("cv2.imread", return_value=np.zeros((200, 200, 3), dtype=np.uint8)), \
+         patch("scripts.run_pipeline.FaceAmbiguityValidator") as mock_amb_cls, \
+         patch("cv2.imread", return_value=image), \
          patch("cv2.imwrite", return_value=True) as mock_imwrite:
 
+        selected_face = create_face()
+        selection_result = _make_selection_result(selected_face)
         mock_det_cls.return_value.detect.return_value = [MagicMock()]
-        mock_sel_cls.return_value.select.return_value = MagicMock()
+        mock_sel_cls.return_value.select.return_value = selection_result
+        mock_amb_cls.return_value.validate.return_value = _make_ambiguity_metric()
         mock_crop_cls.return_value.crop.return_value = MagicMock(
             image=np.zeros((100, 100, 3), dtype=np.uint8),
             crop_x=10,
@@ -108,6 +142,8 @@ def test_process_image_success_valid(tmp_path):
     assert "Overall Result: VALID" in report_content
     assert "BLUR" in report_content
     assert mock_imwrite.call_count >= 2
+    mock_amb_cls.return_value.validate.assert_called_once_with(selection_result)
+    mock_crop_cls.return_value.crop.assert_called_once_with(image, selected_face)
 
 
 def test_process_image_saving_happens_even_if_parser_fails(tmp_path):
@@ -128,11 +164,13 @@ def test_process_image_saving_happens_even_if_parser_fails(tmp_path):
          patch("scripts.run_pipeline.FaceCoordinateTransformer") as mock_trans_cls, \
          patch("scripts.run_pipeline.FaceAligner") as mock_align_cls, \
          patch("scripts.run_pipeline.FaceParserService") as mock_parse_cls, \
+         patch("scripts.run_pipeline.FaceAmbiguityValidator") as mock_amb_cls, \
          patch("cv2.imread", return_value=np.zeros((200, 200, 3), dtype=np.uint8)), \
          patch("cv2.imwrite", return_value=True) as mock_imwrite:
 
         mock_det_cls.return_value.detect.return_value = [MagicMock()]
-        mock_sel_cls.return_value.select.return_value = MagicMock()
+        mock_sel_cls.return_value.select.return_value = _make_selection_result()
+        mock_amb_cls.return_value.validate.return_value = _make_ambiguity_metric()
         mock_crop_cls.return_value.crop.return_value = MagicMock(
             image=np.zeros((100, 100, 3), dtype=np.uint8),
             crop_x=10,
@@ -159,6 +197,57 @@ def test_process_image_saving_happens_even_if_parser_fails(tmp_path):
     content = report_path.read_text(encoding="utf-8")
     assert "Overall Result: PROCESSING_ERROR" in content
     assert "Pipeline Execution Failure" in content
+
+
+def test_process_image_stops_before_crop_when_face_selection_is_ambiguous(tmp_path):
+    """Verify ambiguous selection is reported as invalid without downstream Face usage."""
+    img_file = tmp_path / "ambiguous.jpg"
+    img_file.write_bytes(b"dummy")
+
+    aligned_dir = tmp_path / "outputs" / "aligned"
+    cropped_dir = tmp_path / "outputs" / "cropped"
+    reports_dir = tmp_path / "outputs" / "reports"
+    aligned_dir.mkdir(parents=True, exist_ok=True)
+    cropped_dir.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    with patch("scripts.run_pipeline.FaceDetector") as mock_det_cls, \
+         patch("scripts.run_pipeline.FaceSelector") as mock_sel_cls, \
+         patch("scripts.run_pipeline.FaceCropper") as mock_crop_cls, \
+         patch("scripts.run_pipeline.FaceCoordinateTransformer") as mock_trans_cls, \
+         patch("scripts.run_pipeline.FaceAligner") as mock_align_cls, \
+         patch("scripts.run_pipeline.FaceParserService") as mock_parse_cls, \
+         patch("scripts.run_pipeline.ValidationOrchestrator") as mock_orch_cls, \
+         patch("scripts.run_pipeline.FaceAmbiguityValidator") as mock_amb_cls, \
+         patch("cv2.imread", return_value=np.zeros((200, 200, 3), dtype=np.uint8)), \
+         patch("cv2.imwrite", return_value=True) as mock_imwrite:
+
+        selection_result = _make_selection_result()
+        mock_det_cls.return_value.detect.return_value = [MagicMock()]
+        mock_sel_cls.return_value.select.return_value = selection_result
+        mock_amb_cls.return_value.validate.return_value = _make_ambiguity_metric(
+            passed=False
+        )
+
+        outcome, elapsed = process_image(
+            img_path=img_file,
+            aligned_dir=aligned_dir,
+            cropped_dir=cropped_dir,
+            reports_dir=reports_dir,
+        )
+
+    assert outcome == "invalid"
+    assert isinstance(elapsed, int)
+    mock_amb_cls.return_value.validate.assert_called_once_with(selection_result)
+    mock_crop_cls.return_value.crop.assert_not_called()
+    mock_trans_cls.return_value.transform.assert_not_called()
+    mock_align_cls.return_value.align.assert_not_called()
+    mock_parse_cls.return_value.parse.assert_not_called()
+    mock_orch_cls.return_value.validate.assert_not_called()
+    mock_imwrite.assert_not_called()
+    content = (reports_dir / "ambiguous.txt").read_text(encoding="utf-8")
+    assert "Overall Result: INVALID" in content
+    assert "FACE_AMBIGUITY" in content
 
 
 def test_process_image_image_load_failure(tmp_path):

@@ -4,11 +4,7 @@ from tests.factories import create_face
 import pytest
 
 from exceptions.face_exceptions import FaceSelectionError
-
-
-
-
-
+from models.selection_result import SelectionResult
 
 
 def test_select_returns_single_face_when_only_one_face_exists():
@@ -24,16 +20,16 @@ def test_select_returns_single_face_when_only_one_face_exists():
     )
 
     # Act
-    selected_face = selector.select(
+    selection_result = selector.select(
         faces=[face],
         image_shape=image_shape,
     )
 
     # Assert
-    assert selected_face is face
-
-
-
+    assert isinstance(selection_result, SelectionResult)
+    assert selection_result.selected_face is face
+    assert selection_result.detected_faces_count == 1
+    assert selection_result.second_best_score is None
 
 
 def test_select_returns_face_with_highest_final_score():
@@ -77,7 +73,7 @@ def test_select_returns_face_with_highest_final_score():
     )
 
     # Act
-    selected_face = selector.select(
+    selection_result = selector.select(
         faces=[
             face_a,
             face_b,
@@ -87,10 +83,9 @@ def test_select_returns_face_with_highest_final_score():
     )
 
     # Assert
-    assert selected_face is face_a
-
-
-
+    assert isinstance(selection_result, SelectionResult)
+    assert selection_result.selected_face is face_a
+    assert selection_result.detected_faces_count == 3
 
 
 def test_select_raises_face_selection_error_when_faces_list_is_empty():

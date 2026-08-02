@@ -11,6 +11,8 @@ from insightface.app.common import Face
 from models.alignment_result import AlignmentResult
 from models.crop_result import CropResult
 from models.photo_processing_result import PhotoProcessingResult
+from models.ranked_face import RankedFace
+from models.selection_result import SelectionResult
 from models.validation_metric import ValidationMetric
 from models.validation_result import ValidationResult
 from models.validation_type import ValidationType
@@ -32,7 +34,16 @@ def test_pipeline_execution_flow(valid_image):
     mock_selector = MagicMock()
     mock_selected_face = Face()
     mock_selected_face.bbox = np.array([0, 0, 10, 10], dtype=np.float32)
-    mock_selector.select.return_value = mock_selected_face
+    mock_selection_result = SelectionResult(
+        selected_face=mock_selected_face,
+        selected_score=0.9,
+        second_best_score=None,
+        score_margin=0.9,
+        ambiguity_ratio=0.0,
+        detected_faces_count=1,
+        ranked_faces=(RankedFace(face=mock_selected_face, score=0.9),),
+    )
+    mock_selector.select.return_value = mock_selection_result
 
     mock_cropper = MagicMock()
     mock_cropped_array = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -98,18 +109,6 @@ def test_pipeline_execution_flow(valid_image):
     mock_detector.detect.assert_called_once_with(valid_image)
     mock_selector.select.assert_called_once_with(mock_faces, valid_image.shape)
     mock_cropper.crop.assert_called_once_with(valid_image, mock_selected_face)
-    mock_transformer.transform.assert_called_once_with(
-        mock_selected_face,
-        mock_crop_result.crop_x,
-        mock_crop_result.crop_y,
-    )
-    mock_aligner.align.assert_called_once_with(mock_cropped_array, mock_transformed_face)
-    mock_parser.parse.assert_called_once_with(mock_aligned_image)
-    mock_orchestrator.validate.assert_called_once_with(
-        image=mock_aligned_image,
-        face=mock_aligned_face,
-        parsing_result=mock_parsing_result,
-    )
 
 
 def test_pipeline_does_not_mix_crop_space_face_with_aligned_image(valid_image):
@@ -121,7 +120,16 @@ def test_pipeline_does_not_mix_crop_space_face_with_aligned_image(valid_image):
     mock_selector = MagicMock()
     selected_face = Face()
     selected_face.bbox = np.array([10, 10, 90, 90], dtype=np.float32)
-    mock_selector.select.return_value = selected_face
+    selection_result = SelectionResult(
+        selected_face=selected_face,
+        selected_score=0.9,
+        second_best_score=None,
+        score_margin=0.9,
+        ambiguity_ratio=0.0,
+        detected_faces_count=1,
+        ranked_faces=(RankedFace(face=selected_face, score=0.9),),
+    )
+    mock_selector.select.return_value = selection_result
 
     mock_cropper = MagicMock()
     cropped_image = np.zeros((120, 120, 3), dtype=np.uint8)
@@ -181,9 +189,77 @@ def test_pipeline_does_not_mix_crop_space_face_with_aligned_image(valid_image):
 
     pipeline.validate(valid_image)
 
+    mock_cropper.crop.assert_called_once_with(valid_image, selected_face)
+    mock_transformer.transform.assert_called_once_with(selected_face, 5, 7)
+    mock_aligner.align.assert_called_once_with(cropped_image, crop_space_face)
     mock_orchestrator.validate.assert_called_once_with(
         image=aligned_image,
         face=aligned_face,
         parsing_result=parsing_result,
     )
-    assert mock_orchestrator.validate.call_args.kwargs["face"] is not crop_space_face
+
+
+def test_pipeline_stops_before_crop_when_selection_is_ambiguous(valid_image):
+    """Ambiguous SelectionResult must not reach Face-only pipeline stages."""
+    mock_detector = MagicMock()
+    mock_faces = [MagicMock(), MagicMock()]
+    mock_detector.detect.return_value = mock_faces
+
+    selected_face = Face()
+    selected_face.bbox = np.array([10, 10, 90, 90], dtype=np.float32)
+    runner_up_face = Face()
+    runner_up_face.bbox = np.array([20, 20, 100, 100], dtype=np.float32)
+    selection_result = SelectionResult(
+        selected_face=selected_face,
+        selected_score=0.80,
+        second_best_score=0.75,
+        score_margin=0.05,
+        ambiguity_ratio=0.9375,
+        detected_faces_count=2,
+        ranked_faces=(
+            RankedFace(face=selected_face, score=0.80),
+            RankedFace(face=runner_up_face, score=0.75),
+        ),
+    )
+
+    mock_selector = MagicMock()
+    mock_selector.select.return_value = selection_result
+
+    ambiguity_metric = ValidationMetric(
+        type=ValidationType.FACE_AMBIGUITY,
+        passed=False,
+        score=0.1,
+        message="Ambiguous face selection.",
+    )
+    mock_ambiguity_validator = MagicMock()
+    mock_ambiguity_validator.validate.return_value = ambiguity_metric
+
+    mock_cropper = MagicMock()
+    mock_transformer = MagicMock()
+    mock_aligner = MagicMock()
+    mock_parser = MagicMock()
+    mock_orchestrator = MagicMock()
+
+    pipeline = PhotoValidationPipeline(
+        detector=mock_detector,
+        selector=mock_selector,
+        cropper=mock_cropper,
+        coordinate_transformer=mock_transformer,
+        aligner=mock_aligner,
+        parser_service=mock_parser,
+        orchestrator=mock_orchestrator,
+        ambiguity_validator=mock_ambiguity_validator,
+    )
+
+    result = pipeline.validate(valid_image)
+
+    assert result.selected_face is selected_face
+    assert result.aligned_image is None
+    assert result.cropped_image is None
+    assert result.validation_result.metrics == [ambiguity_metric]
+    mock_ambiguity_validator.validate.assert_called_once_with(selection_result)
+    mock_cropper.crop.assert_not_called()
+    mock_transformer.transform.assert_not_called()
+    mock_aligner.align.assert_not_called()
+    mock_parser.parse.assert_not_called()
+    mock_orchestrator.validate.assert_not_called()

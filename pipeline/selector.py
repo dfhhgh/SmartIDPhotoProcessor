@@ -2,7 +2,8 @@
 Face selection module.
 
 This module is responsible for selecting the primary face
-from multiple detected faces.
+from multiple detected faces, and exposing how confident that
+selection is via SelectionResult.
 """
 
 from __future__ import annotations
@@ -12,6 +13,8 @@ import math
 from insightface.app.common import Face
 
 from exceptions.face_exceptions import FaceSelectionError
+from models.ranked_face import RankedFace
+from models.selection_result import SelectionResult
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,7 @@ class FaceSelector:
         self,
         faces: list[Face],
         image_shape: tuple[int, ...],
-    ) -> Face:
+    ) -> SelectionResult:
         """
         Select the most suitable face from the detected faces.
 
@@ -44,7 +47,9 @@ class FaceSelector:
                 Shape of the original image.
 
         Returns:
-            The selected primary face.
+            A SelectionResult containing the selected primary face along
+            with confidence metadata (score margin, ambiguity ratio, and
+            candidate count) describing how reliable that selection is.
 
         Raises:
             FaceSelectionError:
@@ -58,8 +63,8 @@ class FaceSelector:
             raise FaceSelectionError(
                 "No faces were provided for selection."
             )
-        best_face: Face | None = None
-        best_score = -1.0
+
+        scored_faces: list[tuple[Face, float]] = []
         for face in faces:
             area_score = self._calculate_area_score(
                 face,
@@ -79,10 +84,9 @@ class FaceSelector:
                                 center_score,
                                 confidence_score,
                             )
-            if final_score > best_score:
-                best_score = final_score
-                best_face = face
-        if best_face is None:
+            scored_faces.append((face, final_score))
+
+        if not scored_faces:
             logger.error(
                 "Failed to select a primary face."
             )
@@ -91,7 +95,56 @@ class FaceSelector:
                 "Failed to select a primary face."
             )
 
-        return best_face
+        return self._build_selection_result(scored_faces)
+
+    def _build_selection_result(
+        self,
+        scored_faces: list[tuple[Face, float]],
+    ) -> SelectionResult:
+        """
+        Rank scored candidates and build the resulting SelectionResult.
+
+        Args:
+            scored_faces:
+                Every detected face paired with its final weighted score.
+
+        Returns:
+            A SelectionResult describing the winning face and how
+            confidently it beat the runner-up, if any.
+        """
+        ranked_faces = tuple(
+            RankedFace(face=face, score=score)
+            for face, score in sorted(
+                scored_faces,
+                key=lambda scored: scored[1],
+                reverse=True,
+            )
+        )
+
+        selected_face, selected_score = ranked_faces[0].face, ranked_faces[0].score
+
+        second_best_score: float | None = (
+            ranked_faces[1].score if len(ranked_faces) > 1 else None
+        )
+
+        if second_best_score is None:
+            score_margin = selected_score
+            ambiguity_ratio = 0.0
+        else:
+            score_margin = selected_score - second_best_score
+            ambiguity_ratio = (
+                second_best_score / selected_score if selected_score > 0 else 0.0
+            )
+
+        return SelectionResult(
+            selected_face=selected_face,
+            selected_score=selected_score,
+            second_best_score=second_best_score,
+            score_margin=score_margin,
+            ambiguity_ratio=ambiguity_ratio,
+            detected_faces_count=len(ranked_faces),
+            ranked_faces=ranked_faces,
+        )
 
     def _get_valid_bbox(
         self,
@@ -280,5 +333,4 @@ class FaceSelector:
             raise FaceSelectionError(
                 "Final face selection score must be between 0.0 and 1.0."
             ) 
-        return final_score       
-        
+        return final_score

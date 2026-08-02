@@ -13,6 +13,7 @@ import numpy as np
 
 from models.photo_processing_result import PhotoProcessingResult
 from models.validation_execution_mode import ValidationExecutionMode
+from models.validation_result import ValidationResult
 from pipeline.aligner import FaceAligner
 from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.cropper import FaceCropper
@@ -20,6 +21,8 @@ from pipeline.detector import FaceDetector
 from pipeline.selector import FaceSelector
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from services.face_parser_service import FaceParserService
+from validators.base_selection_validator import BaseSelectionValidator
+from validators.face_ambiguity_validator import FaceAmbiguityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -29,13 +32,18 @@ class PhotoValidationPipeline:
 
     Execution steps:
     1. Detect all faces in the image.
-    2. Select the primary face.
-    3. Crop the selected face (producing CropResult with image and crop offset).
-    4. Transform face coordinates using FaceCoordinateTransformer.
-    5. Align the cropped image and face into aligned coordinate space.
-    6. Run face parsing on the aligned face.
-    7. Execute validation orchestrator on the aligned image, aligned face, and parsing result.
-    8. Return PhotoProcessingResult (containing crop_result.image if validation succeeds, else None).
+    2. Select the primary face, producing a SelectionResult with confidence
+       metadata (score margin, ambiguity ratio, candidate count).
+    3. Validate selection reliability via FaceAmbiguityValidator. If the
+       selection is ambiguous (e.g. two competing faces), short-circuit
+       and return early without cropping, aligning, or running the
+       ValidationOrchestrator.
+    4. Crop the selected face (producing CropResult with image and crop offset).
+    5. Transform face coordinates using FaceCoordinateTransformer.
+    6. Align the cropped image and face into aligned coordinate space.
+    7. Run face parsing on the aligned face.
+    8. Execute validation orchestrator on the aligned image, aligned face, and parsing result.
+    9. Return PhotoProcessingResult (containing crop_result.image if validation succeeds, else None).
     """
 
     def __init__(
@@ -47,6 +55,7 @@ class PhotoValidationPipeline:
         aligner: FaceAligner | None = None,
         parser_service: FaceParserService | None = None,
         orchestrator: ValidationOrchestrator | None = None,
+        ambiguity_validator: BaseSelectionValidator | None = None,
         execution_mode: ValidationExecutionMode = ValidationExecutionMode.PRODUCTION,
     ) -> None:
         """Initialise pipeline components with optional dependency injection.
@@ -65,6 +74,9 @@ class PhotoValidationPipeline:
             else FaceCoordinateTransformer()
         )
         self._aligner = aligner if aligner is not None else FaceAligner()
+        self._ambiguity_validator = (
+            ambiguity_validator if ambiguity_validator is not None else FaceAmbiguityValidator()
+        )
         self._parser_service = (
             parser_service if parser_service is not None else FaceParserService()
         )
@@ -96,23 +108,40 @@ class PhotoValidationPipeline:
         # 1. Detect all faces
         faces = self._detector.detect(image)
 
-        # 2. Select the best face
-        selected_face = self._selector.select(faces, image.shape)
+        # 2. Select the best face, with confidence metadata about that choice
+        selection_result = self._selector.select(faces, image.shape)
 
-        # 3. Crop the selected face
+        # 3. Validate that the selection itself is reliable (e.g. reject when
+        #    a second face competes strongly for "primary subject"), without
+        #    re-scoring faces or duplicating selector logic.
+        ambiguity_metric = self._ambiguity_validator.validate(selection_result)
+        if not ambiguity_metric.passed:
+            logger.info(
+                "Face selection is ambiguous. Short-circuiting before crop/align/validation."
+            )
+            return PhotoProcessingResult(
+                validation_result=ValidationResult(metrics=[ambiguity_metric]),
+                selected_face=selection_result.selected_face,
+                aligned_image=None,
+                cropped_image=None,
+            )
+
+        selected_face = selection_result.selected_face
+
+        # 4. Crop the selected face
         crop_result = self._cropper.crop(image, selected_face)
 
-        # 4. Transform face coordinates into cropped image coordinate space
+        # 5. Transform face coordinates into cropped image coordinate space
         transformed_face = self._coordinate_transformer.transform(
             selected_face,
             crop_result.crop_x,
             crop_result.crop_y,
         )
 
-        # 5. Align the cropped image and face using transformed landmarks
+        # 6. Align the cropped image and face using transformed landmarks
         alignment_result = self._aligner.align(crop_result.image, transformed_face)
 
-        # 6. Execute ValidationOrchestrator with optimized staging / lazy parsing
+        # 7. Execute ValidationOrchestrator with optimized staging / lazy parsing
         if isinstance(self._orchestrator, ValidationOrchestrator):
             validation_result = self._orchestrator.validate(
                 image=alignment_result.aligned_image,
@@ -127,7 +156,7 @@ class PhotoValidationPipeline:
                 parsing_result=parsing_result,
             )
 
-        # 8. Set cropped image based on validation success
+        # 9. Set cropped image based on validation success
         cropped_image = crop_result.image if validation_result.is_valid else None
 
         logger.info("Photo validation pipeline completed successfully.")

@@ -18,3 +18,4 @@ class ValidationType(StrEnum):
     FACE_VISIBILITY = "face_visibility"
     OCCLUSION = "occlusion"
     GLASSES = "glasses"
+    FACE_AMBIGUITY = "face_ambiguity"

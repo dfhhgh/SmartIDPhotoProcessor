@@ -24,7 +24,7 @@ class PhotoProcessingResult:
 
     validation_result: ValidationResult
     selected_face: Face
-    aligned_image: np.ndarray
+    aligned_image: np.ndarray | None
     cropped_image: np.ndarray | None
 
     def __post_init__(self) -> None:
@@ -52,23 +52,24 @@ class PhotoProcessingResult:
                 "Selected face must be a Face instance."
             )
 
-        if not isinstance(
-            self.aligned_image,
-            np.ndarray,
-        ):
-            raise TypeError(
-                "Aligned image must be a numpy ndarray."
-            )
+        if self.aligned_image is not None:
+            if not isinstance(
+                self.aligned_image,
+                np.ndarray,
+            ):
+                raise TypeError(
+                    "Aligned image must be a numpy ndarray or None."
+                )
 
-        if self.aligned_image.size == 0:
-            raise ValueError(
-                "Aligned image must not be empty."
-            )
+            if self.aligned_image.size == 0:
+                raise ValueError(
+                    "Aligned image must not be empty."
+                )
 
-        if self.aligned_image.ndim != 3:
-            raise ValueError(
-                "Aligned image must be a 3-dimensional image."
-            )
+            if self.aligned_image.ndim != 3:
+                raise ValueError(
+                    "Aligned image must be a 3-dimensional image."
+                )
 
         if self.cropped_image is not None:
             if not isinstance(

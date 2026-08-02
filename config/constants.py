@@ -22,6 +22,19 @@ MIN_SECONDARY_FACE_RATIO = 0.20
 
 
 # -------------------------------
+# Face Selection Ambiguity & Reliability
+# -------------------------------
+
+# Initial conservative default values for a university student ID system.
+# These values are initial defaults that should later be calibrated on a
+# representative student-ID dataset.
+FACE_SELECTION_AMBIGUITY_MAX_RATIO = 0.80
+FACE_SELECTION_MIN_PRIMARY_SCORE = 0.25
+FACE_SELECTION_MIN_COMPETITIVE_SCORE = 0.20
+FACE_SELECTION_MIN_SCORE_MARGIN = 0.05
+
+
+# -------------------------------
 # Face Size Validation
 # -------------------------------
 
