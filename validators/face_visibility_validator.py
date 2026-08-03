@@ -2,6 +2,8 @@
 Face visibility validator.
 """
 
+from __future__ import annotations
+
 import numpy as np
 from insightface.app.common import Face
 
@@ -31,14 +33,27 @@ _PART_DISPLAY_NAMES: dict[FacePart, str] = {
     FacePart.LOWER_LIP: "Lower lip",
 }
 
+# InsightFace 5-point landmark indices (viewer perspective).
+# Index 0 = right eye, Index 1 = left eye.
+_EYE_LANDMARK_INDICES: dict[FacePart, int] = {
+    FacePart.RIGHT_EYE: 0,
+    FacePart.LEFT_EYE: 1,
+}
+
 
 class FaceVisibilityValidator(BaseValidator):
     """Validates that all mandatory anatomical facial regions are sufficiently visible.
 
-    This validator only checks whether required facial regions are present
-    in the BiSeNet parsing mask and large enough to be considered visible.
-    It does NOT detect occluding accessories such as sunglasses, hats, or
-    masks; that responsibility belongs to a dedicated OcclusionValidator.
+    The primary source of evidence is the BiSeNet parsing mask. When the
+    parser fails to detect eyes because of transparent eyeglasses, but the
+    EYE_GLASS class is present in the mask, InsightFace facial landmarks
+    from the Face object are used as secondary confirmation. If the
+    corresponding eye landmark exists and is valid, the eye is treated as
+    visible instead of missing.
+
+    This validator does NOT detect occluding accessories such as sunglasses,
+    hats, or masks; that responsibility belongs to a dedicated
+    OcclusionValidator.
     """
 
     @property
@@ -54,10 +69,16 @@ class FaceVisibilityValidator(BaseValidator):
     ) -> ValidationMetric:
         """Validate facial region visibility using a BiSeNet parsing result.
 
+        When the parser misses an eye but EYE_GLASS is present in the mask,
+        InsightFace landmarks from *face* are consulted as secondary
+        evidence. A valid eye landmark overrides the parser's missing-eye
+        decision, preventing false rejections for transparent prescription
+        glasses.
+
         Args:
             image: Image data to validate.
-            face: Optional detected face. Unused by this validator; kept
-                for signature compatibility with BaseValidator.
+            face: Optional detected face providing InsightFace landmarks
+                for secondary eye-visibility confirmation.
             parsing_result: Semantic face-parsing result describing which
                 anatomical regions are present and how large they are.
 
@@ -71,8 +92,6 @@ class FaceVisibilityValidator(BaseValidator):
                 not a FaceParsingResult.
             ValueError: If image is None/empty, or parsing_result is None.
         """
-        _ = face
-
         if image is None:
             raise ValueError(
                 "Image must not be None."
@@ -104,12 +123,16 @@ class FaceVisibilityValidator(BaseValidator):
                 "Parsing result must be a FaceParsingResult."
             )
 
-        missing_parts = self._find_missing_parts(
-            parsing_result=parsing_result,
+        missing_parts, landmark_overridden = (
+            self._find_missing_parts_with_landmark_override(
+                parsing_result=parsing_result,
+                face=face,
+            )
         )
         insufficient_parts = self._find_insufficient_parts(
             parsing_result=parsing_result,
             missing_parts=missing_parts,
+            landmark_overridden_parts=landmark_overridden,
         )
 
         score = self._compute_score(
@@ -129,11 +152,69 @@ class FaceVisibilityValidator(BaseValidator):
             message=message,
         )
 
+    def _find_missing_parts_with_landmark_override(
+        self,
+        parsing_result: FaceParsingResult,
+        face: Face | None,
+    ) -> tuple[tuple[FacePart, ...], frozenset[FacePart]]:
+        """Identify mandatory regions absent from the parsing mask, with
+        landmark-based override for eye parts when eyeglasses are present.
+
+        Decision logic for each mandatory part:
+
+        1. Parser detects the part -> present (never missing).
+        2. Parser misses the part AND no EYE_GLASS in mask -> missing.
+        3. Parser misses the part AND EYE_GLASS present AND corresponding
+           InsightFace landmark exists and is valid -> treat as present.
+        4. Parser misses the part AND EYE_GLASS present BUT landmark is
+           missing or invalid -> missing.
+
+        Args:
+            parsing_result: Semantic face-parsing result to inspect.
+            face: Optional detected face providing InsightFace landmarks.
+
+        Returns:
+            A tuple of (missing_parts, landmark_overridden_parts) where
+            missing_parts are the parts determined to be genuinely absent,
+            and landmark_overridden_parts is the set of eye parts that
+            were originally missing but overridden by valid landmarks.
+        """
+        raw_missing = self._find_missing_parts(
+            parsing_result=parsing_result,
+        )
+
+        if not raw_missing:
+            return raw_missing, frozenset()
+
+        has_glasses = parsing_result.has_part(FacePart.EYE_GLASS)
+
+        if not has_glasses:
+            return raw_missing, frozenset()
+
+        overridden: set[FacePart] = set()
+        result: list[FacePart] = []
+
+        for part in raw_missing:
+            if part in _EYE_LANDMARK_INDICES and self._has_valid_eye_landmark(
+                face=face,
+                part=part,
+            ):
+                overridden.add(part)
+            else:
+                result.append(part)
+
+        return tuple(result), frozenset(overridden)
+
     def _find_missing_parts(
         self,
         parsing_result: FaceParsingResult,
     ) -> tuple[FacePart, ...]:
-        """Identify mandatory facial regions that are entirely absent.
+        """Identify mandatory facial regions that are entirely absent from
+        the parsing mask.
+
+        This is the baseline parser-only check, without any landmark
+        override logic. It is called internally by
+        _find_missing_parts_with_landmark_override.
 
         Args:
             parsing_result: Semantic face-parsing result to inspect.
@@ -152,24 +233,73 @@ class FaceVisibilityValidator(BaseValidator):
         self,
         parsing_result: FaceParsingResult,
         missing_parts: tuple[FacePart, ...],
+        landmark_overridden_parts: frozenset[FacePart] = frozenset(),
     ) -> tuple[FacePart, ...]:
         """Identify present mandatory regions below their minimum area ratio.
+
+        Parts that were overridden by valid InsightFace landmarks are
+        excluded alongside missing parts, since the landmark confirmation
+        supersedes the parser's pixel-level evidence.
 
         Args:
             parsing_result: Semantic face-parsing result to inspect.
             missing_parts: Mandatory parts already known to be absent.
                 Excluded here so they are penalized only once, as missing
                 rather than as insufficient.
+            landmark_overridden_parts: Eye parts whose missing status was
+                overridden by valid InsightFace landmarks. Also excluded
+                from the insufficient-parts check.
 
         Returns:
             Mandatory FacePart values present but below their configured
             minimum visibility ratio.
         """
+        excluded = set(missing_parts) | landmark_overridden_parts
+
         return tuple(
             part
             for part in FACE_VISIBILITY_REQUIRED_PARTS
-            if part not in missing_parts
+            if part not in excluded
             and parsing_result.part_ratio(part) < FACE_VISIBILITY_MIN_PART_RATIOS[part]
+        )
+
+    def _has_valid_eye_landmark(
+        self,
+        face: Face | None,
+        part: FacePart,
+    ) -> bool:
+        """Check whether the InsightFace landmark for a specific eye is
+        present and contains valid coordinates.
+
+        A landmark is considered valid when:
+
+        - The Face object is not None.
+        - face.kps is a NumPy ndarray with shape (5, 2).
+        - The coordinate pair for the requested eye index contains no NaN
+          or infinite values.
+
+        Args:
+            face: Optional detected face providing InsightFace landmarks.
+            part: An eye FacePart (LEFT_EYE or RIGHT_EYE).
+
+        Returns:
+            True if the corresponding eye landmark exists and is valid.
+        """
+        if face is None:
+            return False
+
+        kps = getattr(face, "kps", None)
+
+        if kps is None or not isinstance(kps, np.ndarray):
+            return False
+
+        if kps.shape != (5, 2):
+            return False
+
+        idx = _EYE_LANDMARK_INDICES[part]
+
+        return bool(
+            np.isfinite(kps[idx]).all()
         )
 
     def _compute_score(

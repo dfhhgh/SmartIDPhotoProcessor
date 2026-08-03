@@ -268,14 +268,14 @@ def test_validate_invalid_parsing_result_type_raises_type_error(
         )
 
 
-def test_validate_ignores_face_argument(
+def test_validate_face_argument_affects_result_with_invalid_face(
     validator: FaceVisibilityValidator,
     sample_image: np.ndarray,
     all_visible_parsing_result: FaceParsingResult,
 ):
-    """Verify that `face` has no effect on the result, per its documented
-    role as an unused parameter kept only for signature compatibility with
-    BaseValidator."""
+    """Verify that the `face` argument is used for landmark-based eye
+    validation. An invalid face object (no kps) should not alter the result
+    when all parts are already detected by the parser."""
     # Arrange
     baseline = validator.validate(
         image=sample_image,
@@ -283,16 +283,16 @@ def test_validate_ignores_face_argument(
     )
 
     # Act
-    with_face = validator.validate(
+    with_invalid_face = validator.validate(
         image=sample_image,
         face=object(),
         parsing_result=all_visible_parsing_result,
     )
 
     # Assert
-    assert with_face.passed == baseline.passed
-    assert with_face.score == pytest.approx(baseline.score)
-    assert with_face.message == baseline.message
+    assert with_invalid_face.passed == baseline.passed
+    assert with_invalid_face.score == pytest.approx(baseline.score)
+    assert with_invalid_face.message == baseline.message
 
 
 # ================================================================== #
@@ -925,6 +925,29 @@ def test_find_insufficient_parts_excludes_missing_parts(
     assert FacePart.RIGHT_BROW not in insufficient_parts
 
 
+def test_find_insufficient_parts_excludes_landmark_overridden_parts(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that parts overridden by valid landmarks are excluded from
+    the insufficient-parts check, just like missing parts."""
+    # Arrange
+    counts = _all_sufficient_counts()
+    counts[FacePart.LEFT_EYE] = 0
+    counts[FacePart.RIGHT_EYE] = 0
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    insufficient_parts = validator._find_insufficient_parts(
+        parsing_result=parsing_result,
+        missing_parts=(),
+        landmark_overridden_parts=frozenset({FacePart.LEFT_EYE, FacePart.RIGHT_EYE}),
+    )
+
+    # Assert
+    assert FacePart.LEFT_EYE not in insufficient_parts
+    assert FacePart.RIGHT_EYE not in insufficient_parts
+
+
 # ================================================================== #
 # Helper method: _compute_score()
 # ================================================================== #
@@ -1100,3 +1123,857 @@ def test_describe_part_returns_expected_label(
 
     # Assert
     assert label == _EXPECTED_LABELS[part]
+
+
+# ================================================================== #
+# Landmark-based eye visibility override
+# ================================================================== #
+
+
+def _make_face_with_valid_landmarks() -> "object":
+    """Create a mock Face object with valid InsightFace landmarks."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array(
+        [
+            [50.0, 50.0],
+            [80.0, 50.0],
+            [65.0, 70.0],
+            [55.0, 85.0],
+            [75.0, 85.0],
+        ],
+        dtype=np.float32,
+    )
+    return face
+
+
+def _make_face_with_nan_landmarks() -> "object":
+    """Create a mock Face object with NaN in eye landmark."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array(
+        [
+            [np.nan, 50.0],
+            [80.0, 50.0],
+            [65.0, 70.0],
+            [55.0, 85.0],
+            [75.0, 85.0],
+        ],
+        dtype=np.float32,
+    )
+    return face
+
+
+def _make_face_with_inf_landmarks() -> "object":
+    """Create a mock Face object with Inf in eye landmark."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array(
+        [
+            [np.inf, 50.0],
+            [80.0, 50.0],
+            [65.0, 70.0],
+            [55.0, 85.0],
+            [75.0, 85.0],
+        ],
+        dtype=np.float32,
+    )
+    return face
+
+
+def _make_face_with_wrong_shape_kps() -> "object":
+    """Create a mock Face object with incorrectly shaped landmarks."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.zeros((3, 2), dtype=np.float32)
+    return face
+
+
+def _all_sufficient_counts_with_eye_glass(
+    margin: int = 5,
+) -> dict[FacePart, int]:
+    """Pixel counts for every mandatory part plus EYE_GLASS."""
+    counts = _all_sufficient_counts(margin=margin)
+    counts[FacePart.EYE_GLASS] = 500
+    return counts
+
+
+# ------------------------------------------------------------------ #
+# Parser detects eyes: no override needed
+# ------------------------------------------------------------------ #
+
+
+def test_validate_parser_detects_eyes_without_glasses_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Verify that eyes detected by the parser pass without needing landmarks."""
+    # Arrange
+    counts = _all_sufficient_counts()
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_parser_detects_eyes_with_glasses_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Verify that eyes detected by the parser pass even when glasses are present."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+# ------------------------------------------------------------------ #
+# Prescription glasses: parser misses eyes + landmarks override
+# ------------------------------------------------------------------ #
+
+
+def test_validate_prescription_glasses_both_eyes_missed_but_landmarks_valid(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes due to transparent prescription glasses
+    but EYE_GLASS is present and valid landmarks exist, both eyes should
+    be treated as visible."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_prescription_glasses_left_eye_missed_landmark_valid(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses only the left eye due to prescription glasses
+    but EYE_GLASS is present and a valid landmark exists, the left eye
+    should be treated as visible."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_prescription_glasses_right_eye_missed_landmark_valid(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses only the right eye due to prescription glasses
+    but EYE_GLASS is present and a valid landmark exists, the right eye
+    should be treated as visible."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+# ------------------------------------------------------------------ #
+# Parser misses eyes + no landmarks: still fails
+# ------------------------------------------------------------------ #
+
+
+def test_validate_parser_misses_eyes_no_glasses_no_landmarks_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes and no glasses are present,
+    the eyes should be reported as missing regardless of landmarks."""
+    # Arrange
+    counts = _all_sufficient_counts()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+def test_validate_parser_misses_eyes_glasses_present_but_no_face(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes, glasses are present, but no face
+    object is provided, the eyes should still be reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=None,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+def test_validate_parser_misses_eyes_glasses_present_kps_none(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes, glasses are present, but face.kps is
+    None, the eyes should still be reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = None
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+def test_validate_parser_misses_eyes_glasses_present_kps_wrong_shape(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes, glasses are present, but face.kps has
+    wrong shape, the eyes should still be reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_wrong_shape_kps()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+def test_validate_parser_misses_eyes_glasses_present_kps_nan(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes, glasses are present, but the right eye
+    landmark contains NaN (index 0), LEFT_EYE (index 1) is overridden by
+    its valid landmark, and only RIGHT_EYE is reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_nan_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Right eye is not visible." in metric.message
+    assert "Left eye is not visible." not in metric.message
+    assert metric.score == pytest.approx(
+        _expected_score(
+            missing_count=1,
+            insufficient_count=0,
+        )
+    )
+
+
+def test_validate_parser_misses_eyes_glasses_present_kps_inf(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When parser misses both eyes, glasses are present, but the right eye
+    landmark contains Inf (index 0), LEFT_EYE (index 1) is overridden by
+    its valid landmark, and only RIGHT_EYE is reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_inf_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Right eye is not visible." in metric.message
+    assert "Left eye is not visible." not in metric.message
+    assert metric.score == pytest.approx(
+        _expected_score(
+            missing_count=1,
+            insufficient_count=0,
+        )
+    )
+
+
+# ------------------------------------------------------------------ #
+# EyeGlass present but non-eye part missing: no override
+# ------------------------------------------------------------------ #
+
+
+def test_validate_eye_glass_present_nose_missing_not_overridden(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When EYE_GLASS is present but a non-eye part (nose) is missing,
+    the landmark override should not apply to non-eye parts."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.NOSE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Nose is not visible." in metric.message
+    assert metric.score == pytest.approx(
+        _expected_score(
+            missing_count=1,
+            insufficient_count=0,
+        )
+    )
+
+
+# ------------------------------------------------------------------ #
+# Mixed: one eye landmark valid, one invalid
+# ------------------------------------------------------------------ #
+
+
+def test_validate_one_eye_landmark_valid_one_nan(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When both eyes are missed by parser, glasses are present, but only
+    the RIGHT_EYE landmark (index 0) is NaN, only the LEFT_EYE (index 1)
+    is overridden. RIGHT_EYE remains missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_nan_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Right eye is not visible." in metric.message
+    assert "Left eye is not visible." not in metric.message
+    assert metric.score == pytest.approx(
+        _expected_score(
+            missing_count=1,
+            insufficient_count=0,
+        )
+    )
+
+
+def test_validate_one_eye_landmark_valid_one_wrong_shape(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """When both eyes are missed by parser, glasses are present, but the
+    RIGHT_EYE landmark (index 0) has NaN coords, only the LEFT_EYE (index 1)
+    is overridden. RIGHT_EYE remains missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array(
+        [
+            [np.nan, np.nan],
+            [80.0, 50.0],
+            [65.0, 70.0],
+            [55.0, 85.0],
+            [75.0, 85.0],
+        ],
+        dtype=np.float32,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Right eye is not visible." in metric.message
+    assert "Left eye is not visible." not in metric.message
+    assert metric.score == pytest.approx(
+        _expected_score(
+            missing_count=1,
+            insufficient_count=0,
+        )
+    )
+
+
+# ------------------------------------------------------------------ #
+# Thick black frames
+# ------------------------------------------------------------------ #
+
+
+def test_validate_thick_black_frames_parser_misses_eyes_landmarks_valid(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Thick black frames cause the parser to miss eyes, but valid
+    landmarks confirm they are visible."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+# ------------------------------------------------------------------ #
+# Transparent glasses
+# ------------------------------------------------------------------ #
+
+
+def test_validate_transparent_glasses_parser_misses_eyes_landmarks_valid(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Transparent glasses cause the parser to miss eyes, but valid
+    landmarks confirm they are visible."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+# ------------------------------------------------------------------ #
+# Sunglasses: should fail (EYE_GLASS present but eyes genuinely occluded)
+# ------------------------------------------------------------------ #
+
+
+def test_validate_sunglasses_parser_misses_eyes_no_landmarks_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Sunglasses cause the parser to miss eyes. EYE_GLASS is present.
+    Without valid landmarks, the eyes are correctly reported as missing.
+    (Sunglasses rejection is the responsibility of GlassesValidator.)"""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=None,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+def test_validate_sunglasses_parser_misses_eyes_landmarks_missing_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Sunglasses cause the parser to miss eyes. EYE_GLASS is present.
+    Without valid landmarks, the eyes are correctly reported as missing."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = None
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eye is not visible." in metric.message
+    assert "Right eye is not visible." in metric.message
+
+
+# ------------------------------------------------------------------ #
+# _has_valid_eye_landmark() helper
+# ------------------------------------------------------------------ #
+
+
+def test_has_valid_eye_landmark_returns_false_for_none_face(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns False when face is None."""
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=None,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_returns_false_when_kps_is_none(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns False when kps is None."""
+    # Arrange
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = None
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_returns_false_when_kps_wrong_shape(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns False for wrong kps shape."""
+    # Arrange
+    face = _make_face_with_wrong_shape_kps()
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_returns_false_for_nan(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns False when eye landmark is NaN."""
+    # Arrange
+    face = _make_face_with_nan_landmarks()
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.RIGHT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_returns_false_for_inf(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns False when eye landmark is Inf."""
+    # Arrange
+    face = _make_face_with_inf_landmarks()
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.RIGHT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_returns_true_for_valid_left_eye(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns True for valid left eye."""
+    # Arrange
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is True
+
+
+def test_has_valid_eye_landmark_returns_true_for_valid_right_eye(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that _has_valid_eye_landmark returns True for valid right eye."""
+    # Arrange
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.RIGHT_EYE,
+    )
+
+    # Assert
+    assert result is True
+
+
+# ------------------------------------------------------------------ #
+# _find_missing_parts_with_landmark_override() helper
+# ------------------------------------------------------------------ #
+
+
+def test_find_missing_parts_with_landmark_override_no_parts_missing(
+    validator: FaceVisibilityValidator,
+    all_visible_parsing_result: FaceParsingResult,
+):
+    """Verify that no parts are reported missing when all are present."""
+    # Act
+    missing, overridden = validator._find_missing_parts_with_landmark_override(
+        parsing_result=all_visible_parsing_result,
+        face=_make_face_with_valid_landmarks(),
+    )
+
+    # Assert
+    assert missing == ()
+    assert overridden == frozenset()
+
+
+def test_find_missing_parts_with_landmark_override_no_glasses_still_reports_missing(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that without glasses, missing eyes are still reported."""
+    # Arrange
+    counts = _all_sufficient_counts()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    missing, overridden = validator._find_missing_parts_with_landmark_override(
+        parsing_result=parsing_result,
+        face=face,
+    )
+
+    # Assert
+    assert set(missing) == {FacePart.LEFT_EYE, FacePart.RIGHT_EYE}
+    assert overridden == frozenset()
+
+
+def test_find_missing_parts_with_landmark_override_glasses_valid_landmarks_eyes_not_missing(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that with glasses and valid landmarks, missing eyes are
+    removed from the missing list."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    missing, overridden = validator._find_missing_parts_with_landmark_override(
+        parsing_result=parsing_result,
+        face=face,
+    )
+
+    # Assert
+    assert missing == ()
+    assert overridden == frozenset({FacePart.LEFT_EYE, FacePart.RIGHT_EYE})
+
+
+def test_find_missing_parts_with_landmark_override_glasses_no_landmarks_eyes_missing(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that with glasses but no face, missing eyes are still reported."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.LEFT_EYE]
+    del counts[FacePart.RIGHT_EYE]
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    missing, overridden = validator._find_missing_parts_with_landmark_override(
+        parsing_result=parsing_result,
+        face=None,
+    )
+
+    # Assert
+    assert set(missing) == {FacePart.LEFT_EYE, FacePart.RIGHT_EYE}
+    assert overridden == frozenset()
+
+
+def test_find_missing_parts_with_landmark_override_glasses_non_eye_parts_not_affected(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that with glasses, non-eye missing parts are still reported."""
+    # Arrange
+    counts = _all_sufficient_counts_with_eye_glass()
+    del counts[FacePart.NOSE]
+    del counts[FacePart.MOUTH]
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    missing, overridden = validator._find_missing_parts_with_landmark_override(
+        parsing_result=parsing_result,
+        face=face,
+    )
+
+    # Assert
+    assert set(missing) == {FacePart.NOSE, FacePart.MOUTH}
+    assert overridden == frozenset()
