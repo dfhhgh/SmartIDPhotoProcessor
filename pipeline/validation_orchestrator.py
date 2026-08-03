@@ -30,6 +30,7 @@ from models.validation_stage import ValidationStage
 from pipeline.validator_factory import create_default_validators
 from services.face_parser_service import FaceParserService
 from validators.base_validator import BaseValidator
+from validators.face_size_validator import FaceSizeValidator
 
 if TYPE_CHECKING:
     import numpy as np
@@ -76,7 +77,7 @@ class ValidationOrchestrator:
         self._executors: dict[
             ValidationExecutionMode,
             Callable[
-                [np.ndarray, Face | None, FaceParsingResult | None, dict[ValidationStage, list[BaseValidator]]],
+                [np.ndarray, Face | None, FaceParsingResult | None, np.ndarray | None, Face | None, dict[ValidationStage, list[BaseValidator]]],
                 ValidationResult,
             ],
         ] = {
@@ -89,32 +90,39 @@ class ValidationOrchestrator:
         image: np.ndarray,
         face: Face | None = None,
         parsing_result: FaceParsingResult | None = None,
+        original_image: np.ndarray | None = None,
+        original_face: Face | None = None,
     ) -> ValidationResult:
         """Run validators according to the configured execution mode.
 
         Args:
-            image: BGR image data to validate.
-            face: Optional detected face.
+            image: BGR image data to validate (typically aligned image for quality checks).
+            face: Optional detected face (typically aligned face).
             parsing_result: Optional semantic parsing result.
+            original_image: Optional original uploaded image, used by FaceSizeValidator.
+            original_face: Optional original selected face in original image coordinate space.
 
         Returns:
             A :class:`ValidationResult` containing collected metrics.
         """
         # If custom validators are provided (e.g. in unit tests), run all of them in order
         if self._is_custom_validators:
-            metrics = [
-                validator.validate(
-                    image=image,
-                    face=face,
-                    parsing_result=parsing_result,
+            metrics = []
+            for validator in self._validators:
+                v_img = (original_image if original_image is not None else image) if isinstance(validator, FaceSizeValidator) else image
+                v_face = (original_face if original_face is not None else face) if isinstance(validator, FaceSizeValidator) else face
+                metrics.append(
+                    validator.validate(
+                        image=v_img,
+                        face=v_face,
+                        parsing_result=parsing_result,
+                    )
                 )
-                for validator in self._validators
-            ]
             return ValidationResult(metrics=metrics)
 
         stages = self._group_by_stage()
         executor = self._executors[self._execution_mode]
-        return executor(image, face, parsing_result, stages)
+        return executor(image, face, parsing_result, original_image, original_face, stages)
 
     def _group_by_stage(self) -> dict[ValidationStage, list[BaseValidator]]:
         """Group configured validators by their declared ``stage`` property.
@@ -145,25 +153,35 @@ class ValidationOrchestrator:
         image: np.ndarray,
         face: Face | None,
         parsing_result: FaceParsingResult | None,
+        original_image: np.ndarray | None = None,
+        original_face: Face | None = None,
     ) -> list[ValidationMetric]:
         """Run every validator in a stage and return their metrics, in order."""
-        return [
-            validator.validate(image=image, face=face, parsing_result=parsing_result)
-            for validator in validators
-        ]
+        metrics = []
+        for validator in validators:
+            v_img = (original_image if original_image is not None else image) if isinstance(validator, FaceSizeValidator) else image
+            v_face = (original_face if original_face is not None else face) if isinstance(validator, FaceSizeValidator) else face
+            metrics.append(
+                validator.validate(image=v_img, face=v_face, parsing_result=parsing_result)
+            )
+        return metrics
 
     def _execute_production(
         self,
         image: np.ndarray,
         face: Face | None,
         parsing_result: FaceParsingResult | None,
+        original_image: np.ndarray | None,
+        original_face: Face | None,
         stages: dict[ValidationStage, list[BaseValidator]],
     ) -> ValidationResult:
         """Run stages with short-circuiting and lazy inference (existing behavior)."""
         metrics: list[ValidationMetric] = []
 
         # Stage 1: CHEAP validators (Blur, Brightness, Contrast, FaceSize, HeadPose)
-        cheap_metrics = self._run_stage(stages[ValidationStage.CHEAP], image, face, None)
+        cheap_metrics = self._run_stage(
+            stages[ValidationStage.CHEAP], image, face, None, original_image, original_face
+        )
         metrics.extend(cheap_metrics)
         if not all(metric.passed for metric in cheap_metrics):
             logger.info("Stage CHEAP validation failed. Short-circuiting pipeline.")
@@ -176,7 +194,7 @@ class ValidationOrchestrator:
                 parsing_result = self._parser_service.parse(image)
 
             parsing_metrics = self._run_stage(
-                stages[ValidationStage.PARSING], image, face, parsing_result
+                stages[ValidationStage.PARSING], image, face, parsing_result, original_image, original_face
             )
             metrics.extend(parsing_metrics)
             if not all(metric.passed for metric in parsing_metrics):
@@ -186,7 +204,7 @@ class ValidationOrchestrator:
         # Stage 3: GLASSES validators (GlassesValidator)
         if stages[ValidationStage.GLASSES]:
             glasses_metrics = self._run_stage(
-                stages[ValidationStage.GLASSES], image, face, parsing_result
+                stages[ValidationStage.GLASSES], image, face, parsing_result, original_image, original_face
             )
             metrics.extend(glasses_metrics)
 
@@ -197,13 +215,17 @@ class ValidationOrchestrator:
         image: np.ndarray,
         face: Face | None,
         parsing_result: FaceParsingResult | None,
+        original_image: np.ndarray | None,
+        original_face: Face | None,
         stages: dict[ValidationStage, list[BaseValidator]],
     ) -> ValidationResult:
         """Run every stage and every validator unconditionally, collecting all metrics."""
         metrics: list[ValidationMetric] = []
 
         # Stage 1: CHEAP validators -- always run, failures do not stop the pipeline.
-        metrics.extend(self._run_stage(stages[ValidationStage.CHEAP], image, face, None))
+        metrics.extend(
+            self._run_stage(stages[ValidationStage.CHEAP], image, face, None, original_image, original_face)
+        )
 
         # Stage 2: PARSING validators -- always run if any exist, regardless of
         # Stage CHEAP outcome. Parsing is still computed lazily: only invoked
@@ -213,12 +235,12 @@ class ValidationOrchestrator:
             parsing_result = self._parser_service.parse(image)
 
         metrics.extend(
-            self._run_stage(stages[ValidationStage.PARSING], image, face, parsing_result)
+            self._run_stage(stages[ValidationStage.PARSING], image, face, parsing_result, original_image, original_face)
         )
 
         # Stage 3: GLASSES validators -- always run, regardless of earlier failures.
         metrics.extend(
-            self._run_stage(stages[ValidationStage.GLASSES], image, face, parsing_result)
+            self._run_stage(stages[ValidationStage.GLASSES], image, face, parsing_result, original_image, original_face)
         )
 
         return ValidationResult(metrics=metrics)

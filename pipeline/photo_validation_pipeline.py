@@ -2,7 +2,7 @@
 Photo validation pipeline orchestration module.
 
 Connects the detection, selection, cropping, coordinate transformation,
-alignment, parsing, and validation components into a single sequential workflow.
+alignment, parsing, validation, and export components into a single sequential workflow.
 """
 
 from __future__ import annotations
@@ -15,11 +15,11 @@ from models.photo_processing_result import PhotoProcessingResult
 from models.validation_execution_mode import ValidationExecutionMode
 from models.validation_result import ValidationResult
 from pipeline.aligner import FaceAligner
-from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.cropper import FaceCropper
 from pipeline.detector import FaceDetector
-from pipeline.selector import FaceSelector
+from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.photo_exporter import PhotoExporter
+from pipeline.selector import FaceSelector
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from services.face_parser_service import FaceParserService
 from validators.base_selection_validator import BaseSelectionValidator
@@ -43,8 +43,10 @@ class PhotoValidationPipeline:
     5. Transform face coordinates using FaceCoordinateTransformer.
     6. Align the cropped image and face into aligned coordinate space.
     7. Run face parsing on the aligned face.
-    8. Execute validation orchestrator on the aligned image, aligned face, and parsing result.
-    9. Return PhotoProcessingResult (containing crop_result.image if validation succeeds, else None).
+    8. Execute validation orchestrator on the aligned image, aligned face, and parsing result
+       (with original image passed to FaceSizeValidator).
+    9. Export validated photo via PhotoExporter if valid.
+    10. Return PhotoProcessingResult.
     """
 
     def __init__(
@@ -151,6 +153,8 @@ class PhotoValidationPipeline:
                 image=alignment_result.aligned_image,
                 face=alignment_result.aligned_face,
                 parsing_result=None,
+                original_image=image,
+                original_face=selected_face,
             )
         else:
             parsing_result = self._parser_service.parse(alignment_result.aligned_image)
@@ -158,6 +162,8 @@ class PhotoValidationPipeline:
                 image=alignment_result.aligned_image,
                 face=alignment_result.aligned_face,
                 parsing_result=parsing_result,
+                original_image=image,
+                original_face=selected_face,
             )
 
         cropped_image = crop_result.image

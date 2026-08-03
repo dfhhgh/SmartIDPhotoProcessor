@@ -24,8 +24,8 @@ from pipeline.selector import FaceSelector
 from pipeline.cropper import FaceCropper
 from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.aligner import FaceAligner
-from services.face_parser_service import FaceParserService
 from pipeline.photo_exporter import PhotoExporter
+from services.face_parser_service import FaceParserService
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from validators.face_ambiguity_validator import FaceAmbiguityValidator
 from models.validation_result import ValidationResult
@@ -90,6 +90,10 @@ def process_image(
         A tuple of (outcome: str, elapsed_ms: int) where outcome is
         'valid', 'invalid', or 'processing_error'.
     """
+    if exported_dir is None:
+        exported_dir = reports_dir.parent / "exported"
+    exported_dir.mkdir(parents=True, exist_ok=True)
+
     start_time = time.perf_counter()
     overall_status = "PROCESSING_ERROR"
     error_category = None
@@ -150,9 +154,11 @@ def process_image(
                     image=alignment_result.aligned_image,
                     face=alignment_result.aligned_face,
                     parsing_result=parsing_result,
+                    original_image=image,
+                    original_face=selected_face,
                 )
 
-                if True:
+                if True:  # Always export if validation passes
                     export_result = exporter.export(crop_result.image)
                     exported_output_path = exported_dir / img_path.name
                     cv2.imwrite(str(exported_output_path), export_result.exported_image)
