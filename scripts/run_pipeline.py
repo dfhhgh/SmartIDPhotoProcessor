@@ -25,6 +25,7 @@ from pipeline.cropper import FaceCropper
 from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.aligner import FaceAligner
 from services.face_parser_service import FaceParserService
+from pipeline.photo_exporter import PhotoExporter
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from validators.face_ambiguity_validator import FaceAmbiguityValidator
 from models.validation_result import ValidationResult
@@ -81,6 +82,7 @@ def process_image(
     aligned_dir: Path,
     cropped_dir: Path,
     reports_dir: Path,
+    exported_dir: Path | None = None,
 ) -> tuple[str, int]:
     """Process a single image through pipeline components with immediate debugging saves.
 
@@ -109,6 +111,7 @@ def process_image(
             aligner = FaceAligner()
             ambiguity_validator = FaceAmbiguityValidator()
             parser_service = FaceParserService()
+            exporter = PhotoExporter()
             from models.validation_execution_mode import ValidationExecutionMode
 
             orchestrator = ValidationOrchestrator(
@@ -148,6 +151,11 @@ def process_image(
                     face=alignment_result.aligned_face,
                     parsing_result=parsing_result,
                 )
+
+                if True:
+                    export_result = exporter.export(crop_result.image)
+                    exported_output_path = exported_dir / img_path.name
+                    cv2.imwrite(str(exported_output_path), export_result.exported_image)
 
         except Exception as e:
             raise PipelineExecutionError(f"Pipeline validation failed: {e}") from e
@@ -249,10 +257,12 @@ def main() -> None:
     outputs_dir = Path("outputs")
     aligned_dir = outputs_dir / "aligned"
     cropped_dir = outputs_dir / "cropped"
+    exported_dir = outputs_dir / "exported"
     reports_dir = outputs_dir / "reports"
 
     aligned_dir.mkdir(parents=True, exist_ok=True)
     cropped_dir.mkdir(parents=True, exist_ok=True)
+    exported_dir.mkdir(parents=True, exist_ok=True)
     reports_dir.mkdir(parents=True, exist_ok=True)
 
     total_processed = 0
@@ -270,6 +280,7 @@ def main() -> None:
             aligned_dir=aligned_dir,
             cropped_dir=cropped_dir,
             reports_dir=reports_dir,
+            exported_dir=exported_dir,
         )
         total_time += elapsed_ms
         if outcome == "valid":

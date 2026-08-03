@@ -16,6 +16,75 @@ from scripts.run_pipeline import collect_image_paths, process_image
 from tests.factories import create_face
 
 
+def test_process_image_saves_exported_images_for_valid_results(tmp_path):
+    """Valid results should be exported to outputs/exported using the original filename."""
+    img_file = tmp_path / "person03.jpg"
+    img_file.write_bytes(b"dummy")
+
+    aligned_dir = tmp_path / "outputs" / "aligned"
+    cropped_dir = tmp_path / "outputs" / "cropped"
+    exported_dir = tmp_path / "outputs" / "exported"
+    reports_dir = tmp_path / "outputs" / "reports"
+    aligned_dir.mkdir(parents=True, exist_ok=True)
+    cropped_dir.mkdir(parents=True, exist_ok=True)
+    exported_dir.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    image = np.zeros((200, 200, 3), dtype=np.uint8)
+    exported_image = np.zeros((100, 100, 3), dtype=np.uint8)
+
+    with patch("scripts.run_pipeline.FaceDetector") as mock_det_cls, \
+         patch("scripts.run_pipeline.FaceSelector") as mock_sel_cls, \
+         patch("scripts.run_pipeline.FaceCropper") as mock_crop_cls, \
+         patch("scripts.run_pipeline.FaceCoordinateTransformer") as mock_trans_cls, \
+         patch("scripts.run_pipeline.FaceAligner") as mock_align_cls, \
+         patch("scripts.run_pipeline.FaceParserService") as mock_parse_cls, \
+         patch("scripts.run_pipeline.ValidationOrchestrator") as mock_orch_cls, \
+         patch("scripts.run_pipeline.FaceAmbiguityValidator") as mock_amb_cls, \
+         patch("scripts.run_pipeline.PhotoExporter") as mock_export_cls, \
+         patch("cv2.imread", return_value=image), \
+         patch("cv2.imwrite", return_value=True) as mock_imwrite:
+
+        selected_face = create_face()
+        selection_result = _make_selection_result(selected_face)
+        mock_det_cls.return_value.detect.return_value = [MagicMock()]
+        mock_sel_cls.return_value.select.return_value = selection_result
+        mock_amb_cls.return_value.validate.return_value = _make_ambiguity_metric()
+        mock_crop_cls.return_value.crop.return_value = MagicMock(
+            image=np.zeros((100, 100, 3), dtype=np.uint8),
+            crop_x=10,
+            crop_y=20,
+        )
+        mock_trans_cls.return_value.transform.return_value = MagicMock()
+        mock_align_cls.return_value.align.return_value = MagicMock(
+            aligned_image=np.zeros((112, 112, 3), dtype=np.uint8),
+            aligned_face=MagicMock(),
+        )
+        mock_parse_cls.return_value.parse.return_value = MagicMock()
+
+        mock_validation_result = MagicMock()
+        mock_validation_result.is_valid = True
+        metric = MagicMock()
+        metric.type.name = "BLUR"
+        metric.passed = True
+        metric.score = 0.95
+        metric.message = ""
+        mock_validation_result.metrics = [metric]
+        mock_orch_cls.return_value.validate.return_value = mock_validation_result
+        mock_export_cls.return_value.export.return_value = MagicMock(exported_image=exported_image)
+
+        process_image(
+            img_path=img_file,
+            aligned_dir=aligned_dir,
+            cropped_dir=cropped_dir,
+            exported_dir=exported_dir,
+            reports_dir=reports_dir,
+        )
+
+    mock_export_cls.return_value.export.assert_called_once()
+    mock_imwrite.assert_any_call(str(exported_dir / img_file.name), exported_image)
+
+
 def _make_selection_result(selected_face=None) -> SelectionResult:
     face = selected_face if selected_face is not None else create_face()
     ranked_face = RankedFace(face=face, score=0.9)

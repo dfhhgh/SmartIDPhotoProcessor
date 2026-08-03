@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import numpy as np
 from insightface.app.common import Face
 
+from models.export_result import ExportResult
 from models.validation_result import ValidationResult
 
 
@@ -26,6 +27,7 @@ class PhotoProcessingResult:
     selected_face: Face
     aligned_image: np.ndarray | None
     cropped_image: np.ndarray | None
+    export_result: ExportResult | None = None
 
     def __post_init__(self) -> None:
         """
@@ -88,4 +90,13 @@ class PhotoProcessingResult:
             if self.cropped_image.ndim != 3:
                 raise ValueError(
                     "Cropped image must be a 3-dimensional image."
+                )
+
+        if self.export_result is not None:
+            if not isinstance(
+                self.export_result,
+                ExportResult,
+            ):
+                raise TypeError(
+                    "Export result must be an ExportResult instance or None."
                 )

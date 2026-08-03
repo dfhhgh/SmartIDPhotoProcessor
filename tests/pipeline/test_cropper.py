@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 from pipeline.cropper import FaceCropper
 from exceptions.face_exceptions import FaceCroppingError
 from models.crop_result import CropResult
+from config.constants import TARGET_CROP_ASPECT_RATIO
 
 @pytest.fixture
 def cropper():
@@ -62,7 +63,7 @@ def test_validate_image_raises_for_invalid_dimensions(
         cropper._validate_image(image)
 
 
-def test_expand_bbox_returns_expected_coordinates(
+def test_expand_bbox_uses_target_crop_aspect_ratio(
     cropper: FaceCropper,
 ):
     result = cropper._expand_bbox(
@@ -72,12 +73,45 @@ def test_expand_bbox_returns_expected_coordinates(
         200,
     )
 
-    assert result == (
-        70,
-        55,
-        230,
-        275,
-    )
+    width = result[2] - result[0]
+    height = result[3] - result[1]
+    assert width / height == pytest.approx(TARGET_CROP_ASPECT_RATIO, abs=0.01)
+
+
+@pytest.mark.parametrize(
+    ("image_shape", "bbox", "expected_axis"),
+    [
+        ((800, 600, 3), (100, 100, 220, 420), "width"),
+        ((600, 800, 3), (100, 100, 500, 300), "height"),
+        ((1000, 1000, 3), (250, 250, 750, 750), "none"),
+    ],
+)
+def test_expand_bbox_handles_portrait_landscape_and_already_correct_ratio(
+    cropper: FaceCropper,
+    image_shape: tuple[int, int, int],
+    bbox: tuple[int, int, int, int],
+    expected_axis: str,
+):
+    image = np.zeros(image_shape, dtype=np.uint8)
+    x1, y1, x2, y2 = bbox
+
+    result = cropper._expand_bbox(x1, y1, x2, y2)
+    width = result[2] - result[0]
+    height = result[3] - result[1]
+
+    assert width > 0
+    assert height > 0
+    if expected_axis == "width":
+        assert width >= height * TARGET_CROP_ASPECT_RATIO
+    elif expected_axis == "height":
+        assert height >= width / TARGET_CROP_ASPECT_RATIO
+    else:
+        assert width / height == pytest.approx(TARGET_CROP_ASPECT_RATIO, abs=0.01)
+
+    assert result[0] <= x1
+    assert result[1] <= y1
+    assert result[2] >= x2
+    assert result[3] >= y2
 
 def test_clamp_bbox_returns_same_coordinates_when_inside_image(
     cropper: FaceCropper,

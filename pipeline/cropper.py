@@ -18,6 +18,7 @@ from config.constants import (
     TOP_PADDING_RATIO,
     BOTTOM_PADDING_RATIO,
     SIDE_PADDING_RATIO,
+    TARGET_CROP_ASPECT_RATIO,
 )
 from exceptions.face_exceptions import FaceCroppingError
 from models.crop_result import CropResult
@@ -66,6 +67,7 @@ class FaceCropper:
                 y1,
                 x2,
                 y2,
+                image.shape,
             )
 
             x1, y1, x2, y2 = self._clamp_bbox(
@@ -244,31 +246,73 @@ class FaceCropper:
         y1: float,
         x2: float,
         y2: float,
+        image_shape: tuple[int, ...] | None = None,
     ) -> tuple[int, int, int, int]:
         """
-        Expand the face bounding box using configurable padding ratios.
+        Expand the face bounding box using configurable padding ratios and
+        the target crop aspect ratio.
         """
 
         face_width = x2 - x1
         face_height = y2 - y1
 
-        horizontal_padding = (
-            face_width * SIDE_PADDING_RATIO
-        )
-
-        top_padding = (
-            face_height * TOP_PADDING_RATIO
-        )
-
-        bottom_padding = (
-            face_height * BOTTOM_PADDING_RATIO
-        )
+        horizontal_padding = face_width * SIDE_PADDING_RATIO
+        top_padding = face_height * TOP_PADDING_RATIO
+        bottom_padding = face_height * BOTTOM_PADDING_RATIO
 
         new_x1 = x1 - horizontal_padding
         new_y1 = y1 - top_padding
-
         new_x2 = x2 + horizontal_padding
         new_y2 = y2 + bottom_padding
+
+        expanded_width = new_x2 - new_x1
+        expanded_height = new_y2 - new_y1
+        current_ratio = expanded_width / expanded_height if expanded_height > 0 else float("inf")
+
+        if current_ratio < TARGET_CROP_ASPECT_RATIO:
+            target_width = max(expanded_width, int(np.ceil(expanded_height * TARGET_CROP_ASPECT_RATIO)))
+            delta = target_width - expanded_width
+            if delta > 0:
+                ideal_left = delta // 2
+                ideal_right = delta - ideal_left
+                if image_shape is not None and len(image_shape) >= 2:
+                    left_capacity = max(0, int(np.floor(new_x1)))
+                    right_capacity = max(0, int(np.floor(image_shape[1] - new_x2)))
+                    left_expand = min(ideal_left, left_capacity)
+                    right_expand = min(ideal_right, right_capacity)
+                    remaining = delta - (left_expand + right_expand)
+                    if remaining > 0:
+                        if right_capacity > right_expand:
+                            right_expand += min(remaining, right_capacity - right_expand)
+                        elif left_capacity > left_expand:
+                            left_expand += min(remaining, left_capacity - left_expand)
+                    new_x1 -= left_expand
+                    new_x2 += right_expand
+                else:
+                    new_x1 -= ideal_left
+                    new_x2 += ideal_right
+        elif current_ratio > TARGET_CROP_ASPECT_RATIO:
+            target_height = max(expanded_height, int(np.ceil(expanded_width / TARGET_CROP_ASPECT_RATIO)))
+            delta = target_height - expanded_height
+            if delta > 0:
+                ideal_top = delta // 2
+                ideal_bottom = delta - ideal_top
+                if image_shape is not None and len(image_shape) >= 2:
+                    top_capacity = max(0, int(np.floor(new_y1)))
+                    bottom_capacity = max(0, int(np.floor(image_shape[0] - new_y2)))
+                    top_expand = min(ideal_top, top_capacity)
+                    bottom_expand = min(ideal_bottom, bottom_capacity)
+                    remaining = delta - (top_expand + bottom_expand)
+                    if remaining > 0:
+                        if bottom_capacity > bottom_expand:
+                            bottom_expand += min(remaining, bottom_capacity - bottom_expand)
+                        elif top_capacity > top_expand:
+                            top_expand += min(remaining, top_capacity - top_expand)
+                    new_y1 -= top_expand
+                    new_y2 += bottom_expand
+                else:
+                    new_y1 -= ideal_top
+                    new_y2 += ideal_bottom
 
         return (
             round(new_x1),

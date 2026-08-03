@@ -19,6 +19,7 @@ from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 from pipeline.cropper import FaceCropper
 from pipeline.detector import FaceDetector
 from pipeline.selector import FaceSelector
+from pipeline.photo_exporter import PhotoExporter
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from services.face_parser_service import FaceParserService
 from validators.base_selection_validator import BaseSelectionValidator
@@ -56,6 +57,7 @@ class PhotoValidationPipeline:
         parser_service: FaceParserService | None = None,
         orchestrator: ValidationOrchestrator | None = None,
         ambiguity_validator: BaseSelectionValidator | None = None,
+        exporter: PhotoExporter | None = None,
         execution_mode: ValidationExecutionMode = ValidationExecutionMode.PRODUCTION,
     ) -> None:
         """Initialise pipeline components with optional dependency injection.
@@ -88,6 +90,7 @@ class PhotoValidationPipeline:
                 execution_mode=execution_mode,
             )
         )
+        self._exporter = exporter if exporter is not None else PhotoExporter()
 
     def validate(self, image: np.ndarray) -> PhotoProcessingResult:
         """Execute the complete validation workflow on an input image.
@@ -124,6 +127,7 @@ class PhotoValidationPipeline:
                 selected_face=selection_result.selected_face,
                 aligned_image=None,
                 cropped_image=None,
+                export_result=None,
             )
 
         selected_face = selection_result.selected_face
@@ -156,8 +160,10 @@ class PhotoValidationPipeline:
                 parsing_result=parsing_result,
             )
 
-        # 9. Set cropped image based on validation success
-        cropped_image = crop_result.image if validation_result.is_valid else None
+        cropped_image = crop_result.image
+        export_result = None
+        if validation_result.is_valid:
+            export_result = self._exporter.export(cropped_image)
 
         logger.info("Photo validation pipeline completed successfully.")
         return PhotoProcessingResult(
@@ -165,4 +171,5 @@ class PhotoValidationPipeline:
             selected_face=selected_face,
             aligned_image=alignment_result.aligned_image,
             cropped_image=cropped_image,
+            export_result=export_result,
         )
