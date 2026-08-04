@@ -153,15 +153,15 @@ from models.parsing.face_part import FacePart
 # -------------------------------
 
 # Mandatory anatomical regions for a valid student ID photograph.
+# Note: MOUTH, UPPER_LIP, LOWER_LIP are handled as a single composite
+# region by FaceParsingResult.has_visible_mouth_region() and are
+# intentionally excluded from this list.
 FACE_VISIBILITY_REQUIRED_PARTS: tuple[FacePart, ...] = (
     FacePart.LEFT_EYE,
     FacePart.RIGHT_EYE,
     FacePart.LEFT_BROW,
     FacePart.RIGHT_BROW,
     FacePart.NOSE,
-    FacePart.MOUTH,
-    FacePart.UPPER_LIP,
-    FacePart.LOWER_LIP,
 )
 
 # Minimum acceptable ratio of (part pixel area / TOTAL IMAGE area) for each

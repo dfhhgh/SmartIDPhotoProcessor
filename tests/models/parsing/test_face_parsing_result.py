@@ -305,3 +305,149 @@ class TestConsistency:
         result = _make_result()
         total = sum(result.part_area(part) for part in FacePart)
         assert total == result.total_pixels()
+
+
+# ------------------------------------------------------------------
+# 11. has_visible_mouth_region()
+# ------------------------------------------------------------------
+
+class TestHasVisibleMouthRegion:
+    """Tests for the composite mouth-region visibility check."""
+
+    def _make_result_with_parts(
+        self,
+        parts: dict[FacePart, int],
+        height: int = 10,
+        width: int = 10,
+    ) -> FaceParsingResult:
+        """Build a FaceParsingResult with explicit pixel counts."""
+        total = height * width
+        flat_mask = np.zeros(total, dtype=np.int32)
+        offset = 0
+        for part, count in parts.items():
+            if count <= 0:
+                continue
+            flat_mask[offset:offset + count] = int(part)
+            offset += count
+        mask = flat_mask.reshape(height, width)
+        return FaceParsingResult(
+            mask=mask,
+            image_height=height,
+            image_width=width,
+        )
+
+    # -- Case 1: MOUTH present and above threshold --
+
+    def test_mouth_present_above_threshold_returns_true(self):
+        result = self._make_result_with_parts({FacePart.MOUTH: 50})
+        assert result.has_visible_mouth_region(mouth_min_ratio=0.1) is True
+
+    def test_mouth_present_at_exact_threshold_returns_true(self):
+        # 5 / 100 = 0.05 exactly
+        result = self._make_result_with_parts(
+            {FacePart.MOUTH: 5}, height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(mouth_min_ratio=0.05) is True
+
+    def test_mouth_present_below_threshold_falls_through_to_case2(self):
+        # MOUTH below threshold, but lips may satisfy case 2
+        result = self._make_result_with_parts(
+            {FacePart.MOUTH: 1, FacePart.UPPER_LIP: 50, FacePart.LOWER_LIP: 50},
+            height=10, width=10,
+        )
+        # mouth_min_ratio=1.0 means MOUTH would need 100 pixels (impossible here)
+        # but case 2 saves it
+        assert result.has_visible_mouth_region(
+            mouth_min_ratio=1.0, upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is True
+
+    def test_mouth_present_ignores_lip_absence(self):
+        result = self._make_result_with_parts({FacePart.MOUTH: 50})
+        assert result.has_visible_mouth_region(mouth_min_ratio=0.1) is True
+
+    # -- Case 2: Both lips present and above threshold --
+
+    def test_both_lips_present_above_threshold_returns_true(self):
+        result = self._make_result_with_parts(
+            {FacePart.UPPER_LIP: 50, FacePart.LOWER_LIP: 50},
+            height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is True
+
+    def test_both_lips_at_exact_threshold_returns_true(self):
+        # 5 / 100 = 0.05 exactly
+        result = self._make_result_with_parts(
+            {FacePart.UPPER_LIP: 5, FacePart.LOWER_LIP: 5},
+            height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            upper_lip_min_ratio=0.05, lower_lip_min_ratio=0.05,
+        ) is True
+
+    def test_both_lips_below_threshold_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.UPPER_LIP: 1, FacePart.LOWER_LIP: 1},
+            height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is False
+
+    # -- Partial lip presence --
+
+    def test_only_upper_lip_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.UPPER_LIP: 50}, height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is False
+
+    def test_only_lower_lip_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.LOWER_LIP: 50}, height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is False
+
+    # -- Neither case satisfied --
+
+    def test_no_mouth_no_lips_returns_false(self):
+        result = self._make_result_with_parts({})
+        assert result.has_visible_mouth_region() is False
+
+    def test_mouth_absent_one_lip_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.UPPER_LIP: 50}, height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            mouth_min_ratio=0.1, upper_lip_min_ratio=0.1, lower_lip_min_ratio=0.1,
+        ) is False
+
+    # -- Custom thresholds --
+
+    def test_custom_thresholds_are_respected(self):
+        # MOUTH at 0.04, threshold at 0.05 -> fails case 1
+        # UPPER_LIP at 0.06, LOWER_LIP at 0.06, threshold at 0.05 -> passes case 2
+        result = self._make_result_with_parts(
+            {FacePart.MOUTH: 4, FacePart.UPPER_LIP: 6, FacePart.LOWER_LIP: 6},
+            height=10, width=10,
+        )
+        assert result.has_visible_mouth_region(
+            mouth_min_ratio=0.05, upper_lip_min_ratio=0.05, lower_lip_min_ratio=0.05,
+        ) is True
+
+    # -- Default thresholds (all 0.0) --
+
+    def test_default_thresholds_accept_any_presence(self):
+        result = self._make_result_with_parts({FacePart.MOUTH: 1})
+        assert result.has_visible_mouth_region() is True
+
+    # -- Return type --
+
+    def test_returns_bool_type(self):
+        result = self._make_result_with_parts({})
+        assert isinstance(result.has_visible_mouth_region(), bool)

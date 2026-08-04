@@ -195,6 +195,54 @@ class FaceParsingResult:
 
         return self._part_pixel_counts.get(part, 0) / total
 
+    # ------------------------------------------------------------------
+    # Composite region queries
+    # ------------------------------------------------------------------
+
+    def has_visible_mouth_region(
+        self,
+        mouth_min_ratio: float = 0.0,
+        upper_lip_min_ratio: float = 0.0,
+        lower_lip_min_ratio: float = 0.0,
+    ) -> bool:
+        """Return True when the semantic mouth region is sufficiently visible.
+
+        The mouth region is considered visible when either:
+
+        *Case 1* — The MOUTH class itself is sufficiently visible
+        (part_ratio >= *mouth_min_ratio*).
+
+        *Case 2* — Both UPPER_LIP and LOWER_LIP are individually
+        sufficiently visible (part_ratio >= their respective thresholds).
+        This covers closed-mouth poses where BiSeNet correctly predicts
+        the lips but not the inner oral cavity.
+
+        Args:
+            mouth_min_ratio: Minimum acceptable part_ratio for MOUTH.
+            upper_lip_min_ratio: Minimum acceptable part_ratio for UPPER_LIP.
+            lower_lip_min_ratio: Minimum acceptable part_ratio for LOWER_LIP.
+
+        Returns:
+            True when the mouth region passes either case.
+        """
+        # Case 1: MOUTH itself is sufficiently visible.
+        if (
+            self.has_part(FacePart.MOUTH)
+            and self.part_ratio(FacePart.MOUTH) >= mouth_min_ratio
+        ):
+            return True
+
+        # Case 2: Both lips are sufficiently visible.
+        if (
+            self.has_part(FacePart.UPPER_LIP)
+            and self.has_part(FacePart.LOWER_LIP)
+            and self.part_ratio(FacePart.UPPER_LIP) >= upper_lip_min_ratio
+            and self.part_ratio(FacePart.LOWER_LIP) >= lower_lip_min_ratio
+        ):
+            return True
+
+        return False
+
     def total_pixels(self) -> int:
         """Return the total number of pixels in the mask."""
         return self.mask.size

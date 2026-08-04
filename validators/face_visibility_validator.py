@@ -216,18 +216,32 @@ class FaceVisibilityValidator(BaseValidator):
         override logic. It is called internally by
         _find_missing_parts_with_landmark_override.
 
+        The mouth region is checked as a single composite semantic unit
+        via FaceParsingResult.has_visible_mouth_region(), keeping all
+        parsing knowledge inside the parsing result.
+
         Args:
             parsing_result: Semantic face-parsing result to inspect.
 
         Returns:
             Mandatory FacePart values with zero pixels in the mask, in
-            the order defined by FACE_VISIBILITY_REQUIRED_PARTS.
+            the order defined by FACE_VISIBILITY_REQUIRED_PARTS, plus
+            FacePart.MOUTH when the composite mouth region is not visible.
         """
-        return tuple(
+        result = [
             part
             for part in FACE_VISIBILITY_REQUIRED_PARTS
             if not parsing_result.has_part(part)
-        )
+        ]
+
+        if not parsing_result.has_visible_mouth_region(
+            mouth_min_ratio=FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.MOUTH],
+            upper_lip_min_ratio=FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.UPPER_LIP],
+            lower_lip_min_ratio=FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.LOWER_LIP],
+        ):
+            result.append(FacePart.MOUTH)
+
+        return tuple(result)
 
     def _find_insufficient_parts(
         self,
@@ -314,6 +328,10 @@ class FaceVisibilityValidator(BaseValidator):
         present but below its minimum ratio loses only a fraction of its
         share, controlled by FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR.
 
+        The total number of checkable regions is the individual required
+        parts plus the composite mouth region (which is checked as a
+        single semantic unit via FaceParsingResult).
+
         Args:
             missing_parts: Mandatory parts entirely absent from the mask.
             insufficient_parts: Mandatory parts present but too small.
@@ -321,7 +339,8 @@ class FaceVisibilityValidator(BaseValidator):
         Returns:
             Quality score between 0.0 and 1.0.
         """
-        total_parts = len(FACE_VISIBILITY_REQUIRED_PARTS)
+        # 5 individual parts + 1 composite mouth region = 6 semantic checks.
+        total_parts = len(FACE_VISIBILITY_REQUIRED_PARTS) + 1
         part_weight = 1.0 / total_parts
 
         missing_penalty = len(missing_parts) * part_weight

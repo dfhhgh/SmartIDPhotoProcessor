@@ -18,7 +18,10 @@ _IMAGE_HEIGHT = 100
 _IMAGE_WIDTH = 100
 _TOTAL_PIXELS = _IMAGE_HEIGHT * _IMAGE_WIDTH
 
-_TOTAL_REQUIRED_PARTS = len(FACE_VISIBILITY_REQUIRED_PARTS)
+# The mouth region counts as a single mandatory semantic unit alongside the
+# individual required parts, giving 6 total checkable regions.
+_MOUTH_REGION_PART_COUNT = 1
+_TOTAL_REQUIRED_PARTS = len(FACE_VISIBILITY_REQUIRED_PARTS) + _MOUTH_REGION_PART_COUNT
 _PART_WEIGHT = 1.0 / _TOTAL_REQUIRED_PARTS
 
 # Exact pixel counts corresponding to each part's configured minimum ratio,
@@ -57,6 +60,17 @@ for _part in FACE_VISIBILITY_REQUIRED_PARTS:
         "instead of the real configured threshold. Increase _TOTAL_PIXELS "
         "or adjust the ratio's precision."
     )
+
+# Mouth-region threshold pixels (used by the composite check).
+_MOUTH_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.MOUTH] * _TOTAL_PIXELS
+)
+_UPPER_LIP_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.UPPER_LIP] * _TOTAL_PIXELS
+)
+_LOWER_LIP_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.LOWER_LIP] * _TOTAL_PIXELS
+)
 
 _EXPECTED_LABELS: dict[FacePart, str] = {
     FacePart.LEFT_EYE: "Left eye",
@@ -107,11 +121,17 @@ def _build_parsing_result(
 
 
 def _all_sufficient_counts(margin: int = 5) -> dict[FacePart, int]:
-    """Pixel counts for every mandatory part, comfortably above threshold."""
-    return {
+    """Pixel counts for every mandatory part, comfortably above threshold.
+
+    Includes MOUTH so the composite mouth-region check passes via Case 1.
+    """
+    counts = {
         part: _THRESHOLD_PIXELS[part] + margin
         for part in FACE_VISIBILITY_REQUIRED_PARTS
     }
+    # Satisfy the composite mouth-region check (Case 1: MOUTH above threshold).
+    counts[FacePart.MOUTH] = _MOUTH_THRESHOLD_PIXELS + margin
+    return counts
 
 
 def _expected_score(
@@ -528,12 +548,12 @@ def test_validate_multiple_insufficient_parts_reduces_score_accordingly(
     """Verify that multiple insufficient parts each contribute their own penalty."""
     # Arrange
     counts = _all_sufficient_counts()
-    counts[FacePart.MOUTH] = max(
-        _THRESHOLD_PIXELS[FacePart.MOUTH] - 1,
+    counts[FacePart.LEFT_BROW] = max(
+        _THRESHOLD_PIXELS[FacePart.LEFT_BROW] - 1,
         1,
     )
-    counts[FacePart.UPPER_LIP] = max(
-        _THRESHOLD_PIXELS[FacePart.UPPER_LIP] - 1,
+    counts[FacePart.RIGHT_BROW] = max(
+        _THRESHOLD_PIXELS[FacePart.RIGHT_BROW] - 1,
         1,
     )
     parsing_result = _build_parsing_result(counts)
@@ -553,8 +573,8 @@ def test_validate_multiple_insufficient_parts_reduces_score_accordingly(
         )
     )
     assert metric.message == (
-        "Mouth visibility is below the required threshold. "
-        "Upper lip visibility is below the required threshold."
+        "Left eyebrow visibility is below the required threshold. "
+        "Right eyebrow visibility is below the required threshold."
     )
 
 
@@ -572,8 +592,8 @@ def test_validate_missing_and_insufficient_parts_combined(
     # Arrange
     counts = _all_sufficient_counts()
     del counts[FacePart.LEFT_BROW]
-    counts[FacePart.LOWER_LIP] = max(
-        _THRESHOLD_PIXELS[FacePart.LOWER_LIP] - 1,
+    counts[FacePart.RIGHT_BROW] = max(
+        _THRESHOLD_PIXELS[FacePart.RIGHT_BROW] - 1,
         1,
     )
     parsing_result = _build_parsing_result(counts)
@@ -594,7 +614,7 @@ def test_validate_missing_and_insufficient_parts_combined(
     )
     assert metric.message == (
         "Left eyebrow is not visible. "
-        "Lower lip visibility is below the required threshold."
+        "Right eyebrow visibility is below the required threshold."
     )
 
 
@@ -829,7 +849,7 @@ def test_find_missing_parts_detects_absent_parts(
     # Arrange
     counts = _all_sufficient_counts()
     del counts[FacePart.NOSE]
-    del counts[FacePart.MOUTH]
+    del counts[FacePart.LEFT_EYE]
     parsing_result = _build_parsing_result(counts)
 
     # Act
@@ -838,7 +858,7 @@ def test_find_missing_parts_detects_absent_parts(
     )
 
     # Assert
-    assert set(missing_parts) == {FacePart.NOSE, FacePart.MOUTH}
+    assert set(missing_parts) == {FacePart.NOSE, FacePart.LEFT_EYE}
 
 
 def test_find_missing_parts_ignores_non_mandatory_parts(
@@ -1007,7 +1027,8 @@ def test_compute_score_clamps_at_zero_for_excessive_penalties(
     """Verify that combined missing and insufficient penalties cannot
     push the score below 0.0."""
     # Arrange
-    missing_parts = tuple(FACE_VISIBILITY_REQUIRED_PARTS)
+    # Include MOUTH to represent the missing mouth region (6th check).
+    missing_parts = tuple(FACE_VISIBILITY_REQUIRED_PARTS) + (FacePart.MOUTH,)
     insufficient_parts = ()
 
     # Act
@@ -1123,6 +1144,241 @@ def test_describe_part_returns_expected_label(
 
     # Assert
     assert label == _EXPECTED_LABELS[part]
+
+
+# ================================================================== #
+# Mouth region composite check (regression)
+# ================================================================== #
+
+
+def _counts_with_mouth_region(
+    *,
+    mouth: int = 0,
+    upper_lip: int = 0,
+    lower_lip: int = 0,
+    margin: int = 5,
+) -> dict[FacePart, int]:
+    """Build pixel counts with explicit mouth-region control.
+
+    All non-mouth required parts are set above threshold. The mouth
+    region is configured via the keyword arguments.
+    """
+    counts = {
+        part: _THRESHOLD_PIXELS[part] + margin
+        for part in FACE_VISIBILITY_REQUIRED_PARTS
+    }
+    if mouth > 0:
+        counts[FacePart.MOUTH] = mouth
+    if upper_lip > 0:
+        counts[FacePart.UPPER_LIP] = upper_lip
+    if lower_lip > 0:
+        counts[FacePart.LOWER_LIP] = lower_lip
+    return counts
+
+
+def test_validate_closed_mouth_with_both_lips_visible_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: closed mouth with no MOUTH but both lips above threshold
+    must pass validation."""
+    # Arrange
+    counts = _counts_with_mouth_region(
+        upper_lip=_UPPER_LIP_THRESHOLD_PIXELS + 5,
+        lower_lip=_LOWER_LIP_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_open_mouth_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: open mouth with MOUTH present passes validation."""
+    # Arrange
+    counts = _counts_with_mouth_region(
+        mouth=_MOUTH_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_mouth_region_alone_above_threshold_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: MOUTH above threshold passes even without lips."""
+    # Arrange
+    counts = _counts_with_mouth_region(
+        mouth=_MOUTH_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert "Mouth" not in metric.message or metric.passed
+
+
+def test_validate_mask_covering_mouth_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: no MOUTH and no lips must fail with 'Mouth is not visible.'"""
+    # Arrange — no mouth region parts at all
+    counts = _counts_with_mouth_region()
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Mouth is not visible." in metric.message
+
+
+def test_validate_cropped_lower_face_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: cropped lower face with no mouth region fails."""
+    # Arrange — only one lip present (partial crop)
+    counts = _counts_with_mouth_region(
+        upper_lip=_UPPER_LIP_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Mouth is not visible." in metric.message
+
+
+def test_validate_only_one_lip_visible_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: only UPPER_LIP or only LOWER_LIP must fail."""
+    # Arrange — only upper lip
+    counts = _counts_with_mouth_region(
+        upper_lip=_UPPER_LIP_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Mouth is not visible." in metric.message
+
+
+def test_validate_lips_below_threshold_fail(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: both lips present but below threshold must fail."""
+    # Arrange
+    counts = _counts_with_mouth_region(
+        upper_lip=max(_UPPER_LIP_THRESHOLD_PIXELS - 1, 1),
+        lower_lip=max(_LOWER_LIP_THRESHOLD_PIXELS - 1, 1),
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Mouth is not visible." in metric.message
+
+
+def test_validate_mouth_region_exact_threshold_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: lips at exact threshold must pass (>= comparison)."""
+    # Arrange — MOUTH absent, both lips at exact threshold
+    counts = _counts_with_mouth_region(
+        upper_lip=_UPPER_LIP_THRESHOLD_PIXELS,
+        lower_lip=_LOWER_LIP_THRESHOLD_PIXELS,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_mouth_region_score_penalty(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Verify that a missing mouth region deducts exactly one part's weight."""
+    # Arrange — all required parts present, mouth region missing
+    counts = {
+        part: _THRESHOLD_PIXELS[part] + 5
+        for part in FACE_VISIBILITY_REQUIRED_PARTS
+    }
+    # No MOUTH, no lips → mouth region fails
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert metric.score == pytest.approx(
+        _expected_score(missing_count=1, insufficient_count=0)
+    )
+    assert "Mouth is not visible." in metric.message
 
 
 # ================================================================== #
@@ -1964,7 +2220,8 @@ def test_find_missing_parts_with_landmark_override_glasses_non_eye_parts_not_aff
     # Arrange
     counts = _all_sufficient_counts_with_eye_glass()
     del counts[FacePart.NOSE]
-    del counts[FacePart.MOUTH]
+    # Ensure mouth region is still visible so only NOSE is missing.
+    counts[FacePart.MOUTH] = _MOUTH_THRESHOLD_PIXELS + 5
     parsing_result = _build_parsing_result(counts)
     face = _make_face_with_valid_landmarks()
 
@@ -1975,5 +2232,5 @@ def test_find_missing_parts_with_landmark_override_glasses_non_eye_parts_not_aff
     )
 
     # Assert
-    assert set(missing) == {FacePart.NOSE, FacePart.MOUTH}
+    assert set(missing) == {FacePart.NOSE}
     assert overridden == frozenset()
