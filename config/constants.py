@@ -152,41 +152,57 @@ from models.parsing.face_part import FacePart
 # Face Visibility Validation
 # -------------------------------
 
-# Mandatory anatomical regions for a valid student ID photograph.
-# Note: MOUTH, UPPER_LIP, LOWER_LIP are handled as a single composite
-# region by FaceParsingResult.has_visible_mouth_region() and are
-# intentionally excluded from this list.
+# Mandatory anatomical regions checked via simple has_part() queries.
+# Composite semantic regions (mouth, eyebrows) are intentionally excluded.
 FACE_VISIBILITY_REQUIRED_PARTS: tuple[FacePart, ...] = (
     FacePart.LEFT_EYE,
     FacePart.RIGHT_EYE,
-    FacePart.LEFT_BROW,
-    FacePart.RIGHT_BROW,
     FacePart.NOSE,
 )
 
-# Minimum acceptable ratio of (part pixel area / TOTAL IMAGE area) for each
-# mandatory region. These are relative to the whole frame, not the face
-# bounding box, so they are intentionally small: a typical ID photo face
-# occupies roughly FACE_SIZE_MIN_RATIO to FACE_SIZE_MAX_RATIO of the image
-# (see Face Size Validation above), and each individual feature is only a
-# small fraction of the face itself.
-# Initial conservative defaults for a university student ID system; not
-# scientifically fixed and should be calibrated later using a
-# representative dataset of real student ID photos.
-FACE_VISIBILITY_MIN_PART_RATIOS: dict[FacePart, float] = {
+# Number of composite semantic regions checked alongside the individual
+# required parts: mouth region (MOUTH / UPPER_LIP / LOWER_LIP) and
+# two eyebrow regions (LEFT_BROW / RIGHT_BROW, each with eye fallback).
+# Add new composite regions here rather than hardcoding offsets.
+FACE_VISIBILITY_COMPOSITE_REGION_COUNT: int = 3
+
+# Minimum acceptable ratio of (part pixel area / total image area) for each
+# individual required region (eyes, nose). These are relative to the whole
+# frame, not the face bounding box, so they are intentionally small.
+# Initial conservative defaults; calibrate later using a representative
+# dataset of real student ID photos.
+FACE_VISIBILITY_REQUIRED_PART_THRESHOLDS: dict[FacePart, float] = {
     FacePart.LEFT_EYE: 0.0015,
     FacePart.RIGHT_EYE: 0.0015,
+    FacePart.NOSE: 0.0050,
+}
+
+# Minimum ratios for composite eyebrow regions (brow and eye fallback).
+FACE_VISIBILITY_EYEBROW_THRESHOLDS: dict[FacePart, float] = {
     FacePart.LEFT_BROW: 0.0010,
     FacePart.RIGHT_BROW: 0.0010,
-    FacePart.NOSE: 0.0050,
+    FacePart.LEFT_EYE: 0.0015,
+    FacePart.RIGHT_EYE: 0.0015,
+}
+
+# Minimum ratios for composite mouth region (MOUTH and lip fallback).
+FACE_VISIBILITY_MOUTH_THRESHOLDS: dict[FacePart, float] = {
     FacePart.MOUTH: 0.0008,
     FacePart.UPPER_LIP: 0.0020,
     FacePart.LOWER_LIP: 0.0020,
 }
 
-# Fraction of a region's full scoring weight that is deducted when the
-# region is present but below its minimum visibility ratio, as opposed to
-# being entirely missing (which deducts the region's full weight).
+# Combined lookup used by the validator for simple part-ratio checks.
+# Merges required-part thresholds with eyebrow eye-fallback thresholds
+# so the validator can do a single dict lookup per part.
+FACE_VISIBILITY_MIN_PART_RATIOS: dict[FacePart, float] = {
+    **FACE_VISIBILITY_REQUIRED_PART_THRESHOLDS,
+    **FACE_VISIBILITY_EYEBROW_THRESHOLDS,
+    **FACE_VISIBILITY_MOUTH_THRESHOLDS,
+}
+
+# Fraction of a region's full scoring weight deducted when the region is
+# present but below its minimum visibility ratio (vs. fully missing).
 FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR = 0.5
 
 # -------------------------------
@@ -234,3 +250,18 @@ GLASSES_FAILURE_MESSAGE = "Sunglasses are not permitted."
 # dataset of real student ID photos.
 GLASSES_SUNGLASSES_PROBABILITY_THRESHOLD = 0.5
 GLASSES_EYEGLASSES_PROBABILITY_THRESHOLD = 0.5
+
+# -------------------------------
+# Semantic Evidence Fusion
+# -------------------------------
+
+# Weights for continuous weighted evidence fusion combining parser, landmarks,
+# pose, and occlusion. All weights should sum to 1.0.
+SEMANTIC_PARSER_WEIGHT = 0.45
+SEMANTIC_LANDMARK_WEIGHT = 0.25
+SEMANTIC_POSE_WEIGHT = 0.20
+SEMANTIC_OCCLUSION_WEIGHT = 0.10
+
+# Final normalized confidence threshold required to treat a semantic region
+# as visible or acceptable.
+SEMANTIC_DECISION_THRESHOLD = 0.50

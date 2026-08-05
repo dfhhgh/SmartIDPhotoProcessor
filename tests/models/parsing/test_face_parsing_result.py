@@ -451,3 +451,227 @@ class TestHasVisibleMouthRegion:
     def test_returns_bool_type(self):
         result = self._make_result_with_parts({})
         assert isinstance(result.has_visible_mouth_region(), bool)
+
+
+# ------------------------------------------------------------------
+# 12. has_visible_left_eyebrow() / has_visible_right_eyebrow()
+# ------------------------------------------------------------------
+
+
+class TestHasVisibleEyebrow:
+    """Tests for the composite eyebrow visibility check."""
+
+    def _make_result_with_parts(
+        self,
+        parts: dict[FacePart, int],
+        height: int = 10,
+        width: int = 10,
+    ) -> FaceParsingResult:
+        """Build a FaceParsingResult with explicit pixel counts."""
+        total = height * width
+        flat_mask = np.zeros(total, dtype=np.int32)
+        offset = 0
+        for part, count in parts.items():
+            if count <= 0:
+                continue
+            flat_mask[offset:offset + count] = int(part)
+            offset += count
+        mask = flat_mask.reshape(height, width)
+        return FaceParsingResult(
+            mask=mask,
+            image_height=height,
+            image_width=width,
+        )
+
+    # -- Case 1: Parser detects brow above threshold --
+
+    def test_left_brow_present_above_threshold_returns_true(self):
+        result = self._make_result_with_parts({FacePart.LEFT_BROW: 50})
+        assert result.has_visible_left_eyebrow(brow_min_ratio=0.1) is True
+
+    def test_right_brow_present_above_threshold_returns_true(self):
+        result = self._make_result_with_parts({FacePart.RIGHT_BROW: 50})
+        assert result.has_visible_right_eyebrow(brow_min_ratio=0.1) is True
+
+    def test_left_brow_at_exact_threshold_returns_true(self):
+        # 5 / 100 = 0.05 exactly
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_BROW: 5}, height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(brow_min_ratio=0.05) is True
+
+    def test_left_brow_below_threshold_falls_through_to_case2(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_BROW: 1, FacePart.LEFT_EYE: 50},
+            height=10, width=10,
+        )
+        # brow_min_ratio=1.0 means LEFT_BROW would need 100 pixels
+        # but case 2 saves it if eye + landmark boolean exist
+        assert result.has_visible_left_eyebrow(
+            brow_min_ratio=1.0, eye_min_ratio=0.1,
+            left_eye_landmark_valid=True,
+        ) is True
+
+    def test_right_brow_below_threshold_falls_through_to_case2(self):
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_BROW: 1, FacePart.RIGHT_EYE: 50},
+            height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(
+            brow_min_ratio=1.0, eye_min_ratio=0.1,
+            right_eye_landmark_valid=True,
+        ) is True
+
+    # -- Case 2: Parser misses brow, eye exists, landmark valid --
+
+    def test_left_brow_missing_eye_present_landmark_valid_returns_true(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(
+            eye_min_ratio=0.1, left_eye_landmark_valid=True,
+        ) is True
+
+    def test_right_brow_missing_eye_present_landmark_valid_returns_true(self):
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(
+            eye_min_ratio=0.1, right_eye_landmark_valid=True,
+        ) is True
+
+    def test_left_brow_missing_eye_present_landmark_invalid_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(
+            eye_min_ratio=0.1, left_eye_landmark_valid=False,
+        ) is False
+
+    def test_right_brow_missing_eye_present_landmark_invalid_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(
+            eye_min_ratio=0.1, right_eye_landmark_valid=False,
+        ) is False
+
+    # -- Parser misses brow, no eye --
+
+    def test_left_brow_missing_no_eye_returns_false(self):
+        result = self._make_result_with_parts({})
+        assert result.has_visible_left_eyebrow(
+            eye_min_ratio=0.1, left_eye_landmark_valid=True,
+        ) is False
+
+    def test_right_brow_missing_no_eye_returns_false(self):
+        result = self._make_result_with_parts({})
+        assert result.has_visible_right_eyebrow(
+            eye_min_ratio=0.1, right_eye_landmark_valid=True,
+        ) is False
+
+    # -- Parser misses brow, eye present but landmark invalid --
+
+    def test_left_brow_missing_eye_present_no_landmark_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(
+            eye_min_ratio=0.1, left_eye_landmark_valid=False,
+        ) is False
+
+    def test_right_brow_missing_eye_present_no_landmark_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_EYE: 50}, height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(
+            eye_min_ratio=0.1, right_eye_landmark_valid=False,
+        ) is False
+
+    # -- Parser misses brow, eye present but below threshold --
+
+    def test_left_brow_missing_eye_below_threshold_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_EYE: 1}, height=10, width=10,
+        )
+        # eye_min_ratio=1.0 means LEFT_EYE would need 100 pixels
+        assert result.has_visible_left_eyebrow(
+            eye_min_ratio=1.0, left_eye_landmark_valid=True,
+        ) is False
+
+    def test_right_brow_missing_eye_below_threshold_returns_false(self):
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_EYE: 1}, height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(
+            eye_min_ratio=1.0, right_eye_landmark_valid=True,
+        ) is False
+
+    # -- Neither case satisfied --
+
+    def test_no_brow_no_eye_no_landmark_returns_false(self):
+        result = self._make_result_with_parts({})
+        assert result.has_visible_left_eyebrow() is False
+        assert result.has_visible_right_eyebrow() is False
+
+    # -- Opposite eyebrow does not affect the check --
+
+    def test_left_brow_missing_right_brow_still_missing(self):
+        """Parser missing left brow is not saved by right brow existing."""
+        result = self._make_result_with_parts(
+            {FacePart.RIGHT_BROW: 50}, height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(brow_min_ratio=0.1) is False
+
+    def test_right_brow_missing_left_brow_still_missing(self):
+        """Parser missing right brow is not saved by left brow existing."""
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_BROW: 50}, height=10, width=10,
+        )
+        assert result.has_visible_right_eyebrow(brow_min_ratio=0.1) is False
+
+    # -- Custom thresholds --
+
+    def test_custom_thresholds_are_respected(self):
+        # LEFT_BROW at 0.04, threshold at 0.05 -> fails case 1
+        # LEFT_EYE at 0.06, threshold at 0.05 -> passes case 2
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_BROW: 4, FacePart.LEFT_EYE: 6},
+            height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(
+            brow_min_ratio=0.05, eye_min_ratio=0.05,
+            left_eye_landmark_valid=True,
+        ) is True
+
+    # -- Default thresholds (all 0.0) --
+
+    def test_default_thresholds_accept_any_presence(self):
+        result = self._make_result_with_parts({FacePart.LEFT_BROW: 1})
+        assert result.has_visible_left_eyebrow() is True
+        result = self._make_result_with_parts({FacePart.RIGHT_BROW: 1})
+        assert result.has_visible_right_eyebrow() is True
+
+    # -- Return type --
+
+    def test_returns_bool_type(self):
+        result = self._make_result_with_parts({})
+        assert isinstance(result.has_visible_left_eyebrow(), bool)
+        assert isinstance(result.has_visible_right_eyebrow(), bool)
+
+    # -- Both eyebrows visible --
+
+    def test_both_eyebrows_visible_returns_true(self):
+        result = self._make_result_with_parts(
+            {FacePart.LEFT_BROW: 50, FacePart.RIGHT_BROW: 50},
+            height=10, width=10,
+        )
+        assert result.has_visible_left_eyebrow(brow_min_ratio=0.1) is True
+        assert result.has_visible_right_eyebrow(brow_min_ratio=0.1) is True
+
+    # -- Both eyebrows missing --
+
+    def test_both_eyebrows_missing_returns_false(self):
+        result = self._make_result_with_parts({})
+        assert result.has_visible_left_eyebrow() is False
+        assert result.has_visible_right_eyebrow() is False

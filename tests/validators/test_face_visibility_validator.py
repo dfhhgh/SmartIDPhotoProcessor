@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from config.constants import (
+    FACE_VISIBILITY_COMPOSITE_REGION_COUNT,
     FACE_VISIBILITY_MIN_PART_RATIOS,
     FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR,
     FACE_VISIBILITY_REQUIRED_PARTS,
@@ -18,10 +19,10 @@ _IMAGE_HEIGHT = 100
 _IMAGE_WIDTH = 100
 _TOTAL_PIXELS = _IMAGE_HEIGHT * _IMAGE_WIDTH
 
-# The mouth region counts as a single mandatory semantic unit alongside the
-# individual required parts, giving 6 total checkable regions.
-_MOUTH_REGION_PART_COUNT = 1
-_TOTAL_REQUIRED_PARTS = len(FACE_VISIBILITY_REQUIRED_PARTS) + _MOUTH_REGION_PART_COUNT
+_TOTAL_REQUIRED_PARTS = (
+    len(FACE_VISIBILITY_REQUIRED_PARTS)
+    + FACE_VISIBILITY_COMPOSITE_REGION_COUNT
+)
 _PART_WEIGHT = 1.0 / _TOTAL_REQUIRED_PARTS
 
 # Exact pixel counts corresponding to each part's configured minimum ratio,
@@ -70,6 +71,20 @@ _UPPER_LIP_THRESHOLD_PIXELS = round(
 )
 _LOWER_LIP_THRESHOLD_PIXELS = round(
     FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.LOWER_LIP] * _TOTAL_PIXELS
+)
+
+# Eyebrow-region threshold pixels (used by the composite check).
+_LEFT_BROW_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.LEFT_BROW] * _TOTAL_PIXELS
+)
+_RIGHT_BROW_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.RIGHT_BROW] * _TOTAL_PIXELS
+)
+_LEFT_EYE_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.LEFT_EYE] * _TOTAL_PIXELS
+)
+_RIGHT_EYE_THRESHOLD_PIXELS = round(
+    FACE_VISIBILITY_MIN_PART_RATIOS[FacePart.RIGHT_EYE] * _TOTAL_PIXELS
 )
 
 _EXPECTED_LABELS: dict[FacePart, str] = {
@@ -124,6 +139,8 @@ def _all_sufficient_counts(margin: int = 5) -> dict[FacePart, int]:
     """Pixel counts for every mandatory part, comfortably above threshold.
 
     Includes MOUTH so the composite mouth-region check passes via Case 1.
+    Includes LEFT_BROW and RIGHT_BROW so the composite eyebrow checks
+    pass via Case 1 (parser detects brow above threshold).
     """
     counts = {
         part: _THRESHOLD_PIXELS[part] + margin
@@ -131,6 +148,9 @@ def _all_sufficient_counts(margin: int = 5) -> dict[FacePart, int]:
     }
     # Satisfy the composite mouth-region check (Case 1: MOUTH above threshold).
     counts[FacePart.MOUTH] = _MOUTH_THRESHOLD_PIXELS + margin
+    # Satisfy the composite eyebrow checks (Case 1: brow above threshold).
+    counts[FacePart.LEFT_BROW] = _LEFT_BROW_THRESHOLD_PIXELS + margin
+    counts[FacePart.RIGHT_BROW] = _RIGHT_BROW_THRESHOLD_PIXELS + margin
     return counts
 
 
@@ -548,12 +568,12 @@ def test_validate_multiple_insufficient_parts_reduces_score_accordingly(
     """Verify that multiple insufficient parts each contribute their own penalty."""
     # Arrange
     counts = _all_sufficient_counts()
-    counts[FacePart.LEFT_BROW] = max(
-        _THRESHOLD_PIXELS[FacePart.LEFT_BROW] - 1,
+    counts[FacePart.LEFT_EYE] = max(
+        _THRESHOLD_PIXELS[FacePart.LEFT_EYE] - 1,
         1,
     )
-    counts[FacePart.RIGHT_BROW] = max(
-        _THRESHOLD_PIXELS[FacePart.RIGHT_BROW] - 1,
+    counts[FacePart.RIGHT_EYE] = max(
+        _THRESHOLD_PIXELS[FacePart.RIGHT_EYE] - 1,
         1,
     )
     parsing_result = _build_parsing_result(counts)
@@ -573,8 +593,8 @@ def test_validate_multiple_insufficient_parts_reduces_score_accordingly(
         )
     )
     assert metric.message == (
-        "Left eyebrow visibility is below the required threshold. "
-        "Right eyebrow visibility is below the required threshold."
+        "Left eye visibility is below the required threshold. "
+        "Right eye visibility is below the required threshold."
     )
 
 
@@ -591,9 +611,9 @@ def test_validate_missing_and_insufficient_parts_combined(
     score and a concatenated, ordered message."""
     # Arrange
     counts = _all_sufficient_counts()
-    del counts[FacePart.LEFT_BROW]
-    counts[FacePart.RIGHT_BROW] = max(
-        _THRESHOLD_PIXELS[FacePart.RIGHT_BROW] - 1,
+    del counts[FacePart.LEFT_EYE]
+    counts[FacePart.RIGHT_EYE] = max(
+        _THRESHOLD_PIXELS[FacePart.RIGHT_EYE] - 1,
         1,
     )
     parsing_result = _build_parsing_result(counts)
@@ -613,8 +633,8 @@ def test_validate_missing_and_insufficient_parts_combined(
         )
     )
     assert metric.message == (
-        "Left eyebrow is not visible. "
-        "Right eyebrow visibility is below the required threshold."
+        "Left eye is not visible. "
+        "Right eye visibility is below the required threshold."
     )
 
 
@@ -905,8 +925,8 @@ def test_find_insufficient_parts_detects_undersized_parts(
     """Verify that present-but-too-small mandatory parts are identified."""
     # Arrange
     counts = _all_sufficient_counts()
-    counts[FacePart.LEFT_BROW] = max(
-        _THRESHOLD_PIXELS[FacePart.LEFT_BROW] - 1,
+    counts[FacePart.LEFT_EYE] = max(
+        _THRESHOLD_PIXELS[FacePart.LEFT_EYE] - 1,
         1,
     )
     parsing_result = _build_parsing_result(counts)
@@ -918,7 +938,7 @@ def test_find_insufficient_parts_detects_undersized_parts(
     )
 
     # Assert
-    assert insufficient_parts == (FacePart.LEFT_BROW,)
+    assert insufficient_parts == (FacePart.LEFT_EYE,)
 
 
 def test_find_insufficient_parts_excludes_missing_parts(
@@ -1027,8 +1047,11 @@ def test_compute_score_clamps_at_zero_for_excessive_penalties(
     """Verify that combined missing and insufficient penalties cannot
     push the score below 0.0."""
     # Arrange
-    # Include MOUTH to represent the missing mouth region (6th check).
-    missing_parts = tuple(FACE_VISIBILITY_REQUIRED_PARTS) + (FacePart.MOUTH,)
+    # All 6 semantic checks missing: 3 individual + mouth + 2 eyebrows.
+    missing_parts = (
+        tuple(FACE_VISIBILITY_REQUIRED_PARTS)
+        + (FacePart.MOUTH, FacePart.LEFT_BROW, FacePart.RIGHT_BROW)
+    )
     insufficient_parts = ()
 
     # Act
@@ -1160,8 +1183,9 @@ def _counts_with_mouth_region(
 ) -> dict[FacePart, int]:
     """Build pixel counts with explicit mouth-region control.
 
-    All non-mouth required parts are set above threshold. The mouth
-    region is configured via the keyword arguments.
+    All non-mouth required parts are set above threshold. Brows are also
+    set above threshold so the composite eyebrow checks pass via Case 1.
+    The mouth region is configured via the keyword arguments.
     """
     counts = {
         part: _THRESHOLD_PIXELS[part] + margin
@@ -1173,6 +1197,9 @@ def _counts_with_mouth_region(
         counts[FacePart.UPPER_LIP] = upper_lip
     if lower_lip > 0:
         counts[FacePart.LOWER_LIP] = lower_lip
+    # Ensure eyebrow composite checks pass via Case 1 (brow detected).
+    counts[FacePart.LEFT_BROW] = _LEFT_BROW_THRESHOLD_PIXELS + margin
+    counts[FacePart.RIGHT_BROW] = _RIGHT_BROW_THRESHOLD_PIXELS + margin
     return counts
 
 
@@ -1364,6 +1391,9 @@ def test_validate_mouth_region_score_penalty(
         part: _THRESHOLD_PIXELS[part] + 5
         for part in FACE_VISIBILITY_REQUIRED_PARTS
     }
+    # Include brows so eyebrow composite checks pass via Case 1.
+    counts[FacePart.LEFT_BROW] = _LEFT_BROW_THRESHOLD_PIXELS + 5
+    counts[FacePart.RIGHT_BROW] = _RIGHT_BROW_THRESHOLD_PIXELS + 5
     # No MOUTH, no lips → mouth region fails
     parsing_result = _build_parsing_result(counts)
 
@@ -1441,11 +1471,15 @@ def _make_face_with_inf_landmarks() -> "object":
 
 
 def _make_face_with_wrong_shape_kps() -> "object":
-    """Create a mock Face object with incorrectly shaped landmarks."""
+    """Create a mock Face object with incorrectly shaped landmarks.
+
+    Uses shape (5, 3) — valid ndim and row count, but wrong second
+    dimension (3 instead of 2), so the flexible validation rejects it.
+    """
     import types
 
     face = types.SimpleNamespace()
-    face.kps = np.zeros((3, 2), dtype=np.float32)
+    face.kps = np.zeros((5, 3), dtype=np.float32)
     return face
 
 
@@ -2126,9 +2160,109 @@ def test_has_valid_eye_landmark_returns_true_for_valid_right_eye(
     assert result is True
 
 
-# ------------------------------------------------------------------ #
-# _find_missing_parts_with_landmark_override() helper
-# ------------------------------------------------------------------ #
+def test_has_valid_eye_landmark_accepts_6_point_kps(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that landmarks with more than 5 points are accepted."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array(
+        [
+            [50.0, 50.0],  # right eye (index 0)
+            [80.0, 50.0],  # left eye (index 1)
+            [65.0, 70.0],  # nose
+            [55.0, 85.0],  # right mouth
+            [75.0, 85.0],  # left mouth
+            [65.0, 40.0],  # extra point
+        ],
+        dtype=np.float32,
+    )
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is True
+
+
+def test_has_valid_eye_landmark_rejects_1d_array(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that 1-D landmark arrays are rejected."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.array([50.0, 50.0, 80.0, 50.0], dtype=np.float32)
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_rejects_3d_array(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that 3-D landmark arrays are rejected."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.zeros((1, 5, 2), dtype=np.float32)
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_rejects_wrong_second_dim(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that landmark arrays with wrong second dimension are rejected."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.zeros((5, 3), dtype=np.float32)
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
+
+
+def test_has_valid_eye_landmark_rejects_too_few_rows(
+    validator: FaceVisibilityValidator,
+):
+    """Verify that landmark arrays with too few rows are rejected."""
+    import types
+
+    face = types.SimpleNamespace()
+    face.kps = np.zeros((1, 2), dtype=np.float32)
+
+    # Act
+    result = validator._has_valid_eye_landmark(
+        face=face,
+        part=FacePart.LEFT_EYE,
+    )
+
+    # Assert
+    assert result is False
 
 
 def test_find_missing_parts_with_landmark_override_no_parts_missing(
@@ -2234,3 +2368,297 @@ def test_find_missing_parts_with_landmark_override_glasses_non_eye_parts_not_aff
     # Assert
     assert set(missing) == {FacePart.NOSE}
     assert overridden == frozenset()
+
+
+# ================================================================== #
+# Eyebrow composite check (regression)
+# ================================================================== #
+
+
+def _counts_with_eyebrow_region(
+    *,
+    left_brow: int = 0,
+    right_brow: int = 0,
+    left_eye: int = 0,
+    right_eye: int = 0,
+    margin: int = 5,
+) -> dict[FacePart, int]:
+    """Build pixel counts with explicit eyebrow-region control.
+
+    All non-eyebrow required parts (NOSE) and mouth are set above threshold.
+    Eyebrow regions are configured via the keyword arguments.
+    """
+    counts: dict[FacePart, int] = {
+        FacePart.NOSE: _THRESHOLD_PIXELS[FacePart.NOSE] + margin,
+        FacePart.MOUTH: _MOUTH_THRESHOLD_PIXELS + margin,
+    }
+    if left_brow > 0:
+        counts[FacePart.LEFT_BROW] = left_brow
+    if right_brow > 0:
+        counts[FacePart.RIGHT_BROW] = right_brow
+    if left_eye > 0:
+        counts[FacePart.LEFT_EYE] = left_eye
+    if right_eye > 0:
+        counts[FacePart.RIGHT_EYE] = right_eye
+    return counts
+
+
+def test_validate_parser_detects_eyebrow_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: parser detects eyebrow above threshold must pass."""
+    # Arrange
+    counts = _counts_with_eyebrow_region(
+        left_brow=_LEFT_BROW_THRESHOLD_PIXELS + 5,
+        right_brow=_RIGHT_BROW_THRESHOLD_PIXELS + 5,
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_parser_misses_eyebrow_but_eye_landmark_valid_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: parser misses eyebrow but eye + valid landmark passes."""
+    # Arrange — no brow pixels, but eye present + valid landmark
+    counts = _counts_with_eyebrow_region(
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_parser_misses_eyebrow_and_landmark_invalid_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: parser misses eyebrow and landmark invalid must fail."""
+    # Arrange — no brow pixels, eye present but no valid landmark
+    counts = _counts_with_eyebrow_region(
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    import types
+    face = types.SimpleNamespace()
+    face.kps = np.full((5, 2), np.nan, dtype=np.float32)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eyebrow is not visible." in metric.message
+    assert "Right eyebrow is not visible." in metric.message
+
+
+def test_validate_parser_misses_eyebrow_opposite_still_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: parser misses left eyebrow — right eyebrow existing
+    does not save it."""
+    # Arrange — only right brow present
+    counts = _counts_with_eyebrow_region(
+        right_brow=_RIGHT_BROW_THRESHOLD_PIXELS + 5,
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eyebrow is not visible." in metric.message
+    assert "Right eyebrow is not visible." not in metric.message
+
+
+def test_validate_both_eyebrows_visible_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: both eyebrows visible must pass."""
+    # Arrange
+    counts = _counts_with_eyebrow_region(
+        left_brow=_LEFT_BROW_THRESHOLD_PIXELS + 5,
+        right_brow=_RIGHT_BROW_THRESHOLD_PIXELS + 5,
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_both_eyebrows_missing_fails(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: both eyebrows missing must fail."""
+    # Arrange — no brow pixels, no eyes either
+    counts = _counts_with_eyebrow_region()
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert "Left eyebrow is not visible." in metric.message
+    assert "Right eyebrow is not visible." in metric.message
+
+
+def test_validate_eyebrow_exact_threshold_passes(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: eyebrow at exact threshold must pass (>= comparison)."""
+    # Arrange — brow at exact threshold
+    counts = _counts_with_eyebrow_region(
+        left_brow=_LEFT_BROW_THRESHOLD_PIXELS,
+        right_brow=_RIGHT_BROW_THRESHOLD_PIXELS,
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_validate_eyebrow_score_penalty(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Verify that missing eyebrow regions deduct their weight correctly."""
+    # Arrange — all required parts present, both eyebrows missing
+    counts = _counts_with_eyebrow_region(
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert metric.score == pytest.approx(
+        _expected_score(missing_count=2, insufficient_count=0)
+    )
+    assert "Left eyebrow is not visible." in metric.message
+    assert "Right eyebrow is not visible." in metric.message
+
+
+def test_validate_eyebrow_one_missing_one_present(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Verify that one missing eyebrow and one present eyebrow produces
+    the correct score and message."""
+    # Arrange — only left brow present
+    counts = _counts_with_eyebrow_region(
+        left_brow=_LEFT_BROW_THRESHOLD_PIXELS + 5,
+        left_eye=_LEFT_EYE_THRESHOLD_PIXELS + 5,
+        right_eye=_RIGHT_EYE_THRESHOLD_PIXELS + 5,
+    )
+    parsing_result = _build_parsing_result(counts)
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        parsing_result=parsing_result,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert metric.score == pytest.approx(
+        _expected_score(missing_count=1, insufficient_count=0)
+    )
+    assert "Right eyebrow is not visible." in metric.message
+    assert "Left eyebrow is not visible." not in metric.message
+
+
+def test_validate_eye_glasses_eyebrow_override(
+    validator: FaceVisibilityValidator,
+    sample_image: np.ndarray,
+):
+    """Regression: transparent glasses cause parser to miss eyebrows,
+    but valid eye landmarks confirm they are visible."""
+    # Arrange — no brow pixels, eye missed by parser but EYE_GLASS present
+    counts = _counts_with_eyebrow_region(
+        left_eye=0,
+        right_eye=0,
+    )
+    counts[FacePart.EYE_GLASS] = 500
+    parsing_result = _build_parsing_result(counts)
+    face = _make_face_with_valid_landmarks()
+
+    # Act
+    metric = validator.validate(
+        image=sample_image,
+        face=face,
+        parsing_result=parsing_result,
+    )
+
+    # Assert — eyes overridden by landmarks, but eyebrows still missing
+    # (eyebrow fallback requires eye pixels in the mask, not just landmarks)
+    assert metric.passed is False
+    assert "Left eyebrow is not visible." in metric.message
+    assert "Right eyebrow is not visible." in metric.message

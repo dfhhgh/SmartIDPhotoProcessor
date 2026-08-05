@@ -96,9 +96,7 @@ class FaceParsingResult:
             )
 
     def _compute_part_pixel_counts(self) -> MappingProxyType[FacePart, int]:
-        """
-        Single-pass pixel-count computation for every FacePart via
-        np.bincount.
+        """Eagerly compute pixel counts for every FacePart in a single pass.
 
         Returns an immutable MappingProxyType so the frozen dataclass
         cannot be mutated through the cache.
@@ -120,9 +118,7 @@ class FaceParsingResult:
     # ------------------------------------------------------------------
 
     def has_part(self, part: FacePart) -> bool:
-        """
-        Return True if the mask contains at least one pixel of *part*.
-        """
+        """Return True if the mask contains at least one pixel of *part*."""
         if not isinstance(part, FacePart):
             raise TypeError(
                 f"part must be a FacePart, got {type(part).__name__}."
@@ -131,10 +127,7 @@ class FaceParsingResult:
         return self._part_pixel_counts.get(part, 0) > 0
 
     def contains_any(self, parts: Collection[FacePart]) -> bool:
-        """
-        Return True if the mask contains at least one pixel of
-        any part in *parts*.
-        """
+        """Return True if the mask contains at least one pixel of any part."""
         self._validate_parts(parts)
 
         return any(
@@ -143,10 +136,7 @@ class FaceParsingResult:
         )
 
     def contains_all(self, parts: Collection[FacePart]) -> bool:
-        """
-        Return True if the mask contains at least one pixel of
-        every part in *parts*.
-        """
+        """Return True if the mask contains at least one pixel of every part."""
         self._validate_parts(parts)
 
         return all(
@@ -155,10 +145,7 @@ class FaceParsingResult:
         )
 
     def part_mask(self, part: FacePart) -> npt.NDArray[np.bool_]:
-        """
-        Return a newly computed boolean mask where True marks pixels
-        belonging to *part*.  The result is NOT cached.
-        """
+        """Return a boolean mask where True marks pixels belonging to *part*."""
         if not isinstance(part, FacePart):
             raise TypeError(
                 f"part must be a FacePart, got {type(part).__name__}."
@@ -167,9 +154,7 @@ class FaceParsingResult:
         return self.mask == part
 
     def part_area(self, part: FacePart) -> int:
-        """
-        Return the cached pixel count for *part*.
-        """
+        """Return the cached pixel count for *part*."""
         if not isinstance(part, FacePart):
             raise TypeError(
                 f"part must be a FacePart, got {type(part).__name__}."
@@ -178,11 +163,7 @@ class FaceParsingResult:
         return self._part_pixel_counts.get(part, 0)
 
     def part_ratio(self, part: FacePart) -> float:
-        """
-        Return the fraction of total image pixels occupied by *part*.
-
-        Result = part_area(part) / total_pixels()
-        """
+        """Return the fraction of total image pixels occupied by *part*."""
         if not isinstance(part, FacePart):
             raise TypeError(
                 f"part must be a FacePart, got {type(part).__name__}."
@@ -242,6 +223,91 @@ class FaceParsingResult:
             return True
 
         return False
+
+    # ------------------------------------------------------------------
+    # Eyebrow visibility (composite semantic check)
+    # ------------------------------------------------------------------
+
+    def _has_visible_eyebrow(
+        self,
+        brow: FacePart,
+        eye: FacePart,
+        brow_min_ratio: float = 0.0,
+        eye_min_ratio: float = 0.0,
+        eye_landmark_valid: bool = False,
+    ) -> bool:
+        """Return True when an eyebrow is considered sufficiently visible.
+
+        Two-case composite check applied symmetrically for left and right:
+
+        *Case 1* — Parser detects the brow and its ratio >= *brow_min_ratio*.
+
+        *Case 2* — Parser misses the brow, but the corresponding eye exists
+        with ratio >= *eye_min_ratio* and *eye_landmark_valid* is True.
+
+        Args:
+            brow: The brow FacePart (LEFT_BROW or RIGHT_BROW).
+            eye: The corresponding eye FacePart (LEFT_EYE or RIGHT_EYE).
+            brow_min_ratio: Minimum acceptable part_ratio for the brow.
+            eye_min_ratio: Minimum acceptable part_ratio for the eye
+                (used only in Case 2 fallback).
+            eye_landmark_valid: Whether the corresponding InsightFace eye
+                landmark is present and valid. The caller (validator) is
+                responsible for computing this from detector evidence.
+
+        Returns:
+            True when the eyebrow passes either case.
+        """
+        if (
+            self.has_part(brow)
+            and self.part_ratio(brow) >= brow_min_ratio
+        ):
+            return True
+
+        if (
+            eye_landmark_valid
+            and self.has_part(eye)
+            and self.part_ratio(eye) >= eye_min_ratio
+        ):
+            return True
+
+        return False
+
+    def has_visible_left_eyebrow(
+        self,
+        brow_min_ratio: float = 0.0,
+        eye_min_ratio: float = 0.0,
+        left_eye_landmark_valid: bool = False,
+    ) -> bool:
+        """Return True when the left eyebrow is sufficiently visible.
+
+        See :meth:`_has_visible_eyebrow` for the composite check logic.
+        """
+        return self._has_visible_eyebrow(
+            brow=FacePart.LEFT_BROW,
+            eye=FacePart.LEFT_EYE,
+            brow_min_ratio=brow_min_ratio,
+            eye_min_ratio=eye_min_ratio,
+            eye_landmark_valid=left_eye_landmark_valid,
+        )
+
+    def has_visible_right_eyebrow(
+        self,
+        brow_min_ratio: float = 0.0,
+        eye_min_ratio: float = 0.0,
+        right_eye_landmark_valid: bool = False,
+    ) -> bool:
+        """Return True when the right eyebrow is sufficiently visible.
+
+        See :meth:`_has_visible_eyebrow` for the composite check logic.
+        """
+        return self._has_visible_eyebrow(
+            brow=FacePart.RIGHT_BROW,
+            eye=FacePart.RIGHT_EYE,
+            brow_min_ratio=brow_min_ratio,
+            eye_min_ratio=eye_min_ratio,
+            eye_landmark_valid=right_eye_landmark_valid,
+        )
 
     def total_pixels(self) -> int:
         """Return the total number of pixels in the mask."""

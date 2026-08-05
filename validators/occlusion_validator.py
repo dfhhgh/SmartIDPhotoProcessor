@@ -11,6 +11,7 @@ from models.parsing.face_parsing_result import FaceParsingResult
 from models.validation_metric import ValidationMetric
 from models.validation_type import ValidationType
 from models.validation_stage import ValidationStage
+from reasoning.semantic_engine import SemanticEvidenceEngine
 from validators.base_validator import BaseValidator
 
 
@@ -57,8 +58,6 @@ class OcclusionValidator(BaseValidator):
                 not a FaceParsingResult.
             ValueError: If image is None/empty, or parsing_result is None.
         """
-        _ = face
-
         if image is None:
             raise ValueError(
                 "Image must not be None."
@@ -90,8 +89,14 @@ class OcclusionValidator(BaseValidator):
                 "Parsing result must be a FaceParsingResult."
             )
 
+        engine = SemanticEvidenceEngine(
+            parsing_result=parsing_result,
+            face=face,
+        )
+
         prohibited_occlusions = self._find_prohibited_occlusions(
             parsing_result=parsing_result,
+            engine=engine,
         )
 
         score = self._compute_score(
@@ -112,21 +117,27 @@ class OcclusionValidator(BaseValidator):
     def _find_prohibited_occlusions(
         self,
         parsing_result: FaceParsingResult,
+        engine: SemanticEvidenceEngine | None = None,
     ) -> tuple[FacePart, ...]:
-        """Identify prohibited semantic parts present in the parsing result.
+        """Identify prohibited semantic parts present in the parsing result,
 
-        Args:
-            parsing_result: Semantic face-parsing result to inspect.
-
-        Returns:
-            Prohibited FacePart values with at least one pixel in the
-            mask, in the order defined by OCCLUSION_PROHIBITED_PARTS.
+        delegating head covering semantic reasoning to the SemanticEvidenceEngine
+        to distinguish prohibited hard headwear (caps, helmets) from allowed
+        religious head coverings (hijabs, headscarves) when the face is fully visible
+        and pose is frontal.
         """
-        return tuple(
-            part
-            for part in OCCLUSION_PROHIBITED_PARTS
-            if parsing_result.has_part(part)
-        )
+        if engine is None:
+            engine = SemanticEvidenceEngine(parsing_result=parsing_result)
+
+        prohibited: list[FacePart] = []
+        for part in OCCLUSION_PROHIBITED_PARTS:
+            if part == FacePart.HAT:
+                if engine.is_head_covering_prohibited():
+                    prohibited.append(part)
+            else:
+                if parsing_result.has_part(part):
+                    prohibited.append(part)
+        return tuple(prohibited)
 
     def _compute_score(
         self,
