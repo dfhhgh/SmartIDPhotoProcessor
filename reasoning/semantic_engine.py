@@ -1,11 +1,15 @@
 """
-Semantic evidence fusion engine (Phase 1 Production-Ready Refactor).
+Semantic evidence fusion engine.
 
-Replaces binary overrides and hard jumps with continuous, weighted evidence
-blending. Independent evidence sources (BiSeNet segmentation confidence,
+Independent evidence sources (BiSeNet segmentation confidence,
 InsightFace landmark confidence, smooth head pose confidence, and occlusion
 confidence) contribute normalized scores in [0.0, 1.0]. Evidence strengthens
 confidence smoothly without fabricating parser output.
+
+Public compute_*_evidence() methods expose per-channel evidence for
+evaluation display.  The production is_*_visible() methods and the
+internal _compute_weighted_score() use the original 4-channel formula
+that all production validators depend on.
 """
 
 from __future__ import annotations
@@ -35,14 +39,43 @@ _EYE_LANDMARK_INDICES: dict[FacePart, int] = {
 
 @dataclass(frozen=True, slots=True)
 class SemanticEvidence:
-    """Normalized evidence sources for continuous semantic confidence blending.
+    """Normalized evidence sources for semantic confidence blending.
 
     Each attribute is a normalized confidence score in [0.0, 1.0].
+
+    final_confidence is the weighted fusion of all channels, computed
+    automatically during construction using the same 4-channel formula
+    that the production validators use.  passed is derived from
+    final_confidence >= SEMANTIC_DECISION_THRESHOLD.
     """
     parser_confidence: float = 0.0
+    eye_support_confidence: float = 0.0
     landmark_confidence: float = 0.0
     pose_confidence: float = 1.0
     occlusion_confidence: float = 1.0
+    final_confidence: float = 0.0
+    passed: bool = False
+
+    def __post_init__(self) -> None:
+        total_weight = (
+            SEMANTIC_PARSER_WEIGHT
+            + SEMANTIC_LANDMARK_WEIGHT
+            + SEMANTIC_POSE_WEIGHT
+            + SEMANTIC_OCCLUSION_WEIGHT
+        )
+        if total_weight <= 0.0:
+            object.__setattr__(self, "final_confidence", 0.0)
+            object.__setattr__(self, "passed", False)
+            return
+        score = (
+            self.parser_confidence * SEMANTIC_PARSER_WEIGHT
+            + self.landmark_confidence * SEMANTIC_LANDMARK_WEIGHT
+            + self.pose_confidence * SEMANTIC_POSE_WEIGHT
+            + self.occlusion_confidence * SEMANTIC_OCCLUSION_WEIGHT
+        ) / total_weight
+        final = float(min(max(score, 0.0), 1.0))
+        object.__setattr__(self, "final_confidence", final)
+        object.__setattr__(self, "passed", final >= SEMANTIC_DECISION_THRESHOLD)
 
 
 class SemanticEvidenceEngine:
@@ -73,6 +106,33 @@ class SemanticEvidenceEngine:
             return 1.0 if ratio > 0.0 else 0.0
         return float(min(max(ratio / min_ratio, 0.0), 1.0))
 
+    def _compute_parser_confidence(self, part: FacePart, min_ratio: float) -> float:
+        """Compute parser confidence from target part segmentation ratio."""
+        ratio = self._parsing.part_ratio(part)
+        return self._normalize_ratio(ratio, min_ratio)
+
+    def _compute_landmark_confidence(self, part: FacePart) -> float:
+        """Compute continuous landmark confidence in [0.0, 1.0]."""
+        if self._face is None:
+            return 0.0
+
+        kps = getattr(self._face, "kps", None)
+        if kps is None or not isinstance(kps, np.ndarray):
+            return 0.0
+
+        if kps.ndim != 2 or kps.shape[1] != 2:
+            return 0.0
+
+        idx = _EYE_LANDMARK_INDICES.get(part)
+        if idx is None or idx >= kps.shape[0]:
+            return 0.0
+
+        coords = kps[idx]
+        if not np.isfinite(coords).all():
+            return 0.0
+
+        return 1.0
+
     def _compute_pose_confidence(self) -> float:
         """Compute smooth pose confidence in [0.0, 1.0].
 
@@ -100,39 +160,11 @@ class SemanticEvidenceEngine:
 
         return float(min(pitch_score, yaw_score, roll_score))
 
-    def _compute_landmark_confidence(self, part: FacePart) -> float:
-        """Compute continuous landmark confidence in [0.0, 1.0]."""
-        if self._face is None:
-            return 0.0
-
-        kps = getattr(self._face, "kps", None)
-        if kps is None or not isinstance(kps, np.ndarray):
-            return 0.0
-
-        if kps.ndim != 2 or kps.shape[1] != 2:
-            return 0.0
-
-        idx = _EYE_LANDMARK_INDICES.get(part)
-        if idx is None or idx >= kps.shape[0]:
-            return 0.0
-
-        coords = kps[idx]
-        if not np.isfinite(coords).all():
-            return 0.0
-
-        # Landmark exists and is finite; return 1.0 confidence for landmark presence
-        return 1.0
-
     def _compute_occlusion_confidence(self) -> float:
-        """Compute occlusion confidence in [0.0, 1.0].
-
-        Decreases smoothly if prohibited occlusions (HAT) are present without
-        fully validated facial geometry.
-        """
+        """Compute independent occlusion confidence in [0.0, 1.0]."""
         if not self._parsing.has_part(FacePart.HAT):
             return 1.0
 
-        # Hat is present; check how much of the face remains visible
         mandatory_parts = (FacePart.LEFT_EYE, FacePart.RIGHT_EYE, FacePart.NOSE)
         visible_count = sum(
             1 for p in mandatory_parts
@@ -141,7 +173,11 @@ class SemanticEvidenceEngine:
         return float(visible_count / len(mandatory_parts))
 
     def _compute_weighted_score(self, evidence: SemanticEvidence) -> float:
-        """Compute final weighted confidence score from normalized evidence sources."""
+        """Compute final weighted confidence score from normalized evidence sources.
+
+        This is the sole location where multiple evidence sources are combined
+        in production.  Uses the original 4-channel formula.
+        """
         total_weight = (
             SEMANTIC_PARSER_WEIGHT
             + SEMANTIC_LANDMARK_WEIGHT
@@ -160,12 +196,103 @@ class SemanticEvidenceEngine:
 
         return float(min(max(score, 0.0), 1.0))
 
-    def _compute_confidence(self, evidence: SemanticEvidence) -> float:
-        """Public generic confidence computation helper."""
+    # ------------------------------------------------------------------
+    # Public Evidence APIs (for evaluation observation)
+    # ------------------------------------------------------------------
+
+    def compute_weighted_score(self, evidence: SemanticEvidence) -> float:
+        """Compute the final confidence score from evidence channels.
+
+        Public API for evaluation workflows that need to observe the same
+        fusion behaviour as the production validator.
+        """
         return self._compute_weighted_score(evidence)
 
+    def compute_eye_evidence(
+        self,
+        part: FacePart,
+        min_ratio: float = 0.0015,
+    ) -> SemanticEvidence:
+        """Compute semantic evidence for a single eye region."""
+        parser_conf = self._compute_parser_confidence(part, min_ratio)
+        eye_support_conf = parser_conf
+        if parser_conf == 0.0 and self._parsing.has_part(FacePart.EYE_GLASS):
+            eye_support_conf = 0.5
+
+        return SemanticEvidence(
+            parser_confidence=parser_conf,
+            eye_support_confidence=eye_support_conf,
+            landmark_confidence=self._compute_landmark_confidence(part),
+            pose_confidence=self._compute_pose_confidence(),
+            occlusion_confidence=self._compute_occlusion_confidence(),
+        )
+
+    def compute_eyebrow_evidence(
+        self,
+        brow: FacePart,
+        eye: FacePart,
+        brow_min_ratio: float = 0.0010,
+        eye_min_ratio: float = 0.0015,
+    ) -> SemanticEvidence:
+        """Compute semantic evidence for an eyebrow region."""
+        parser_conf = self._compute_parser_confidence(brow, brow_min_ratio)
+        eye_support_conf = self._compute_parser_confidence(eye, eye_min_ratio)
+        landmark_conf = self._compute_landmark_confidence(eye)
+
+        return SemanticEvidence(
+            parser_confidence=parser_conf,
+            eye_support_confidence=eye_support_conf,
+            landmark_confidence=landmark_conf,
+            pose_confidence=self._compute_pose_confidence(),
+            occlusion_confidence=self._compute_occlusion_confidence(),
+        )
+
+    def compute_mouth_evidence(
+        self,
+        mouth_min_ratio: float = 0.0008,
+        upper_lip_min_ratio: float = 0.0020,
+        lower_lip_min_ratio: float = 0.0020,
+    ) -> SemanticEvidence:
+        """Compute semantic evidence for the composite mouth region."""
+        mouth_conf = self._normalize_ratio(
+            self._parsing.part_ratio(FacePart.MOUTH),
+            mouth_min_ratio,
+        )
+        upper_conf = self._normalize_ratio(
+            self._parsing.part_ratio(FacePart.UPPER_LIP),
+            upper_lip_min_ratio,
+        )
+        lower_conf = self._normalize_ratio(
+            self._parsing.part_ratio(FacePart.LOWER_LIP),
+            lower_lip_min_ratio,
+        )
+
+        return SemanticEvidence(
+            parser_confidence=mouth_conf,
+            eye_support_confidence=min(upper_conf, lower_conf),
+            landmark_confidence=1.0,
+            pose_confidence=self._compute_pose_confidence(),
+            occlusion_confidence=self._compute_occlusion_confidence(),
+        )
+
+    def compute_part_evidence(
+        self,
+        part: FacePart,
+        min_ratio: float,
+    ) -> SemanticEvidence:
+        """Compute semantic evidence for a generic part with no landmark support."""
+        parser_conf = self._compute_parser_confidence(part, min_ratio)
+
+        return SemanticEvidence(
+            parser_confidence=parser_conf,
+            eye_support_confidence=0.0,
+            landmark_confidence=1.0,
+            pose_confidence=self._compute_pose_confidence(),
+            occlusion_confidence=self._compute_occlusion_confidence(),
+        )
+
     # ------------------------------------------------------------------
-    # Public Semantic Queries (Weighted Continuous Evidence Fusion)
+    # Public Semantic Queries (Production Validators)
     # ------------------------------------------------------------------
 
     def is_eye_visible(
@@ -275,16 +402,10 @@ class SemanticEvidenceEngine:
         return self._compute_weighted_score(evidence) >= SEMANTIC_DECISION_THRESHOLD
 
     def is_head_covering_prohibited(self) -> bool:
-        """Determine whether a detected head covering (FacePart.HAT) is prohibited.
-
-        Performs continuous semantic evidence evaluation: allowed religious head
-        coverings (hijabs) are permitted when mandatory facial features (eyes, nose, mouth)
-        exhibit high visibility confidence and head pose is frontal.
-        """
+        """Determine whether a detected head covering (FacePart.HAT) is prohibited."""
         if not self._parsing.has_part(FacePart.HAT):
             return False
 
-        # Evaluate semantic visibility of mandatory regions
         eyes_visible = (
             self.is_eye_visible(FacePart.LEFT_EYE)
             and self.is_eye_visible(FacePart.RIGHT_EYE)
@@ -293,7 +414,6 @@ class SemanticEvidenceEngine:
         mouth_visible = self.is_mouth_visible()
         pose_conf = self._compute_pose_confidence()
 
-        # Allowed religious head covering (hijab): face is fully visible and pose is frontal
         if eyes_visible and nose_visible and mouth_visible and pose_conf >= 0.5:
             return False
 

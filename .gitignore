@@ -1,5 +1,6 @@
 ai_models/
 test_images/
+evaluation_results/
 outputs/
 .venv312/
 __pycache__/

@@ -255,10 +255,10 @@ GLASSES_EYEGLASSES_PROBABILITY_THRESHOLD = 0.5
 # Semantic Evidence Fusion
 # -------------------------------
 
-# Weights for continuous weighted evidence fusion combining parser, landmarks,
-# pose, and occlusion. All weights should sum to 1.0.
-SEMANTIC_PARSER_WEIGHT = 0.45
-SEMANTIC_LANDMARK_WEIGHT = 0.25
+# Weights for continuous weighted evidence fusion combining parser,
+# landmarks, pose, and occlusion.
+SEMANTIC_PARSER_WEIGHT = 0.35
+SEMANTIC_LANDMARK_WEIGHT = 0.20
 SEMANTIC_POSE_WEIGHT = 0.20
 SEMANTIC_OCCLUSION_WEIGHT = 0.10
 
