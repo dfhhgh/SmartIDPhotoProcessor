@@ -181,6 +181,9 @@ class Settings:
     ALLOW_PROFILE_FACES: bool = True
     """Whether to accept profile (non-frontal) face poses."""
 
+    MAX_PROFILE_YAW_DEGREES: float = 30.0
+    """Maximum yaw angle (in degrees) before a face is classified as profile."""
+
     # ------------------------------------------------------------------
     # 7. Duplicate Detection
     # ------------------------------------------------------------------

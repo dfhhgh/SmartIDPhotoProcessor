@@ -2,6 +2,9 @@ ai_models/
 test_images/
 evaluation_results/
 outputs/
+
+dataset_builder/dataset/
 .venv312/
 __pycache__/
 *.pyc
+.env

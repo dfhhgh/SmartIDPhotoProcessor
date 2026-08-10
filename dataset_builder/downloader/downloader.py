@@ -8,11 +8,46 @@ It never performs HTTP requests or file I/O directly.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 from dataset_builder.config.settings import Settings
 from dataset_builder.queries.query_loader import QueryLoader
 from dataset_builder.sources.base_source import BaseSource, ImageMetadata
+
+
+# ------------------------------------------------------------------
+# Download statistics
+# ------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DownloadStatistics:
+    """Immutable summary of download activity.
+
+    Computed inside :class:`Downloader` and exposed via
+    :attr:`Downloader.statistics`.  Downstream consumers
+    (e.g. :class:`StatisticsAggregator`) read these values
+    directly without recomputation.
+    """
+
+    total_queries: int
+    """Number of unique queries executed across all categories and sources."""
+
+    total_sources: int
+    """Number of image sources that contributed results."""
+
+    total_attempts: int
+    """Total number of download attempts (one per search result)."""
+
+    successful_downloads: int
+    """Number of images successfully saved to disk."""
+
+    failed_downloads: int
+    """Number of download attempts that did not produce a file."""
+
+    success_rate: float
+    """Fraction of attempts that succeeded (0.0 -- 1.0)."""
 
 
 class Downloader:
@@ -40,11 +75,19 @@ class Downloader:
         settings: Settings,
         query_loader: QueryLoader,
         sources: list[BaseSource],
+        *,
+        max_per_query: int | None = None,
     ) -> None:
         self._settings: Settings = settings
         self._query_loader: QueryLoader = query_loader
         self._sources: list[BaseSource] = sources
+        self._max_per_query_override: int | None = max_per_query
         self._metadata: list[ImageMetadata] = []
+        self._total_queries: int = 0
+        self._total_sources: int = len(sources)
+        self._total_attempts: int = 0
+        self._successful_downloads: int = 0
+        self._failed_downloads: int = 0
 
     # ------------------------------------------------------------------
     # Context manager
@@ -70,6 +113,28 @@ class Downloader:
         """Return all :class:`ImageMetadata` collected during this session."""
         return list(self._metadata)
 
+    @property
+    def statistics(self) -> DownloadStatistics:
+        """Return download statistics for this session.
+
+        Returns
+        -------
+        DownloadStatistics
+            Snapshot of download activity.
+        """
+        total = self._total_attempts
+        success = self._successful_downloads
+        rate = success / total if total > 0 else 0.0
+
+        return DownloadStatistics(
+            total_queries=self._total_queries,
+            total_sources=self._total_sources,
+            total_attempts=total,
+            successful_downloads=success,
+            failed_downloads=self._failed_downloads,
+            success_rate=rate,
+        )
+
     def download_category(self, category_name: str) -> None:
         """Download images for a single category from all enabled sources.
 
@@ -89,10 +154,22 @@ class Downloader:
             When the category file contains no valid queries.
         """
         queries = self._query_loader.load_category(category_name)
+        self._total_queries += len(queries)
 
         for source in self._sources:
             for query in queries:
                 self._download_query(source, query, category_name)
+
+    def download_categories(self, categories: list[str]) -> None:
+        """Download images for specific categories from all enabled sources.
+
+        Parameters
+        ----------
+        categories:
+            List of category identifiers to download.
+        """
+        for category_name in categories:
+            self.download_category(category_name)
 
     def download_all(self) -> None:
         """Download images for every available category from all sources.
@@ -122,20 +199,25 @@ class Downloader:
         search_results = source.search(
             query=query,
             page=1,
-            per_page=self._settings.MAX_IMAGES_PER_QUERY,
+            per_page=self._max_per_query_override
+            or self._settings.MAX_IMAGES_PER_QUERY,
         )
 
         destination = self._settings.RAW_IMAGES_DIR / category_name
         destination.mkdir(parents=True, exist_ok=True)
 
         for result in search_results:
+            self._total_attempts += 1
             download_result = source.download(result, destination)
 
             if not download_result.success:
+                self._failed_downloads += 1
                 continue
 
             if download_result.local_path is None:
+                self._failed_downloads += 1
                 continue
 
             image_metadata = source.build_metadata(result, download_result.local_path)
             self._metadata.append(image_metadata)
+            self._successful_downloads += 1

@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from config.settings import Settings
+from dataset_builder.config.settings import Settings
 
 
 # ------------------------------------------------------------------

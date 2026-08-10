@@ -14,7 +14,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from config.settings import Settings
+from dataset_builder.config.settings import Settings
 
 
 class HTTPClient:

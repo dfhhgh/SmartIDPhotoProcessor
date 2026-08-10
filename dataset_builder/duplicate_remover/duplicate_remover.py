@@ -11,6 +11,7 @@ from __future__ import annotations
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 import imagehash
 from PIL import Image
@@ -52,6 +53,9 @@ class DuplicateGroup:
     removal.
     """
 
+    group_id: int
+    """Deterministic identifier for this group (scan-scoped)."""
+
     original: DuplicateImage
     """The chosen representative image."""
 
@@ -80,6 +84,31 @@ class DuplicateStatistics:
 
     duplicate_ratio: float
     """Fraction of images that are duplicates (0.0 - 1.0)."""
+
+
+@dataclass(frozen=True)
+class MoveStatistics:
+    """Result of a move_duplicates operation."""
+
+    moved: int
+    """Number of files successfully moved."""
+
+    failed: int
+    """Number of files that failed to move."""
+
+    skipped: int
+    """Number of files skipped (e.g. already at destination)."""
+
+    collisions_resolved: int
+    """Number of filename collisions resolved with suffix."""
+
+
+# ------------------------------------------------------------------
+# Type alias for progress callback
+# ------------------------------------------------------------------
+
+ProgressCallback = Callable[[int, int], None]
+"""Signature: ``(processed: int, total: int) -> None``."""
 
 
 # ------------------------------------------------------------------
@@ -134,9 +163,14 @@ class DuplicateRemover:
         """
         return list(self._groups)
 
-    def scan(self, directory: Path) -> None:
+    def scan(
+        self,
+        directory: Path,
+        progress_callback: ProgressCallback | None = None,
+    ) -> None:
         """Scan a directory for images and detect duplicates.
 
+        Any previous scan results are cleared before scanning.
         Computes perceptual hashes for every supported image file
         and groups those whose Hamming distance is within the
         configured threshold.  No files are modified.
@@ -145,25 +179,30 @@ class DuplicateRemover:
         ----------
         directory:
             Root directory to scan recursively.
+        progress_callback:
+            Optional function called with ``(processed, total)``
+            after each image is hashed.
 
         Raises
         ------
         FileNotFoundError
             When *directory* does not exist.
         """
+        self.clear()
+
         if not directory.exists():
             raise FileNotFoundError(f"Directory not found: {directory}")
 
-        images = self._scan_directory(directory)
+        images = self._scan_directory(directory, progress_callback)
         self._scanned = images
-
         self._groups = self._group_duplicates(images)
 
-    def move_duplicates(self, destination: Path) -> int:
+    def move_duplicates(self, destination: Path) -> MoveStatistics:
         """Move all duplicate images except the chosen originals.
 
         Each duplicate file is moved into *destination*.  The
-        original image remains in its current location.
+        original image remains in its current location.  Failures
+        are handled individually; remaining files are still moved.
 
         Parameters
         ----------
@@ -173,20 +212,40 @@ class DuplicateRemover:
 
         Returns
         -------
-        int
-            Number of files moved.
+        MoveStatistics
+            Counts of moved, failed, skipped, and collision-resolved
+            files.
         """
         destination.mkdir(parents=True, exist_ok=True)
 
         moved = 0
+        failed = 0
+        skipped = 0
+        collisions = 0
+
         for group in self._groups:
             for dup in group.duplicates:
                 target = destination / dup.path.name
-                target = self._resolve_collision(target)
-                shutil.move(str(dup.path), str(target))
-                moved += 1
+                target, was_resolved = self._resolve_collision(target)
+                if was_resolved:
+                    collisions += 1
 
-        return moved
+                if not dup.path.exists():
+                    skipped += 1
+                    continue
+
+                try:
+                    shutil.move(str(dup.path), str(target))
+                    moved += 1
+                except Exception:
+                    failed += 1
+
+        return MoveStatistics(
+            moved=moved,
+            failed=failed,
+            skipped=skipped,
+            collisions_resolved=collisions,
+        )
 
     def statistics(self) -> DuplicateStatistics:
         """Return summary statistics for the last scan.
@@ -220,19 +279,27 @@ class DuplicateRemover:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _scan_directory(self, directory: Path) -> list[DuplicateImage]:
+    def _scan_directory(
+        self,
+        directory: Path,
+        progress_callback: ProgressCallback | None,
+    ) -> list[DuplicateImage]:
         """Recursively scan *directory* and compute hashes."""
+        files = sorted(
+            p for p in directory.rglob("*")
+            if p.is_file() and p.suffix.lower() in self._supported_extensions
+        )
+
         images: list[DuplicateImage] = []
+        total = len(files)
 
-        for file_path in sorted(directory.rglob("*")):
-            if not file_path.is_file():
-                continue
-            if file_path.suffix.lower() not in self._supported_extensions:
-                continue
-
+        for idx, file_path in enumerate(files):
             image = self._compute_hash(file_path)
             if image is not None:
                 images.append(image)
+
+            if progress_callback is not None:
+                progress_callback(idx + 1, total)
 
         return images
 
@@ -269,22 +336,34 @@ class DuplicateRemover:
 
         1. Highest resolution (width * height)
         2. Largest file size
-        3. Alphabetical filename (ascending)
+        3. Alphabetically smallest filename (case-insensitive)
         """
         return max(
             group,
             key=lambda img: (
                 img.width * img.height,
                 img.file_size,
-                -ord(img.path.name[0]) if img.path.name else 0,
+                tuple(-c for c in img.path.name.lower().encode()),
             ),
         )
 
     def _group_duplicates(
         self, images: list[DuplicateImage]
     ) -> list[DuplicateGroup]:
-        """Cluster images into duplicate groups using union-find."""
-        parent: dict[int, int] = {i: i for i in range(len(images))}
+        """Cluster images into duplicate groups using union-find.
+
+        Complexity: O(N^2) pairwise comparisons where N is the number
+        of images.  For datasets exceeding ~50k images, consider
+        replacing this stage with a BK-Tree or locality-sensitive
+        hashing (LSH) index to achieve sub-quadratic performance.
+        """
+        # TODO: For very large datasets, replace O(N^2) pairwise
+        # comparison with BK-Tree or LSH-based approximate nearest
+        # neighbor search.
+
+        n = len(images)
+        parent: list[int] = list(range(n))
+        rank: list[int] = [0] * n
 
         def find(x: int) -> int:
             while parent[x] != x:
@@ -294,21 +373,26 @@ class DuplicateRemover:
 
         def union(x: int, y: int) -> None:
             rx, ry = find(x), find(y)
-            if rx != ry:
-                parent[rx] = ry
+            if rx == ry:
+                return
+            if rank[rx] < rank[ry]:
+                rx, ry = ry, rx
+            parent[ry] = rx
+            if rank[rx] == rank[ry]:
+                rank[rx] += 1
 
-        for i in range(len(images)):
-            for j in range(i + 1, len(images)):
+        for i in range(n):
+            for j in range(i + 1, n):
                 if self._are_duplicates(images[i], images[j]):
                     union(i, j)
 
         clusters: dict[int, list[int]] = {}
-        for i in range(len(images)):
+        for i in range(n):
             root = find(i)
             clusters.setdefault(root, []).append(i)
 
         groups: list[DuplicateGroup] = []
-        for indices in clusters.values():
+        for group_idx, indices in enumerate(clusters.values()):
             if len(indices) < 2:
                 continue
 
@@ -322,6 +406,7 @@ class DuplicateRemover:
 
             groups.append(
                 DuplicateGroup(
+                    group_id=group_idx,
                     original=original,
                     duplicates=others,
                     distance_scores=distance_scores,
@@ -331,10 +416,14 @@ class DuplicateRemover:
         return groups
 
     @staticmethod
-    def _resolve_collision(target: Path) -> Path:
-        """Return a non-existing path by appending a counter suffix."""
+    def _resolve_collision(target: Path) -> tuple[Path, bool]:
+        """Return a non-existing path, resolving collisions with suffix.
+
+        Returns the resolved path and a boolean indicating whether
+        a collision was resolved.
+        """
         if not target.exists():
-            return target
+            return target, False
 
         stem = target.stem
         suffix = target.suffix
@@ -344,5 +433,5 @@ class DuplicateRemover:
         while True:
             candidate = parent / f"{stem}_{counter}{suffix}"
             if not candidate.exists():
-                return candidate
+                return candidate, True
             counter += 1

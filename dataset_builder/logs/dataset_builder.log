@@ -1,0 +1,24 @@
+2026-08-06 23:03:32 | test_levels          | INFO     | Info message: test
+2026-08-06 23:03:32 | test_levels          | WARNING  | Warning message: test
+2026-08-06 23:03:32 | test_levels          | ERROR    | Error message: test
+2026-08-06 23:03:32 | test_levels          | ERROR    | Exception caught: test
+Traceback (most recent call last):
+  File "C:\Users\amir\Downloads\SmartIDPhotoProcessor\dataset_builder\test_logger.py", line 32, in test_logger_levels
+    raise ValueError("test exception")
+ValueError: test exception
+2026-08-06 23:04:31 | test_levels          | INFO     | Info message: test
+2026-08-06 23:04:31 | test_levels          | WARNING  | Warning message: test
+2026-08-06 23:04:31 | test_levels          | ERROR    | Error message: test
+2026-08-06 23:04:31 | test_levels          | ERROR    | Exception caught: test
+Traceback (most recent call last):
+  File "C:\Users\amir\Downloads\SmartIDPhotoProcessor\dataset_builder\test_logger.py", line 32, in test_logger_levels
+    raise ValueError("test exception")
+ValueError: test exception
+2026-08-06 23:04:43 | test_levels          | INFO     | Info message: test
+2026-08-06 23:04:43 | test_levels          | WARNING  | Warning message: test
+2026-08-06 23:04:43 | test_levels          | ERROR    | Error message: test
+2026-08-06 23:04:43 | test_levels          | ERROR    | Exception caught: test
+Traceback (most recent call last):
+  File "C:\Users\amir\Downloads\SmartIDPhotoProcessor\dataset_builder\test_logger.py", line 32, in test_logger_levels
+    raise ValueError("test exception")
+ValueError: test exception
