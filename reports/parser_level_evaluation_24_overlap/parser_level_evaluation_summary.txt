@@ -1,0 +1,41 @@
+PARSER-LEVEL EVALUATION SUMMARY
+
+Dataset: C:\Users\amir\Downloads\SmartIDPhotoProcessor\dataset_builder\dataset\parser_finetune_expanded
+Split/filter: all
+Evaluated images: 8
+Production failed inference cases: 0
+Fine-tuned failed inference cases: 0
+
+Production mIoU: 0.863003
+Fine-tuned mIoU: 0.741950
+Absolute mIoU improvement: -0.121052
+Relative mIoU improvement (%): -14.026865
+
+Production mean Dice/F1: 0.899095
+Fine-tuned mean Dice/F1: 0.842055
+Absolute mean Dice improvement: -0.057041
+
+Production pixel accuracy: 0.980768
+Fine-tuned pixel accuracy: 0.942971
+Absolute pixel accuracy improvement: -0.037797
+
+Ground-truth handling:
+Predicted masks are resized to the 112x112 corrected-mask shape with cv2.INTER_NEAREST only when needed; ground-truth masks are not resized.
+
+Evaluation images without accepted ground-truth masks:
+glasses.jpg
+hijab with glassesjpg.jpg
+hijab2.jpg
+old-man-walking-a-donkey-donkeys-lanzarote-canaries-islands-canary-DPB4DH.jpg
+pexels_2784877.jpeg
+pexels_3252801.jpeg
+pexels_3714139.jpeg
+pexels_3772712.jpeg
+pexels_3899102.jpeg
+pexels_4057039.jpeg
+pexels_4836878.jpeg
+pexels_5752315.jpeg
+pexels_5815587.jpeg
+pexels_5945246.jpeg
+pexels_5974063.jpeg
+prescription_eyeglasses_lady.jpg

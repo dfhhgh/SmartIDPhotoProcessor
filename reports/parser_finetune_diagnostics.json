@@ -1,0 +1,266 @@
+{
+  "generated_at": "2026-08-15",
+  "experiment": "parser_finetune_diagnostics",
+  "overall_metrics": {
+    "production_mIoU": 0.863443,
+    "finetuned_mIoU": 0.737769,
+    "production_dice": 0.906654,
+    "finetuned_dice": 0.843751,
+    "production_pixel_accuracy": 0.970792,
+    "finetuned_pixel_accuracy": 0.941894,
+    "mIoU_delta": -0.125674,
+    "dice_delta": -0.062903,
+    "pixel_accuracy_delta": -0.028898
+  },
+  "split_analysis": {
+    "expanded_dataset": {
+      "train_samples": 122,
+      "val_samples": 26,
+      "test_samples": 27,
+      "total_samples": 175,
+      "train_val_overlap": [],
+      "train_test_overlap": [],
+      "val_test_overlap": []
+    },
+    "pilot_dataset": {
+      "train_samples": 73,
+      "val_samples": 15,
+      "test_samples": 17,
+      "total_samples": 105
+    },
+    "cross_dataset_leakage": {
+      "expanded_test_in_pilot_train": ["sample_0001", "sample_0014", "sample_0015", "sample_0017", "sample_0045", "sample_0050", "sample_0073", "sample_0077", "sample_0084", "sample_0085", "sample_0088", "sample_0098"],
+      "expanded_test_in_pilot_val": ["sample_0007"],
+      "expanded_test_in_pilot_test": ["sample_0008", "sample_0055"],
+      "total_leaked": 15,
+      "total_test": 27,
+      "leakage_percentage": 55.6,
+      "note": "Expanded fine-tuning started from ONNX weights (not pilot checkpoint), so these were not directly trained on, but the test set is not fully independent from the pilot experiment."
+    },
+    "source_image_overlap": {
+      "test_sources_in_train": 0,
+      "test_sources_in_val": 0
+    }
+  },
+  "gt_class_distribution": {
+    "total_pixels": 326144,
+    "per_class": {
+      "BACKGROUND": {"pixels": 61030, "percentage": 18.7126, "images": 26},
+      "SKIN": {"pixels": 119531, "percentage": 36.6498, "images": 26},
+      "LEFT_BROW": {"pixels": 2503, "percentage": 0.7675, "images": 26},
+      "RIGHT_BROW": {"pixels": 1940, "percentage": 0.5948, "images": 24},
+      "LEFT_EYE": {"pixels": 1468, "percentage": 0.4501, "images": 23},
+      "RIGHT_EYE": {"pixels": 1454, "percentage": 0.4458, "images": 24},
+      "EYE_GLASS": {"pixels": 21244, "percentage": 6.5137, "images": 16},
+      "LEFT_EAR": {"pixels": 1344, "percentage": 0.4121, "images": 9},
+      "RIGHT_EAR": {"pixels": 874, "percentage": 0.2680, "images": 8},
+      "EAR_RING": {"pixels": 70, "percentage": 0.0215, "images": 2},
+      "NOSE": {"pixels": 12363, "percentage": 3.7907, "images": 26},
+      "MOUTH": {"pixels": 588, "percentage": 0.1803, "images": 11},
+      "UPPER_LIP": {"pixels": 2237, "percentage": 0.6859, "images": 26},
+      "LOWER_LIP": {"pixels": 3417, "percentage": 1.0477, "images": 26},
+      "NECK": {"pixels": 3571, "percentage": 1.0949, "images": 19},
+      "NECKLACE": {"pixels": 21, "percentage": 0.0064, "images": 1},
+      "CLOTH": {"pixels": 5577, "percentage": 1.7100, "images": 13},
+      "HAIR": {"pixels": 61019, "percentage": 18.7092, "images": 23},
+      "HAT": {"pixels": 25893, "percentage": 7.9391, "images": 7}
+    }
+  },
+  "per_class_metrics": {
+    "BACKGROUND": {
+      "prod_iou": 0.9883, "ft_iou": 0.8963, "iou_delta": -0.0920,
+      "prod_dice": 0.9941, "ft_dice": 0.9453, "dice_delta": -0.0488,
+      "prod_precision": 0.9884, "ft_precision": 0.9039,
+      "prod_recall": 0.9999, "ft_recall": 0.9907
+    },
+    "SKIN": {
+      "prod_iou": 0.9929, "ft_iou": 0.9269, "iou_delta": -0.0660,
+      "prod_dice": 0.9964, "ft_dice": 0.9621, "dice_delta": -0.0344,
+      "prod_precision": 0.9969, "ft_precision": 0.9686,
+      "prod_recall": 0.9960, "ft_recall": 0.9557
+    },
+    "LEFT_BROW": {
+      "prod_iou": 0.9007, "ft_iou": 0.6868, "iou_delta": -0.2139,
+      "prod_dice": 0.9477, "ft_dice": 0.8143, "dice_delta": -0.1334,
+      "prod_precision": 0.9099, "ft_precision": 0.8491,
+      "prod_recall": 0.9888, "ft_recall": 0.7823
+    },
+    "RIGHT_BROW": {
+      "prod_iou": 0.8350, "ft_iou": 0.6759, "iou_delta": -0.1592,
+      "prod_dice": 0.9101, "ft_dice": 0.8066, "dice_delta": -0.1035,
+      "prod_precision": 0.9963, "ft_precision": 0.7827,
+      "prod_recall": 0.8376, "ft_recall": 0.8320
+    },
+    "LEFT_EYE": {
+      "prod_iou": 0.3478, "ft_iou": 0.6137, "iou_delta": 0.2659,
+      "prod_dice": 0.5161, "ft_dice": 0.7606, "dice_delta": 0.2445,
+      "prod_precision": 0.9089, "ft_precision": 0.7164,
+      "prod_recall": 0.3604, "ft_recall": 0.8106
+    },
+    "RIGHT_EYE": {
+      "prod_iou": 0.2387, "ft_iou": 0.6429, "iou_delta": 0.4042,
+      "prod_dice": 0.3853, "ft_dice": 0.7826, "dice_delta": 0.3973,
+      "prod_precision": 1.0000, "ft_precision": 0.7732,
+      "prod_recall": 0.2387, "ft_recall": 0.7923
+    },
+    "EYE_GLASS": {
+      "prod_iou": 0.8874, "ft_iou": 0.8452, "iou_delta": -0.0422,
+      "prod_dice": 0.9403, "ft_dice": 0.9161, "dice_delta": -0.0243,
+      "prod_precision": 0.9156, "ft_precision": 0.9351,
+      "prod_recall": 0.9664, "ft_recall": 0.8978
+    },
+    "LEFT_EAR": {
+      "prod_iou": 1.0000, "ft_iou": 0.6827, "iou_delta": -0.3173,
+      "prod_dice": 1.0000, "ft_dice": 0.8114, "dice_delta": -0.1886,
+      "prod_precision": 1.0000, "ft_precision": 0.9914,
+      "prod_recall": 1.0000, "ft_recall": 0.6868
+    },
+    "RIGHT_EAR": {
+      "prod_iou": 1.0000, "ft_iou": 0.6230, "iou_delta": -0.3770,
+      "prod_dice": 1.0000, "ft_dice": 0.7677, "dice_delta": -0.2323,
+      "prod_precision": 1.0000, "ft_precision": 0.6622,
+      "prod_recall": 1.0000, "ft_recall": 0.9130
+    },
+    "EAR_RING": {
+      "prod_iou": 1.0000, "ft_iou": 0.5789, "iou_delta": -0.4211,
+      "prod_dice": 1.0000, "ft_dice": 0.7333, "dice_delta": -0.2667,
+      "prod_precision": 1.0000, "ft_precision": 0.8800,
+      "prod_recall": 1.0000, "ft_recall": 0.6286
+    },
+    "NOSE": {
+      "prod_iou": 1.0000, "ft_iou": 0.9239, "iou_delta": -0.0761,
+      "prod_dice": 1.0000, "ft_dice": 0.9604, "dice_delta": -0.0396,
+      "prod_precision": 1.0000, "ft_precision": 0.9670,
+      "prod_recall": 1.0000, "ft_recall": 0.9540
+    },
+    "MOUTH": {
+      "prod_iou": 1.0000, "ft_iou": 0.6389, "iou_delta": -0.3611,
+      "prod_dice": 1.0000, "ft_dice": 0.7796, "dice_delta": -0.2204,
+      "prod_precision": 1.0000, "ft_precision": 0.7656,
+      "prod_recall": 1.0000, "ft_recall": 0.7942
+    },
+    "UPPER_LIP": {
+      "prod_iou": 1.0000, "ft_iou": 0.6730, "iou_delta": -0.3270,
+      "prod_dice": 1.0000, "ft_dice": 0.8046, "dice_delta": -0.1954,
+      "prod_precision": 1.0000, "ft_precision": 0.8193,
+      "prod_recall": 1.0000, "ft_recall": 0.7903
+    },
+    "LOWER_LIP": {
+      "prod_iou": 0.9959, "ft_iou": 0.7841, "iou_delta": -0.2118,
+      "prod_dice": 0.9980, "ft_dice": 0.8790, "dice_delta": -0.1189,
+      "prod_precision": 0.9959, "ft_precision": 0.9023,
+      "prod_recall": 1.0000, "ft_recall": 0.8569
+    },
+    "NECK": {
+      "prod_iou": 0.8876, "ft_iou": 0.6978, "iou_delta": -0.1898,
+      "prod_dice": 0.9405, "ft_dice": 0.8220, "dice_delta": -0.1185,
+      "prod_precision": 0.8876, "ft_precision": 0.9111,
+      "prod_recall": 1.0000, "ft_recall": 0.7488
+    },
+    "NECKLACE": {
+      "prod_iou": 1.0000, "ft_iou": 0.7143, "iou_delta": -0.2857,
+      "prod_dice": 1.0000, "ft_dice": 0.8333, "dice_delta": -0.1667,
+      "prod_precision": 1.0000, "ft_precision": 1.0000,
+      "prod_recall": 1.0000, "ft_recall": 0.7143
+    },
+    "CLOTH": {
+      "prod_iou": 0.5943, "ft_iou": 0.6013, "iou_delta": 0.0070,
+      "prod_dice": 0.7455, "ft_dice": 0.7510, "dice_delta": 0.0055,
+      "prod_precision": 0.5943, "ft_precision": 0.9101,
+      "prod_recall": 1.0000, "ft_recall": 0.6392
+    },
+    "HAIR": {
+      "prod_iou": 0.9738, "ft_iou": 0.9206, "iou_delta": -0.0532,
+      "prod_dice": 0.9867, "ft_dice": 0.9586, "dice_delta": -0.0281,
+      "prod_precision": 0.9774, "ft_precision": 0.9668,
+      "prod_recall": 0.9962, "ft_recall": 0.9506
+    },
+    "HAT": {
+      "prod_iou": 0.7630, "ft_iou": 0.8920, "iou_delta": 0.1290,
+      "prod_dice": 0.8656, "ft_dice": 0.9429, "dice_delta": 0.0774,
+      "prod_precision": 0.9727, "ft_precision": 0.9385,
+      "prod_recall": 0.7797, "ft_recall": 0.9474
+    }
+  },
+  "degradation_ranking": [
+    {"class": "EAR_RING", "iou_delta": -0.4211, "gt_pixels": 70},
+    {"class": "RIGHT_EAR", "iou_delta": -0.3770, "gt_pixels": 874},
+    {"class": "MOUTH", "iou_delta": -0.3611, "gt_pixels": 588},
+    {"class": "UPPER_LIP", "iou_delta": -0.3270, "gt_pixels": 2237},
+    {"class": "LEFT_EAR", "iou_delta": -0.3173, "gt_pixels": 1344},
+    {"class": "NECKLACE", "iou_delta": -0.2857, "gt_pixels": 21},
+    {"class": "LEFT_BROW", "iou_delta": -0.2139, "gt_pixels": 2503},
+    {"class": "LOWER_LIP", "iou_delta": -0.2118, "gt_pixels": 3417},
+    {"class": "NECK", "iou_delta": -0.1898, "gt_pixels": 3571},
+    {"class": "RIGHT_BROW", "iou_delta": -0.1592, "gt_pixels": 1940},
+    {"class": "BACKGROUND", "iou_delta": -0.0920, "gt_pixels": 61030},
+    {"class": "NOSE", "iou_delta": -0.0761, "gt_pixels": 12363},
+    {"class": "SKIN", "iou_delta": -0.0660, "gt_pixels": 119531},
+    {"class": "HAIR", "iou_delta": -0.0532, "gt_pixels": 61019},
+    {"class": "EYE_GLASS", "iou_delta": -0.0422, "gt_pixels": 21244},
+    {"class": "CLOTH", "iou_delta": 0.0070, "gt_pixels": 5577},
+    {"class": "HAT", "iou_delta": 0.1290, "gt_pixels": 25893},
+    {"class": "LEFT_EYE", "iou_delta": 0.2659, "gt_pixels": 1468},
+    {"class": "RIGHT_EYE", "iou_delta": 0.4042, "gt_pixels": 1454}
+  ],
+  "training_config": {
+    "loss_function": "CrossEntropyLoss with per-pixel class weighting",
+    "class_weights": {"4": 2.0, "5": 2.0, "6": 1.0},
+    "non_target_class_weight": 1.0,
+    "optimizer": "AdamW",
+    "learning_rate": 1e-05,
+    "weight_decay": 1e-04,
+    "scheduler": "CosineAnnealingLR",
+    "scheduler_T_max": 20,
+    "epochs": 20,
+    "batch_size": 4,
+    "ignore_index": null,
+    "aux16_weight": 0.4,
+    "aux32_weight": 0.4,
+    "image_size": 512,
+    "mask_size": 112,
+    "seed": 42,
+    "augmentation": {
+      "horizontal_flip": 0.5,
+      "max_rotation_degrees": 8.0,
+      "max_translation_fraction": 0.04,
+      "scale_range": [0.96, 1.04],
+      "brightness_delta": 0.08,
+      "contrast_delta": 0.08
+    },
+    "target_classes": ["LEFT_BROW", "RIGHT_BROW", "LEFT_EYE", "RIGHT_EYE", "EYE_GLASS", "HAT"]
+  },
+  "checkpoint_selection": {
+    "criterion": "val_target_mean_iou",
+    "criterion_classes": ["LEFT_BROW", "RIGHT_BROW", "LEFT_EYE", "RIGHT_EYE", "EYE_GLASS", "HAT"],
+    "best_epoch": 17,
+    "best_val_target_mean_iou": 0.7546072367708926,
+    "note": "Checkpoint selected by target-class IoU only. Non-target class regression was not monitored."
+  },
+  "preprocessing_comparison": {
+    "identical": true,
+    "details": "Both models receive the same BGR uint8 numpy array, apply same BGR->RGB, same 512x512 resize (INTER_LINEAR), same ImageNet normalization (mean=[0.485,0.456,0.406], std=[0.229,0.224,0.225]), same HWC->NCHW layout."
+  },
+  "class_mapping_comparison": {
+    "identical": true,
+    "details": "FacePart enum, CLASS_NAMES dict, and evaluation report all use identical 19-class CelebAMask-HQ mapping."
+  },
+  "root_cause": {
+    "primary": "Catastrophic forgetting: fine-tuning all layers on 6 target classes degraded 13 non-target classes",
+    "secondary": "Checkpoint selection used target-only mIoU, masking non-target regression",
+    "tertiary": "Production model was near-perfect (IoU=1.0) on many non-target classes, leaving no room for improvement and high risk of degradation",
+    "evidence": [
+      "14 of 19 classes show IoU degradation",
+      "8 classes that had IoU=1.0 in production dropped significantly",
+      "Only 3 classes improved (LEFT_EYE +0.27, RIGHT_EYE +0.40, HAT +0.13)",
+      "SKIN (-0.066 on 119K pixels) and BACKGROUND (-0.092 on 61K pixels) account for most overall mIoU loss"
+    ]
+  },
+  "recommendations": [
+    "Freeze backbone, only fine-tune classification head",
+    "Use all-19-class mIoU as checkpoint selection criterion",
+    "Add EWC/MAS regularization to protect non-target classes",
+    "Reduce learning rate to 1e-6",
+    "Use differential learning rates (lower backbone, higher head)"
+  ]
+}

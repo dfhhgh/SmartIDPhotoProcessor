@@ -35,6 +35,8 @@ from dataset_builder.reports.report_generator import ReportGenerator
 from dataset_builder.sources.base_source import BaseSource
 from dataset_builder.sources.pexels import PexelsSource
 from dataset_builder.sources.pixabay import PixabaySource
+from dataset_builder.sources.openverse import OpenverseSource
+from dataset_builder.sources.wikimedia_commons import WikimediaCommonsSource
 from dataset_builder.statistics.statistics import StatisticsAggregator
 
 
@@ -62,6 +64,8 @@ def _create_sources(settings: Settings) -> list[BaseSource]:
     source_registry: dict[str, type[BaseSource]] = {
         "pexels": PexelsSource,
         "pixabay": PixabaySource,
+        "openverse": OpenverseSource,
+        "wikimedia_commons": WikimediaCommonsSource,
     }
 
     sources: list[BaseSource] = []

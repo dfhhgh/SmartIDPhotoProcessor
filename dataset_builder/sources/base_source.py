@@ -54,6 +54,12 @@ class SearchResult:
     source: str
     """Identifier of the source provider (e.g. 'pexels', 'pixabay')."""
 
+    license_url: str | None = None
+    """Optional URL to the license terms."""
+
+    license_type: str | None = None
+    """Optional machine-readable license type."""
+
 
 @dataclass(frozen=True)
 class DownloadResult:
@@ -105,6 +111,12 @@ class ImageMetadata:
 
     query: str
     """Search query that produced this result."""
+
+    license_url: str | None = None
+    """Optional URL to the license terms."""
+
+    license_type: str | None = None
+    """Optional machine-readable license type (e.g. 'by-sa')."""
 
 
 # ------------------------------------------------------------------

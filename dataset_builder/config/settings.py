@@ -107,7 +107,7 @@ class Settings:
     )
     """Pixabay API key.  Read from the PIXABAY_API_KEY environment variable."""
 
-    ENABLED_SOURCES: tuple[str, ...] = ("pexels", "pixabay")
+    ENABLED_SOURCES: tuple[str, ...] = ("pexels", "pixabay", "openverse", "wikimedia_commons")
     """Active image sources.  Toggle sources here without code changes."""
 
     # ------------------------------------------------------------------
