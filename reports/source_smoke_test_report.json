@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-08-16T10:58:03.069409+00:00",
+  "sources": {
+    "pexels": {
+      "name": "pexels",
+      "configuration": "PASS",
+      "search": "PASS",
+      "search_results": 5,
+      "download": "PASS",
+      "image_decode": "PASS",
+      "metadata": "PASS",
+      "pipeline_compat": "PASS",
+      "failure_category": null,
+      "error_message": null
+    },
+    "pixabay": {
+      "name": "pixabay",
+      "configuration": "PASS",
+      "search": "PASS",
+      "search_results": 5,
+      "download": "PASS",
+      "image_decode": "PASS",
+      "metadata": "PASS",
+      "pipeline_compat": "PASS",
+      "failure_category": null,
+      "error_message": null
+    },
+    "openverse": {
+      "name": "openverse",
+      "configuration": "PASS",
+      "search": "PASS",
+      "search_results": 4,
+      "download": "PASS",
+      "image_decode": "PASS",
+      "metadata": "PASS",
+      "pipeline_compat": "PASS",
+      "failure_category": null,
+      "error_message": null
+    },
+    "wikimedia_commons": {
+      "name": "wikimedia_commons",
+      "configuration": "PASS",
+      "search": "PASS",
+      "search_results": 5,
+      "download": "FAIL",
+      "image_decode": "SKIPPED",
+      "metadata": "SKIPPED",
+      "pipeline_compat": "SKIPPED",
+      "failure_category": "authentication",
+      "error_message": "Authentication/configuration failure: 403 Client Error: Forbidden for url: https://upload.wikimedia.org/wikipedia/commons/e/ed/Dama_z_gronostajem.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original"
+    }
+  }
+}
