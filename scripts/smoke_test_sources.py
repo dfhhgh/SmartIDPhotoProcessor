@@ -112,6 +112,8 @@ def _classify_error(exc: Exception) -> tuple[str, str]:
 
     Returns (category, message) tuple.
     """
+    import re
+
     exc_str = str(exc).lower()
 
     # Network connectivity issues
@@ -122,8 +124,30 @@ def _classify_error(exc: Exception) -> tuple[str, str]:
             return "network_timeout", f"Connection timed out: {exc}"
         return "network_connectivity", f"Network connectivity failure: {exc}"
 
-    # Authentication / configuration issues
-    if any(kw in exc_str for kw in ("401", "403", "unauthorized", "forbidden", "api key")):
+    # Extract HTTP status code from response if present (e.g. "403 Client Error")
+    status_match = re.search(r"(\d{3})\s+(?:Client|Server)\s+Error", exc_str)
+    if status_match:
+        code = int(status_match.group(1))
+        if code == 401:
+            return "authentication", f"Authentication failure (HTTP 401): {exc}"
+        if code == 403:
+            return "access_forbidden", f"Forbidden (HTTP 403): {exc}"
+        if code == 429:
+            return "rate_limit", f"Rate limited (HTTP 429): {exc}"
+        if 500 <= code < 600:
+            return "server_error", f"Server error (HTTP {code}): {exc}"
+        return "http_api", f"HTTP error (HTTP {code}): {exc}"
+
+    # Check for bare status codes in error message
+    if "401" in exc_str:
+        return "authentication", f"Authentication failure (HTTP 401): {exc}"
+    if "403" in exc_str:
+        return "access_forbidden", f"Forbidden (HTTP 403): {exc}"
+    if "429" in exc_str:
+        return "rate_limit", f"Rate limited (HTTP 429): {exc}"
+
+    # API key / auth issues
+    if "api key" in exc_str or "unauthorized" in exc_str:
         return "authentication", f"Authentication/configuration failure: {exc}"
 
     # HTTP/API errors

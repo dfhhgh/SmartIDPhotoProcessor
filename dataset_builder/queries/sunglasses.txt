@@ -1,39 +1,41 @@
+# Sunglasses queries for face parsing with dark lens occlusion
+# Focus: face with sunglasses covering eyes
+# Style variation
 sunglasses portrait
 person wearing sunglasses
 dark glasses portrait
 shades portrait photo
-sunglasses headshot
-sunglasses face photo
 aviator sunglasses portrait
 wayfarer sunglasses portrait
 round sunglasses portrait
 cat eye sunglasses portrait
 oversized sunglasses portrait
-mirror sunglasses portrait
-polarized sunglasses portrait
-fashion sunglasses portrait
-sunglasses style portrait
-sunglasses outdoor portrait
-sunglasses looking at camera
-sunglasses front facing
-sunglasses white background
-sunglasses casual portrait
-sunglasses cool portrait
-sunglasses summer portrait
-sunglasses beach portrait
-sunglasses urban portrait
-sunglasses street style
+# Subject variation
 man with sunglasses portrait
 woman with sunglasses portrait
+young person with sunglasses
+# Face framing
+sunglasses headshot
+sunglasses face photo
+sunglasses looking at camera
+sunglasses front facing
 sunglasses headshot photo
-sunglasses identity style
+sunglasses face closeup
+# Background/lighting
 sunglasses neutral background
+sunglasses white background
 sunglasses studio portrait
 sunglasses natural light
-dark tinted sunglasses portrait
+sunglasses casual portrait
+# Style/fashion
+fashion sunglasses portrait
+sunglasses style portrait
+sunglasses cool portrait
 sunglasses modern portrait
 sunglasses trendy portrait
 sunglasses portrait photo
-sunglasses face closeup
 sunglasses wearing person
+dark tinted sunglasses portrait
+mirror sunglasses portrait
 tinted glasses portrait
+sunglasses outdoor portrait

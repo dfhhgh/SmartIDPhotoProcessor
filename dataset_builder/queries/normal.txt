@@ -1,3 +1,6 @@
+# Normal/baseline queries for face parsing preservation
+# Focus: unobstructed faces with visible features for all 19 parser classes
+# Subject variation
 portrait photo
 headshot photo
 face portrait
@@ -6,35 +9,37 @@ passport style photo
 identity photo
 student portrait
 young adult portrait
+middle aged person portrait
+elderly person portrait
 neutral expression portrait
+# Face framing
 front facing portrait
 straight ahead portrait
+face centered portrait
+head and shoulders portrait
+single person portrait
+person facing forward
+direct gaze portrait
+face looking at camera
+# Background/lighting
 simple background portrait
 white background face
 studio portrait face
-clear face photo
-face looking at camera
-direct gaze portrait
-smiling portrait
-serious expression portrait
-casual portrait photo
 clean background portrait
+plain background headshot
 even lighting portrait
 soft lighting face
 natural light portrait
-head and shoulders portrait
-upper body portrait
-single person portrait
-person facing forward
-face centered portrait
-symmetrical face photo
+# Expression variation
+smiling portrait
+serious expression portrait
+casual portrait photo
+# Feature visibility
+clear face photo
 bare face portrait
 uncovered face photo
 no glasses portrait
 no hat portrait
 clean shaven portrait
-plain background headshot
 standard portrait photo
-basic face photo
-plain face portrait
-neutral background portrait
+symmetrical face photo

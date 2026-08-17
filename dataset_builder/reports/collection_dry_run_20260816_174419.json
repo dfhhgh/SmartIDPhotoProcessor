@@ -1,0 +1,395 @@
+{
+  "generated_at": "2026-08-16T14:44:08.159511+00:00",
+  "mode": "dry_run",
+  "total_target": 500,
+  "total_collected": 60,
+  "categories": [
+    {
+      "category": "normal",
+      "category_type": "baseline",
+      "target_images": 100,
+      "collected": 30,
+      "queries_executed": 18,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "portrait photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "portrait photo",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=portrait+photo&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "portrait photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "portrait photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "headshot photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "headshot photo",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=headshot+photo&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "headshot photo",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "headshot photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "face portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "face portrait",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=face+portrait&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "face portrait",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "face portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "professional headshot",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "professional headshot",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=professional+headshot&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "professional headshot",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "professional headshot",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "passport style photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "passport style photo",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=passport+style+photo&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "passport style photo",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "passport style photo",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "identity photo",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "identity photo",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=identity+photo&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "identity photo",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "identity photo",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "student portrait",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "category": "eyeglasses",
+      "category_type": "target",
+      "target_images": 60,
+      "collected": 30,
+      "queries_executed": 16,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "person with eyeglasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "person with eyeglasses",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=person+with+eyeglasses&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "person with eyeglasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "person with eyeglasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "glasses wearing portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "glasses wearing portrait",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=glasses+wearing+portrait&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "glasses wearing portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "glasses wearing portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "prescription glasses face",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "prescription glasses face",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=prescription+glasses+face&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "prescription glasses face",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "prescription glasses face",
+          "search_results": 1,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "reading glasses portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "reading glasses portrait",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=reading+glasses+portrait&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "reading glasses portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "reading glasses portrait",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "clear frame glasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "clear frame glasses",
+          "search_results": 0,
+          "downloaded": 0,
+          "failed_download": 0,
+          "error": "400 Client Error: Bad Request for url: https://pixabay.com/api/?key=57034616-0c59a3cf2e24fb20af06102c3&q=clear+frame+glasses&page=1&per_page=2&image_type=photo&safesearch=true"
+        },
+        {
+          "source": "openverse",
+          "query": "clear frame glasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "clear frame glasses",
+          "search_results": 2,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "thin frame glasses",
+          "search_results": 2,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

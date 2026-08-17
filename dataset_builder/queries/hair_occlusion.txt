@@ -1,5 +1,6 @@
+# Hair occlusion queries for face parsing
+# Focus: hair partially or fully covering facial features
 hair covering face
-long hair portrait
 hair over face portrait
 hair obscuring face
 wind blown hair portrait
@@ -12,7 +13,6 @@ bangs covering forehead
 fringe covering eyes
 hair over one eye
 hair hiding face
-hair遮 face portrait
 hair draped portrait
 hair falling over face
 long bangs portrait
@@ -23,11 +23,10 @@ hair covering forehead
 hair covering eyes partially
 windblown hair portrait
 hair in face portrait
-hair遮 face photo
 long fringe portrait
 heavy bangs portrait
 hair sweep portrait
-hair partially遮 face
+hair partially covering face
 hair covering features
 hair obscuring features
 natural hair portrait
@@ -35,7 +34,9 @@ unstyled hair portrait
 flowing hair portrait
 hair movement portrait
 hair dynamics portrait
-hair遮 portrait photo
 wind affected hair
 loose hair portrait
 wild hair portrait
+long hair covering face
+hair across face portrait
+bangs over eyes portrait

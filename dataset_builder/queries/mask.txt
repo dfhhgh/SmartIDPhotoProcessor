@@ -1,3 +1,6 @@
+# Face mask queries for face parsing with lower face occlusion
+# Focus: face with mask covering nose and mouth
+# Mask type variation
 person wearing face mask
 face mask portrait
 surgical mask portrait
@@ -6,35 +9,35 @@ protective mask portrait
 cloth mask portrait
 n95 mask portrait
 face covering portrait
+# Subject variation
+woman with mask portrait
+man with mask portrait
+young person with mask
+masked person portrait
+# Face framing
 masked face portrait
-person with mask headshot
-mask wearing portrait
-face mask headshot
-mask identity photo
-mask professional portrait
-mask casual portrait
-mask neutral background
-mask white background
+mask headshot
+mask face photo
 mask front facing portrait
 mask looking at camera
+mask headshot photo
+# Background/lighting
+mask neutral background
+mask white background
 mask studio portrait
 mask simple background
 mask natural light
-mask student portrait
-mask headshot photo
-woman with mask portrait
-man with mask portrait
-mask wearing person
+mask clean background
+mask even lighting
+# Identity style
+mask identity photo
+mask professional portrait
+mask casual portrait
+# Material variation
 medical face mask portrait
 fabric mask portrait
 disposable mask portrait
-mask clean background
-mask even lighting
-masked person portrait
-mask modern portrait
-mask outdoor portrait
-mask indoor portrait
 face covered portrait
-mask portrait photo
 protective face covering
-mask safe portrait
+mask wearing person
+mask modern portrait

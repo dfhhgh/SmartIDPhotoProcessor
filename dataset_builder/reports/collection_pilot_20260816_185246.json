@@ -1,0 +1,196 @@
+{
+  "generated_at": "2026-08-16T15:48:21.045584+00:00",
+  "mode": "pilot",
+  "total_target": 500,
+  "total_collected": 90,
+  "categories": [
+    {
+      "category": "normal",
+      "category_type": "baseline",
+      "target_images": 100,
+      "collected": 30,
+      "queries_executed": 6,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "portrait photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "portrait photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "openverse",
+          "query": "portrait photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "portrait photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "headshot photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "headshot photo",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "category": "eyeglasses",
+      "category_type": "target",
+      "target_images": 60,
+      "collected": 30,
+      "queries_executed": 7,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "person with eyeglasses",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "person with eyeglasses",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "openverse",
+          "query": "person with eyeglasses",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "person with eyeglasses",
+          "search_results": 4,
+          "downloaded": 4,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "glasses wearing portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "glasses wearing portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "openverse",
+          "query": "glasses wearing portrait",
+          "search_results": 5,
+          "downloaded": 1,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "category": "sunglasses",
+      "category_type": "target",
+      "target_images": 60,
+      "collected": 30,
+      "queries_executed": 7,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "sunglasses portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "sunglasses portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "openverse",
+          "query": "sunglasses portrait",
+          "search_results": 3,
+          "downloaded": 3,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "wikimedia_commons",
+          "query": "sunglasses portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pexels",
+          "query": "person wearing sunglasses",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "pixabay",
+          "query": "person wearing sunglasses",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        },
+        {
+          "source": "openverse",
+          "query": "person wearing sunglasses",
+          "search_results": 4,
+          "downloaded": 2,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

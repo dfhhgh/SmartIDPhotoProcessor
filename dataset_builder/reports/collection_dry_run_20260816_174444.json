@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-08-16T14:44:43.194068+00:00",
+  "mode": "dry_run",
+  "total_target": 500,
+  "total_collected": 10,
+  "categories": [
+    {
+      "category": "beard",
+      "category_type": "target",
+      "target_images": 40,
+      "collected": 5,
+      "queries_executed": 1,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "bearded man portrait",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    },
+    {
+      "category": "cap",
+      "category_type": "target",
+      "target_images": 50,
+      "collected": 5,
+      "queries_executed": 1,
+      "query_results": [
+        {
+          "source": "pexels",
+          "query": "person wearing cap",
+          "search_results": 5,
+          "downloaded": 5,
+          "failed_download": 0,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

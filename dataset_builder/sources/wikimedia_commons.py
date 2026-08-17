@@ -29,12 +29,11 @@ class WikimediaCommonsSource(BaseSource):
 
     def __init__(self, settings: Settings) -> None:
         super().__init__(settings)
-        # Wikimedia requires a descriptive User-Agent
+        # Wikimedia requires a descriptive User-Agent with real contact info.
+        # See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
         headers = dict(settings.DEFAULT_HEADERS)
-        headers["User-Agent"] = "SmartIDPhotoProcessorDatasetBuilder/1.0 (Educational/Research Dataset Builder; contact@example.com)"
+        headers["User-Agent"] = settings.WIKIMEDIA_USER_AGENT
         self._http: HTTPClient = HTTPClient(settings)
-        # We can pass custom headers or let HTTPClient handle default headers.
-        # HTTPClient uses settings.DEFAULT_HEADERS. Let's ensure settings or request headers work.
         self._custom_headers = headers
 
     @property

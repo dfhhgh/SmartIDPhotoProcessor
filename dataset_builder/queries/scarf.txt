@@ -1,3 +1,6 @@
+# Scarf queries for face parsing with neck/face covering
+# Focus: face with scarf covering neck and lower face
+# Scarf type variation
 person wearing scarf
 scarf portrait
 winter scarf portrait
@@ -5,37 +8,35 @@ neck scarf portrait
 wool scarf portrait
 knitted scarf portrait
 silk scarf portrait
-cotton scarf portrait
 fashion scarf portrait
+# Subject variation
+woman with scarf portrait
+man with scarf portrait
+scarf student portrait
+# Face framing
 scarf headshot
 scarf face photo
-scarf wearing portrait
 scarf looking at camera
 scarf front facing portrait
+scarf headshot photo
+# Background/lighting
 scarf neutral background
 scarf white background
 scarf studio portrait
 scarf simple background
 scarf natural light
-scarf headshot photo
+scarf clean background
+scarf even lighting
+# Identity style
+scarf identity style
 scarf professional portrait
 scarf casual portrait
-scarf outdoor portrait
-scarf cold weather portrait
-scarf warm portrait
-woman with scarf portrait
-man with scarf portrait
+# Style variation
 scarf wrapped portrait
 scarf draped portrait
 scarf modern portrait
-scarf trendy portrait
 scarf fashion portrait
 cozy scarf portrait
 elegant scarf portrait
-scarf clean background
-scarf even lighting
-scarf identity style
-scarf student portrait
-casual scarf portrait
 seasonal scarf portrait
-winter fashion portrait
+cold weather portrait

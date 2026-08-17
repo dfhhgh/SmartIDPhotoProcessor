@@ -146,6 +146,19 @@ class Settings:
     )
     """Default HTTP headers applied to all requests."""
 
+    WIKIMEDIA_USER_AGENT: str = field(
+        default_factory=lambda: os.environ.get(
+            "WIKIMEDIA_USER_AGENT",
+            "SmartIDPhotoProcessorDatasetBuilder/1.0 (https://github.com/anomalyco/SmartIDPhotoProcessor; Educational Research Dataset Builder)",
+        )
+    )
+    """Descriptive User-Agent for Wikimedia Commons API.
+
+    Wikimedia requires a descriptive User-Agent with real contact info.
+    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
+    Format: <client name>/<version> (<contact information>)
+    """
+
     # ------------------------------------------------------------------
     # 5. Image Requirements
     # ------------------------------------------------------------------

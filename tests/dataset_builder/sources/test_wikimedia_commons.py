@@ -219,3 +219,88 @@ def test_build_metadata(source: WikimediaCommonsSource, tmp_path: Path) -> None:
     assert meta.license_name == "CC BY-SA 3.0"
     assert meta.license_url == "https://creativecommons.org/licenses/by-sa/3.0"
     assert meta.license_type == "cc-by-sa-3.0"
+
+
+def test_user_agent_header_is_descriptive(source: WikimediaCommonsSource) -> None:
+    """Verify the custom User-Agent follows Wikimedia's policy.
+
+    Wikimedia requires: <client name>/<version> (<contact information>)
+    See: https://foundation.wikimedia.org/wiki/Policy:User-Agent_policy
+    """
+    ua = source._custom_headers.get("User-Agent", "")
+    # Must not be a generic/default agent
+    assert "python-requests" not in ua.lower()
+    assert "DatasetBuilder/1.0 (+Research)" not in ua
+    # Must contain contact info (URL or email)
+    has_url = "http" in ua.lower()
+    has_email = "@" in ua
+    assert has_url or has_email, f"User-Agent must contain contact info: {ua}"
+    # Must identify the client
+    assert "SmartIDPhotoProcessor" in ua or "DatasetBuilder" in ua
+
+
+def test_user_agent_sent_on_download(
+    source: WikimediaCommonsSource, tmp_path: Path
+) -> None:
+    """Verify the download request sends the Wikimedia-specific User-Agent."""
+    result = SearchResult(
+        id="ua-test",
+        download_url="https://upload.wikimedia.org/wikipedia/commons/test.jpg",
+        preview_url="",
+        page_url="",
+        width=800,
+        height=600,
+        photographer="Test",
+        license_name="CC BY",
+        query="face",
+        source="wikimedia_commons",
+    )
+
+    with patch("dataset_builder.utils.http_client.HTTPClient.get") as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = b"image-bytes"
+        mock_get.return_value = mock_response
+
+        source.download(result, tmp_path)
+
+        # Verify headers were passed to the HTTP client
+        call_kwargs = mock_get.call_args
+        headers = call_kwargs.kwargs.get("headers", call_kwargs[1].get("headers", {}))
+        assert "User-Agent" in headers
+        ua = headers["User-Agent"]
+        assert "SmartIDPhotoProcessor" in ua
+        assert "http" in ua.lower() or "@" in ua
+
+
+def test_download_handles_403_forbidden(
+    source: WikimediaCommonsSource, tmp_path: Path
+) -> None:
+    """Verify 403 is handled gracefully and classified as access_forbidden."""
+    result = SearchResult(
+        id="forbidden-id",
+        download_url="https://upload.wikimedia.org/wikipedia/commons/forbidden.jpg",
+        preview_url="",
+        page_url="",
+        width=800,
+        height=600,
+        photographer="",
+        license_name="",
+        query="",
+        source="wikimedia_commons",
+    )
+
+    with patch("dataset_builder.utils.http_client.HTTPClient.get") as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        http_error = requests.HTTPError(
+            "403 Client Error: Forbidden",
+            response=mock_response,
+        )
+        mock_get.side_effect = http_error
+
+        download_res = source.download(result, tmp_path)
+
+        assert download_res.success is False
+        assert download_res.local_path is None
+        assert "403" in download_res.error_message or "Forbidden" in download_res.error_message

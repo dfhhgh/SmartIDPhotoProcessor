@@ -1,40 +1,40 @@
+# Hijab queries for face parsing with head covering
+# Focus: face visible with hijab/headscarf covering hair and neck
+# Subject variation
 hijab portrait
-muslim woman portrait
-arab muslim woman
-young muslim woman
-student hijab portrait
-female hijab portrait
-natural hijab portrait
-woman in hijab face
 hijab headscarf portrait
-modest fashion portrait
+woman in hijab face
 hijab wearing woman
-young woman hijab
-hijab student photo
+hijab covered woman
+# Demographic variation
+young hijab woman
+middle aged hijab woman
+hijab student portrait
 hijab professional portrait
 hijab casual portrait
-hijab smiling portrait
+# Face framing
 hijab front facing
 hijab headshot
 hijab identity photo
 hijab passport photo
+hijab woman looking at camera
+hijab woman portrait photo
+# Background/lighting
 hijab neutral background
 hijab white background
 hijab studio portrait
 hijab natural light
-hijab woman looking at camera
-muslim female headshot
-muslim student portrait
-muslim woman headshot
-hijab modern portrait
-hijab simple portrait
 hijab clean background
-young hijab woman
-hijab woman portrait photo
-hijab covered woman
+hijab simple portrait
+# Expression variation
+hijab smiling portrait
+hijab modern portrait
 hijab traditional portrait
 hijab contemporary portrait
+# Style variation
+modest fashion portrait
 hijab fashion portrait
-middle eastern woman portrait
-south asian woman hijab
 hijab wearing student
+muslim woman portrait
+muslim female headshot
+muslim student portrait

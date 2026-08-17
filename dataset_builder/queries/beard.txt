@@ -1,3 +1,6 @@
+# Beard queries for face parsing with facial hair
+# Focus: face with beard/mustache covering lower face
+# Beard type variation
 bearded man portrait
 man with beard portrait
 full beard portrait
@@ -6,34 +9,36 @@ stubble beard portrait
 long beard portrait
 groomed beard portrait
 trimmed beard portrait
+# Subject variation
+young bearded man
+older bearded man
+bearded student portrait
+# Face framing
 beard headshot
 beard face photo
 bearded face portrait
-beard professional portrait
-beard casual portrait
-beard studio portrait
-beard neutral background
-beard white background
+bearded man headshot
 beard looking at camera
 beard front facing portrait
-beard headshot photo
-bearded man headshot
-beard identity photo
-beard passport style
+# Background/lighting
+beard neutral background
+beard white background
+beard studio portrait
 beard simple background
 beard natural light
-young bearded man
-older bearded man
-beard smiling portrait
-beard serious expression
 beard clean background
 beard even lighting
-beard modern portrait
-beard contemporary portrait
-beard fashion portrait
-well groomed beard
-full face beard portrait
+# Expression variation
+beard smiling portrait
+beard serious expression
+# Identity style
+beard identity photo
+beard passport style
+beard professional portrait
+beard casual portrait
+# Style variation
 beard and mustache portrait
 facial hair portrait
-bearded student portrait
-professional bearded portrait
+well groomed beard
+full face beard portrait
+beard modern portrait
