@@ -9,3 +9,4 @@ dataset_builder/dataset/
 __pycache__/
 *.pyc
 .env
+reports/experiments/

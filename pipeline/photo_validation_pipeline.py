@@ -61,6 +61,7 @@ class PhotoValidationPipeline:
         ambiguity_validator: BaseSelectionValidator | None = None,
         exporter: PhotoExporter | None = None,
         execution_mode: ValidationExecutionMode = ValidationExecutionMode.PRODUCTION,
+        parser_mode=None,
     ) -> None:
         """Initialise pipeline components with optional dependency injection.
 
@@ -68,6 +69,8 @@ class PhotoValidationPipeline:
             execution_mode: Only used when `orchestrator` is not injected --
                 controls whether the default ValidationOrchestrator short-circuits
                 (PRODUCTION) or runs every validator unconditionally (DEVELOPMENT).
+            parser_mode: ParserMode for FaceParserService. Only used when
+                `parser_service` is not injected.
         """
         self._detector = detector if detector is not None else FaceDetector()
         self._selector = selector if selector is not None else FaceSelector()
@@ -82,7 +85,7 @@ class PhotoValidationPipeline:
             ambiguity_validator if ambiguity_validator is not None else FaceAmbiguityValidator()
         )
         self._parser_service = (
-            parser_service if parser_service is not None else FaceParserService()
+            parser_service if parser_service is not None else FaceParserService(parser_mode=parser_mode)
         )
         self._orchestrator = (
             orchestrator

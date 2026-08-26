@@ -37,9 +37,9 @@ class Evaluator:
     and production components exclusively, ensuring zero logic duplication.
     """
 
-    def __init__(self, output_dir: str = "evaluation_results") -> None:
+    def __init__(self, output_dir: str = "evaluation_results", parser_mode=None) -> None:
         self._output_dir = output_dir
-        self._pipeline = PhotoValidationPipeline()
+        self._pipeline = PhotoValidationPipeline(parser_mode=parser_mode)
         
         self._json_exporter = JsonExporter(output_dir)
         self._report_generator = ReportGenerator(output_dir)
@@ -223,3 +223,25 @@ class Evaluator:
         self._report_generator.generate_image_report(result)
 
         return result
+
+
+if __name__ == "__main__":
+    import argparse
+    from config.parser_mode import ParserMode
+
+    ap = argparse.ArgumentParser(description="Run production pipeline evaluation")
+    ap.add_argument("--image-dir", required=True, help="Directory of images to evaluate")
+    ap.add_argument("--output-dir", default="reports/experiments/phase4_production_pipeline",
+                     help="Output directory for reports and visualizations")
+    ap.add_argument("--parser-mode", default="FUSED",
+                     type=lambda s: ParserMode[s.upper()],
+                     help="Parser mode: ORIGINAL or FUSED (default: FUSED)")
+    args = ap.parse_args()
+
+    evaluator = Evaluator(output_dir=args.output_dir, parser_mode=args.parser_mode)
+    results = evaluator.evaluate_path(args.image_dir)
+
+    passed = sum(1 for r in results if r.overall_passed)
+    failed = len(results) - passed
+    print(f"\nDone: {len(results)} images processed, {passed} passed, {failed} failed")
+    print(f"Reports saved to: {args.output_dir}")
