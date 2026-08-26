@@ -1,0 +1,36 @@
+============================================================
+DATASET QUALITY SUMMARY
+============================================================
+
+Total images:          931
+Readable:              931
+Oversized:             1
+
+Face detection:        RUN
+  Exactly 1 face:      787
+  Zero faces:          114
+  Multiple faces:      29
+  Small face:          41
+  Profile face:        203
+
+Quality scores:        NOT RUN
+
+Duplicates:
+  Groups:              0
+  Near-duplicate imgs: 0
+  Cross-category:      0
+
+Category breakdown:
+----------------------------------------
+  beard               :  188 imgs, 172 1-face,  14 0-face,   0 dupes
+  cap                 :   50 imgs,  50 1-face,   0 0-face,   0 dupes
+  eyeglasses          :  278 imgs, 171 1-face,  97 0-face,   0 dupes
+  hair_occlusion      :   20 imgs,  20 1-face,   0 0-face,   0 dupes
+  helmet              :   40 imgs,  40 1-face,   0 0-face,   0 dupes
+  hijab               :  115 imgs,  95 1-face,   3 0-face,   0 dupes
+  mask                :   50 imgs,  50 1-face,   0 0-face,   0 dupes
+  normal              :  100 imgs,  99 1-face,   0 0-face,   0 dupes
+  scarf               :   30 imgs,  30 1-face,   0 0-face,   0 dupes
+  sunglasses          :   60 imgs,  60 1-face,   0 0-face,   0 dupes
+
+============================================================

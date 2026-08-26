@@ -1,0 +1,42 @@
+{
+  "audit_type": "phase4_final_comprehensive",
+  "timestamp": "2026-08-26T00:00:00Z",
+  "status": "SUPERSEDED",
+  "superseded_by": "phase4_final_closure.json",
+  "note": "Historical audit. Authoritative numbers in phase4_final_closure.json and PHASE4_FINAL_CLOSURE_REPORT.md.",
+  "overall_confidence": 0.97,
+  "bugs_discovered": 2,
+  "bugs_fixed": 2,
+  "new_regressions": 0,
+  "sections": {
+    "A_equivalence": {"status": "VERIFIED", "items": 12, "exact_match": 10, "improved": 1, "safety_fix": 1},
+    "B_non_target_safety": {"status": "FIXED", "severity": "LEVEL_3", "description": "aux could overwrite non-target classes"},
+    "C_double_computation": {"status": "FIXED", "severity": "LEVEL_2", "description": "ResNet+CP+FFM computed twice"},
+    "D_pipeline": {"status": "VERIFIED", "description": "Both ORIGINAL and FUSED modes work end-to-end"},
+    "E_backward_compat": {"status": "VERIFIED", "items": 10, "all_pass": true},
+    "F_model_integrity": {"status": "VERIFIED", "onnx_hash": "2218b6183c26ca5c", "aux_hash": "961e08bf64fdd0b8"},
+    "G_checkpoint_loading": {"status": "VERIFIED", "items": 8, "all_pass": true},
+    "H_determinism": {"status": "VERIFIED", "description": "frozen BN + eval mode + no grad"},
+    "I_runtime": {"status": "VERIFIED", "original_ms": 77.51, "fused_ms": 19.86, "gpu_memory_mb": 122.6},
+    "J_test_suite": {"status": "VERIFIED", "total": 1038, "passed": 1012, "preexisting_failures": 26, "new_failures": 0},
+    "K_configuration": {"status": "VERIFIED", "items": 5, "all_pass": true},
+    "L_thread_safety": {"status": "VERIFIED", "items": 4, "all_pass": true},
+    "M_error_handling": {"status": "VERIFIED", "items": 6, "all_pass": true}
+  },
+  "test_results": {
+    "phase4_unit_integration": {"file": "test_phase4_parser_integration.py", "total": 25, "passed": 25, "failed": 0},
+    "phase4_real_model": {"file": "test_phase4_real_integration.py", "total": 13, "passed": 13, "failed": 0},
+    "existing_parser_tests": {"file": "test_face_parser_service.py", "total": 48, "passed": 48, "failed": 0},
+    "existing_pipeline_tests": {"file": "test_photo_validation_pipeline.py", "total": 3, "passed": 3, "failed": 0}
+  },
+  "protected_artifacts": {
+    "onnx_model": {"hash": "2218b6183c26ca5c83303232d682a536c670c13ea9695f716c777d1f244eefe9", "verified": true},
+    "aux_checkpoint": {"hash": "961e08bf64fdd0b8ae044ac6bf0d30ecbed13a22364301903a2c42c0c99e6e00", "verified": true}
+  },
+  "fixes_applied": [
+    {"file": "services/face_parser_service.py", "change": "Added is_original_target guard", "severity": "LEVEL_3"},
+    {"file": "services/face_parser_service.py", "change": "Replaced bisenet(tensor) with cp+ffm+conv_out", "severity": "LEVEL_2"},
+    {"file": "tests/services/test_phase4_parser_integration.py", "change": "Updated test_8 assertions", "type": "test_update"},
+    {"file": "tests/services/test_phase4_parser_integration.py", "change": "Added tests 22-25", "type": "test_addition"}
+  ]
+}

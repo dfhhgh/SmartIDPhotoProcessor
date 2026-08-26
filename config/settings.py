@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from config.parser_mode import ParserMode
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -17,6 +19,22 @@ class Settings:
     # Hardware
     USE_GPU: bool = True
     GPU_ID: int = 0
+
+    # Face parser
+    # ORIGINAL preserves the existing production ONNX behavior by default.
+    PARSER_MODE: ParserMode = ParserMode.ORIGINAL
+    AUX_EYE_BROW_CHECKPOINT_PATH: Path = (
+        BASE_DIR
+        / "dataset_builder"
+        / "dataset"
+        / "parser_finetune_current"
+        / "training_aux_eye_brow_phase1"
+        / "checkpoints"
+        / "best.pt"
+    )
+    EYE_BROW_FUSION_STRATEGY: int = 1
+    EYE_BROW_FUSION_THRESHOLD: float = 0.0
+    EYE_BROW_FUSION_MIN_COMPONENT_SIZE: int = 10
 
     # Detection
     DETECTION_SIZE: tuple[int, int] = (640, 640)

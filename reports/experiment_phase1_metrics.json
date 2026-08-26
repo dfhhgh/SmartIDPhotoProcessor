@@ -1,0 +1,1029 @@
+{
+  "generated_at": "2026-08-25T17:07:13.051678+00:00",
+  "experiment": "Phase1_EyeBrow_Refinement_Auxiliary_Head_CE_Baseline",
+  "checkpoint_criterion": "best_val_target_mean_iou",
+  "best_epoch": 23,
+  "best_val_mean_iou": 0.815400061971185,
+  "best_val_target_mean_iou": 0.7804171939018859,
+  "baseline_test": {
+    "pixel_accuracy": 0.9868976860715631,
+    "mean_iou": 0.6183409203378176,
+    "mean_dice": 0.7382972491586305,
+    "target_mean_iou": 0.5439121034309744,
+    "per_class_iou": {
+      "AUX_BACKGROUND": 0.990485004872034,
+      "LEFT_BROW": 0.5899585561074377,
+      "RIGHT_BROW": 0.4958096729002249,
+      "LEFT_EYE": 0.4440909493625007,
+      "RIGHT_EYE": 0.3188252671072634,
+      "EYE_GLASS": 0.8708760716774452
+    },
+    "per_class_dice": {
+      "AUX_BACKGROUND": 0.9952197604580408,
+      "LEFT_BROW": 0.7421055773325109,
+      "RIGHT_BROW": 0.6629314970786352,
+      "LEFT_EYE": 0.6150456791638315,
+      "RIGHT_EYE": 0.4834988759452279,
+      "EYE_GLASS": 0.9309821049735373
+    },
+    "per_class_precision": {
+      "AUX_BACKGROUND": 0.9947179658665655,
+      "LEFT_BROW": 0.6704510500265652,
+      "RIGHT_BROW": 0.8478405428907568,
+      "LEFT_EYE": 0.612640140446005,
+      "RIGHT_EYE": 0.8348719686061941,
+      "EYE_GLASS": 0.9157598334211984
+    },
+    "per_class_recall": {
+      "AUX_BACKGROUND": 0.9957220615747957,
+      "LEFT_BROW": 0.830909072906043,
+      "RIGHT_BROW": 0.5442366731789003,
+      "LEFT_EYE": 0.6174701831009575,
+      "RIGHT_EYE": 0.34028353125287675,
+      "EYE_GLASS": 0.9467189970392778
+    },
+    "zero_prediction_rate": {
+      "LEFT_BROW": 0.0,
+      "RIGHT_BROW": 0.0,
+      "LEFT_EYE": 0.0,
+      "RIGHT_EYE": 0.0,
+      "EYE_GLASS": 0.0
+    },
+    "sample_count": 114
+  },
+  "train_evaluation": {
+    "pixel_accuracy": 0.9917270465961938,
+    "mean_iou": 0.8270925625348093,
+    "mean_dice": 0.9028313183460502,
+    "target_mean_iou": 0.7940645090238228,
+    "per_class_iou": {
+      "AUX_BACKGROUND": 0.992232830089742,
+      "LEFT_BROW": 0.8054733448596084,
+      "RIGHT_BROW": 0.7911580594679186,
+      "LEFT_EYE": 0.745472162725299,
+      "RIGHT_EYE": 0.7367753391491602,
+      "EYE_GLASS": 0.8914436389171281
+    },
+    "per_class_dice": {
+      "AUX_BACKGROUND": 0.996101274011277,
+      "LEFT_BROW": 0.8922572544788704,
+      "RIGHT_BROW": 0.8834039578873794,
+      "LEFT_EYE": 0.8541782317070625,
+      "RIGHT_EYE": 0.848440581278755,
+      "EYE_GLASS": 0.942606610712957
+    },
+    "per_class_precision": {
+      "AUX_BACKGROUND": 0.9961571973038367,
+      "LEFT_BROW": 0.9165514619602532,
+      "RIGHT_BROW": 0.8832651847674162,
+      "LEFT_EYE": 0.896441218161334,
+      "RIGHT_EYE": 0.8903179777663562,
+      "EYE_GLASS": 0.9316561146727258
+    },
+    "per_class_recall": {
+      "AUX_BACKGROUND": 0.996045356997323,
+      "LEFT_BROW": 0.8692176810704674,
+      "RIGHT_BROW": 0.8835427746205298,
+      "LEFT_EYE": 0.8157208317522473,
+      "RIGHT_EYE": 0.8103257358293056,
+      "EYE_GLASS": 0.953817588195031
+    },
+    "zero_prediction_rate": {
+      "LEFT_BROW": 0.0,
+      "RIGHT_BROW": 0.0,
+      "LEFT_EYE": 0.0,
+      "RIGHT_EYE": 0.0,
+      "EYE_GLASS": 0.0
+    },
+    "sample_count": 824,
+    "val_loss": 0.026829944982292873
+  },
+  "val_evaluation": {
+    "pixel_accuracy": 0.9898892211914062,
+    "mean_iou": 0.815400061971185,
+    "mean_dice": 0.8955819732593778,
+    "target_mean_iou": 0.7804171939018859,
+    "per_class_iou": {
+      "AUX_BACKGROUND": 0.9903144023176806,
+      "LEFT_BROW": 0.7995513954190571,
+      "RIGHT_BROW": 0.8028717065986217,
+      "LEFT_EYE": 0.7360085405676966,
+      "RIGHT_EYE": 0.7070777031441938,
+      "EYE_GLASS": 0.8565766237798607
+    },
+    "per_class_dice": {
+      "AUX_BACKGROUND": 0.9951336343288072,
+      "LEFT_BROW": 0.8886119034492678,
+      "RIGHT_BROW": 0.8906587237018161,
+      "LEFT_EYE": 0.8479319350894582,
+      "RIGHT_EYE": 0.8284071683929296,
+      "EYE_GLASS": 0.9227484745939872
+    },
+    "per_class_precision": {
+      "AUX_BACKGROUND": 0.9947787418032309,
+      "LEFT_BROW": 0.915058653650349,
+      "RIGHT_BROW": 0.8755700971643863,
+      "LEFT_EYE": 0.8802649762662982,
+      "RIGHT_EYE": 0.8487905123458727,
+      "EYE_GLASS": 0.9246936210327852
+    },
+    "per_class_recall": {
+      "AUX_BACKGROUND": 0.9954887801642871,
+      "LEFT_BROW": 0.8636509240007222,
+      "RIGHT_BROW": 0.9062765113160559,
+      "LEFT_EYE": 0.8178899914862734,
+      "RIGHT_EYE": 0.8089798603531541,
+      "EYE_GLASS": 0.9208114944327102
+    },
+    "zero_prediction_rate": {
+      "LEFT_BROW": 0.0,
+      "RIGHT_BROW": 0.0,
+      "LEFT_EYE": 0.0,
+      "RIGHT_EYE": 0.0,
+      "EYE_GLASS": 0.0
+    },
+    "sample_count": 100,
+    "val_loss": 0.031211023032665253
+  },
+  "test_evaluation": {
+    "pixel_accuracy": 0.9904240056088096,
+    "mean_iou": 0.8194872307835266,
+    "mean_dice": 0.8984242151359817,
+    "target_mean_iou": 0.7852026808809033,
+    "per_class_iou": {
+      "AUX_BACKGROUND": 0.9909099802966426,
+      "LEFT_BROW": 0.7914755483317034,
+      "RIGHT_BROW": 0.7889337344976884,
+      "LEFT_EYE": 0.7427447172235203,
+      "RIGHT_EYE": 0.7418341840485643,
+      "EYE_GLASS": 0.8610252203030401
+    },
+    "per_class_dice": {
+      "AUX_BACKGROUND": 0.9954342387183156,
+      "LEFT_BROW": 0.8836018432612808,
+      "RIGHT_BROW": 0.8820156043613452,
+      "LEFT_EYE": 0.8523849877529225,
+      "RIGHT_EYE": 0.8517850790186136,
+      "EYE_GLASS": 0.9253235377034117
+    },
+    "per_class_precision": {
+      "AUX_BACKGROUND": 0.9955085806697189,
+      "LEFT_BROW": 0.9159847389899677,
+      "RIGHT_BROW": 0.8815310439830759,
+      "LEFT_EYE": 0.8847585882806569,
+      "RIGHT_EYE": 0.8947341752910327,
+      "EYE_GLASS": 0.9129513731351251
+    },
+    "per_class_recall": {
+      "AUX_BACKGROUND": 0.9953599078694043,
+      "LEFT_BROW": 0.8534304357727763,
+      "RIGHT_BROW": 0.8825006977393246,
+      "LEFT_EYE": 0.822296881124363,
+      "RIGHT_EYE": 0.8127704133296512,
+      "EYE_GLASS": 0.9380356400687264
+    },
+    "zero_prediction_rate": {
+      "LEFT_BROW": 0.0,
+      "RIGHT_BROW": 0.0,
+      "LEFT_EYE": 0.0,
+      "RIGHT_EYE": 0.0,
+      "EYE_GLASS": 0.0
+    },
+    "sample_count": 114,
+    "val_loss": 0.030335024834193033
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.8181601710689878,
+      "val_loss": 0.5161130797863006,
+      "val_pixel_accuracy": 0.9825074768066406,
+      "val_mean_iou": 0.7233277099830601,
+      "val_target_mean_iou": 0.671362567131365,
+      "val_mean_dice": 0.8317924756288316,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9831534242415354,
+        "LEFT_BROW": 0.7239158556545204,
+        "RIGHT_BROW": 0.7243993082385841,
+        "LEFT_EYE": 0.5546751993498908,
+        "RIGHT_EYE": 0.5741208557823433,
+        "EYE_GLASS": 0.7797016166314862
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9915051576178945,
+        "LEFT_BROW": 0.8398505684370201,
+        "RIGHT_BROW": 0.8401758279276204,
+        "LEFT_EYE": 0.7135576608951323,
+        "RIGHT_EYE": 0.7294495256490371,
+        "EYE_GLASS": 0.8762161132462859
+      },
+      "learning_rate": 9.972609476841367e-05
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.4014129399963953,
+      "val_loss": 0.29369633555412294,
+      "val_pixel_accuracy": 0.9870712661743164,
+      "val_mean_iou": 0.7708060734057076,
+      "val_target_mean_iou": 0.72742318007361,
+      "val_mean_dice": 0.8655190531891014,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9877205400661959,
+        "LEFT_BROW": 0.7640819477375146,
+        "RIGHT_BROW": 0.7796518972535442,
+        "LEFT_EYE": 0.6361705681628368,
+        "RIGHT_EYE": 0.6351160751724927,
+        "EYE_GLASS": 0.8220954120416619
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9938223408742382,
+        "LEFT_BROW": 0.866265820266991,
+        "RIGHT_BROW": 0.8761847173110039,
+        "LEFT_EYE": 0.7776335555004594,
+        "RIGHT_EYE": 0.776845246421411,
+        "EYE_GLASS": 0.902362638760505
+      },
+      "learning_rate": 9.890738003669029e-05
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.2315407593562765,
+      "val_loss": 0.1700834983587265,
+      "val_pixel_accuracy": 0.9882743835449219,
+      "val_mean_iou": 0.785186080049261,
+      "val_target_mean_iou": 0.7444582514906806,
+      "val_mean_dice": 0.8754637690113519,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9888252228421632,
+        "LEFT_BROW": 0.772335431446435,
+        "RIGHT_BROW": 0.7878835306794445,
+        "LEFT_EYE": 0.6688874506668697,
+        "RIGHT_EYE": 0.6578603649094459,
+        "EYE_GLASS": 0.8353244797512075
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9943812170976657,
+        "LEFT_BROW": 0.8715454396983059,
+        "RIGHT_BROW": 0.8813588996818236,
+        "LEFT_EYE": 0.8015968367424531,
+        "RIGHT_EYE": 0.7936257827665467,
+        "EYE_GLASS": 0.9102744380813166
+      },
+      "learning_rate": 9.755282581475769e-05
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.15279281472118156,
+      "val_loss": 0.11781389325857163,
+      "val_pixel_accuracy": 0.9884494781494141,
+      "val_mean_iou": 0.7898640485498803,
+      "val_target_mean_iou": 0.7500441271671938,
+      "val_mean_dice": 0.8785394292525166,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9889636554633134,
+        "LEFT_BROW": 0.7872259496011411,
+        "RIGHT_BROW": 0.791809118511966,
+        "LEFT_EYE": 0.6811820980586724,
+        "RIGHT_EYE": 0.6553155580961714,
+        "EYE_GLASS": 0.8346879115680182
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9944512085445243,
+        "LEFT_BROW": 0.8809473136587211,
+        "RIGHT_BROW": 0.8838096763002695,
+        "LEFT_EYE": 0.8103608750595909,
+        "RIGHT_EYE": 0.7917711579414739,
+        "EYE_GLASS": 0.9098963440105202
+      },
+      "learning_rate": 9.567727288213003e-05
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.11175108332078433,
+      "val_loss": 0.09119870901107788,
+      "val_pixel_accuracy": 0.9890466690063476,
+      "val_mean_iou": 0.7958585372138453,
+      "val_target_mean_iou": 0.7571259155603162,
+      "val_mean_dice": 0.8826983446327455,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9895216454814908,
+        "LEFT_BROW": 0.7870496504274909,
+        "RIGHT_BROW": 0.7851027647426645,
+        "LEFT_EYE": 0.6880238760477521,
+        "RIGHT_EYE": 0.6803446241648489,
+        "EYE_GLASS": 0.8451086624188242
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9947332291949137,
+        "LEFT_BROW": 0.8808369148996124,
+        "RIGHT_BROW": 0.8796163226556234,
+        "LEFT_EYE": 0.8151826355189407,
+        "RIGHT_EYE": 0.8097679659051943,
+        "EYE_GLASS": 0.9160529996221888
+      },
+      "learning_rate": 9.330127018922194e-05
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.08784508498982319,
+      "val_loss": 0.07291746839880943,
+      "val_pixel_accuracy": 0.9891523361206055,
+      "val_mean_iou": 0.8025911525646565,
+      "val_target_mean_iou": 0.7651987333255049,
+      "val_mean_dice": 0.8872993389691203,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.989553248760415,
+        "LEFT_BROW": 0.783601780655605,
+        "RIGHT_BROW": 0.7955504206659557,
+        "LEFT_EYE": 0.7090181205225453,
+        "RIGHT_EYE": 0.6925482021886399,
+        "EYE_GLASS": 0.8452751425947785
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9947491974662684,
+        "LEFT_BROW": 0.8786734675355321,
+        "RIGHT_BROW": 0.8861354284564086,
+        "LEFT_EYE": 0.8297373936629269,
+        "RIGHT_EYE": 0.8183497536945813,
+        "EYE_GLASS": 0.9161507929990043
+      },
+      "learning_rate": 9.045084971874738e-05
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.07244077225405614,
+      "val_loss": 0.05962649375200271,
+      "val_pixel_accuracy": 0.9892440795898437,
+      "val_mean_iou": 0.7994840220105554,
+      "val_target_mean_iou": 0.7614627943957921,
+      "val_mean_dice": 0.8850717267784275,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9895901600843712,
+        "LEFT_BROW": 0.7781345548992318,
+        "RIGHT_BROW": 0.7995495631487106,
+        "LEFT_EYE": 0.6913792653997549,
+        "RIGHT_EYE": 0.6885259412904023,
+        "EYE_GLASS": 0.8497246472408612
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9947678471051609,
+        "LEFT_BROW": 0.8752257277215213,
+        "RIGHT_BROW": 0.8886107718530647,
+        "LEFT_EYE": 0.8175330980380069,
+        "RIGHT_EYE": 0.8155349283697925,
+        "EYE_GLASS": 0.9187579875830185
+      },
+      "learning_rate": 8.715724127386972e-05
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.06316214418309984,
+      "val_loss": 0.05534227281808853,
+      "val_pixel_accuracy": 0.9886653518676758,
+      "val_mean_iou": 0.8033095434549914,
+      "val_target_mean_iou": 0.7661678860426788,
+      "val_mean_dice": 0.8879274589986345,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9890178305165547,
+        "LEFT_BROW": 0.7869309383710127,
+        "RIGHT_BROW": 0.7916016838846609,
+        "LEFT_EYE": 0.7133420395329082,
+        "RIGHT_EYE": 0.6999145778276074,
+        "EYE_GLASS": 0.8390501905972045
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9944785967652219,
+        "LEFT_BROW": 0.8807625649913345,
+        "RIGHT_BROW": 0.8836804419253073,
+        "LEFT_EYE": 0.832690756513953,
+        "RIGHT_EYE": 0.8234702931038544,
+        "EYE_GLASS": 0.9124821006921353
+      },
+      "learning_rate": 8.345653031794292e-05
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.05723037634008718,
+      "val_loss": 0.05083488166332245,
+      "val_pixel_accuracy": 0.987720069885254,
+      "val_mean_iou": 0.8032149725401282,
+      "val_target_mean_iou": 0.7662643370869866,
+      "val_mean_dice": 0.8880910399341858,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9879681498058367,
+        "LEFT_BROW": 0.7854360646410714,
+        "RIGHT_BROW": 0.7971271104017557,
+        "LEFT_EYE": 0.7254884479201161,
+        "RIGHT_EYE": 0.7017197822239635,
+        "EYE_GLASS": 0.8215502802480262
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9939476645059235,
+        "LEFT_BROW": 0.87982547255084,
+        "RIGHT_BROW": 0.8871126653067455,
+        "LEFT_EYE": 0.8409079165897767,
+        "RIGHT_EYE": 0.8247183696799854,
+        "EYE_GLASS": 0.9020341509718438
+      },
+      "learning_rate": 7.938926261462366e-05
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.05240250698932745,
+      "val_loss": 0.04511419005692005,
+      "val_pixel_accuracy": 0.9879819107055664,
+      "val_mean_iou": 0.8012502358370531,
+      "val_target_mean_iou": 0.7638446769346733,
+      "val_mean_dice": 0.886702641243503,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9882780303489523,
+        "LEFT_BROW": 0.7792744915548262,
+        "RIGHT_BROW": 0.8001072178829455,
+        "LEFT_EYE": 0.7119974391805378,
+        "RIGHT_EYE": 0.7009898024479571,
+        "EYE_GLASS": 0.8268544336070999
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9941044615128648,
+        "LEFT_BROW": 0.8759463424599023,
+        "RIGHT_BROW": 0.8889550688252099,
+        "LEFT_EYE": 0.8317739534953293,
+        "RIGHT_EYE": 0.8242139975667542,
+        "EYE_GLASS": 0.9052220236009574
+      },
+      "learning_rate": 7.500000000000001e-05
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.049528326097767326,
+      "val_loss": 0.04257253475487232,
+      "val_pixel_accuracy": 0.9885538864135742,
+      "val_mean_iou": 0.8027968800944821,
+      "val_target_mean_iou": 0.7655626523779413,
+      "val_mean_dice": 0.8877379849551064,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9889680186771873,
+        "LEFT_BROW": 0.7818445952195701,
+        "RIGHT_BROW": 0.8001981907494772,
+        "LEFT_EYE": 0.7185283232240156,
+        "RIGHT_EYE": 0.7021693640240511,
+        "EYE_GLASS": 0.8250727886725925
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9944534144243558,
+        "LEFT_BROW": 0.8775676591742573,
+        "RIGHT_BROW": 0.8890112153888238,
+        "LEFT_EYE": 0.836213536330938,
+        "RIGHT_EYE": 0.8250287883974977,
+        "EYE_GLASS": 0.904153296014766
+      },
+      "learning_rate": 7.033683215379003e-05
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.04703004854432877,
+      "val_loss": 0.03953589797019959,
+      "val_pixel_accuracy": 0.9885829162597656,
+      "val_mean_iou": 0.8074329214138842,
+      "val_target_mean_iou": 0.7711371378871492,
+      "val_mean_dice": 0.8906459068159149,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.988911839047559,
+        "LEFT_BROW": 0.7906117712436461,
+        "RIGHT_BROW": 0.8013063925093723,
+        "LEFT_EYE": 0.7255251024590164,
+        "RIGHT_EYE": 0.7022968438855397,
+        "EYE_GLASS": 0.8359455793381719
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9944250113379832,
+        "LEFT_BROW": 0.8830633015380402,
+        "RIGHT_BROW": 0.8896947191677754,
+        "LEFT_EYE": 0.8409325386516637,
+        "RIGHT_EYE": 0.8251167784374525,
+        "EYE_GLASS": 0.9106430917625744
+      },
+      "learning_rate": 6.545084971874738e-05
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.04453463416582751,
+      "val_loss": 0.039585843682289124,
+      "val_pixel_accuracy": 0.9882279586791992,
+      "val_mean_iou": 0.8088420421996547,
+      "val_target_mean_iou": 0.7729007894309534,
+      "val_mean_dice": 0.8917056042172785,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9885483060431612,
+        "LEFT_BROW": 0.7976146424913257,
+        "RIGHT_BROW": 0.7965820265669208,
+        "LEFT_EYE": 0.7354828240463351,
+        "RIGHT_EYE": 0.7077239036848826,
+        "EYE_GLASS": 0.8271005503653028
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9942411788931467,
+        "LEFT_BROW": 0.887414492113734,
+        "RIGHT_BROW": 0.8867750147641243,
+        "LEFT_EYE": 0.8475829479332245,
+        "RIGHT_EYE": 0.8288504976217458,
+        "EYE_GLASS": 0.9053694939776968
+      },
+      "learning_rate": 6.039558454088797e-05
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.043593576168912705,
+      "val_loss": 0.036784632876515386,
+      "val_pixel_accuracy": 0.9892456817626953,
+      "val_mean_iou": 0.809438909383332,
+      "val_target_mean_iou": 0.7733893299964787,
+      "val_mean_dice": 0.891789392846971,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9896868063175992,
+        "LEFT_BROW": 0.7876316775956581,
+        "RIGHT_BROW": 0.8009429051770042,
+        "LEFT_EYE": 0.7246884590058021,
+        "RIGHT_EYE": 0.7025975167288112,
+        "EYE_GLASS": 0.8510860914751182
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9948166748406561,
+        "LEFT_BROW": 0.8812012983066094,
+        "RIGHT_BROW": 0.889470624387489,
+        "LEFT_EYE": 0.8403702769873572,
+        "RIGHT_EYE": 0.8253242587581203,
+        "EYE_GLASS": 0.9195532238015935
+      },
+      "learning_rate": 5.522642316338269e-05
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.04177787431597131,
+      "val_loss": 0.034424948990345004,
+      "val_pixel_accuracy": 0.9898710250854492,
+      "val_mean_iou": 0.8134163097922786,
+      "val_target_mean_iou": 0.7780399017237629,
+      "val_mean_dice": 0.8942698344633829,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9902983501348572,
+        "LEFT_BROW": 0.8005061879329944,
+        "RIGHT_BROW": 0.79772602017588,
+        "LEFT_EYE": 0.7290249575658515,
+        "RIGHT_EYE": 0.705094816191386,
+        "EYE_GLASS": 0.8578475267527027
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9951255298661703,
+        "LEFT_BROW": 0.8892012627315504,
+        "RIGHT_BROW": 0.8874834220821198,
+        "LEFT_EYE": 0.8432786980613447,
+        "RIGHT_EYE": 0.8270447009701584,
+        "EYE_GLASS": 0.9234853930689549
+      },
+      "learning_rate": 5.000000000000002e-05
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.040820593294660444,
+      "val_loss": 0.034644868969917295,
+      "val_pixel_accuracy": 0.9897537612915039,
+      "val_mean_iou": 0.8098951216966866,
+      "val_target_mean_iou": 0.7738364099796594,
+      "val_mean_dice": 0.8919889127746193,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9901886802818233,
+        "LEFT_BROW": 0.7957700974669454,
+        "RIGHT_BROW": 0.7981493410715038,
+        "LEFT_EYE": 0.7190197785794253,
+        "RIGHT_EYE": 0.701959144197718,
+        "EYE_GLASS": 0.8542836885827046
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9950701560031046,
+        "LEFT_BROW": 0.8862716876613913,
+        "RIGHT_BROW": 0.887745331092347,
+        "LEFT_EYE": 0.8365462544865115,
+        "RIGHT_EYE": 0.8248836602110242,
+        "EYE_GLASS": 0.9214163871933363
+      },
+      "learning_rate": 4.4773576836617344e-05
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.039264027047359824,
+      "val_loss": 0.03366586811840534,
+      "val_pixel_accuracy": 0.9897048187255859,
+      "val_mean_iou": 0.8127622776604339,
+      "val_target_mean_iou": 0.7772913670037281,
+      "val_mean_dice": 0.8938740044763227,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9901168309439619,
+        "LEFT_BROW": 0.7967131273690335,
+        "RIGHT_BROW": 0.8013342372230587,
+        "LEFT_EYE": 0.7269586281634475,
+        "RIGHT_EYE": 0.7058631154832296,
+        "EYE_GLASS": 0.8555877267798714
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9950338749452461,
+        "LEFT_BROW": 0.8868562434735233,
+        "RIGHT_BROW": 0.8897118820751418,
+        "LEFT_EYE": 0.8418946653476457,
+        "RIGHT_EYE": 0.8275729852840809,
+        "EYE_GLASS": 0.9221743757322985
+      },
+      "learning_rate": 3.9604415459112035e-05
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.03876361059187686,
+      "val_loss": 0.03370228134095669,
+      "val_pixel_accuracy": 0.9894388961791992,
+      "val_mean_iou": 0.8098495927384742,
+      "val_target_mean_iou": 0.7738546219543896,
+      "val_mean_dice": 0.8920654832825502,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9898244466588982,
+        "LEFT_BROW": 0.7896295563687513,
+        "RIGHT_BROW": 0.8007101509816793,
+        "LEFT_EYE": 0.7244372949302283,
+        "RIGHT_EYE": 0.7042689728481254,
+        "EYE_GLASS": 0.8502271346431632
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9948862054850178,
+        "LEFT_BROW": 0.8824502853774382,
+        "RIGHT_BROW": 0.8893270808132695,
+        "LEFT_EYE": 0.8402013770637448,
+        "RIGHT_EYE": 0.8264763180792657,
+        "EYE_GLASS": 0.9190516328765646
+      },
+      "learning_rate": 3.4549150281252636e-05
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.03861694462886713,
+      "val_loss": 0.03304736837744713,
+      "val_pixel_accuracy": 0.9894965744018555,
+      "val_mean_iou": 0.8127446982832268,
+      "val_target_mean_iou": 0.777312153244433,
+      "val_mean_dice": 0.8939409579036443,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9899074234771955,
+        "LEFT_BROW": 0.7962266400728439,
+        "RIGHT_BROW": 0.8043492839593481,
+        "LEFT_EYE": 0.7353044702569518,
+        "RIGHT_EYE": 0.7026886878062693,
+        "EYE_GLASS": 0.8479916841267521
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9949281175577662,
+        "LEFT_BROW": 0.8865547613084659,
+        "RIGHT_BROW": 0.8915671606490022,
+        "LEFT_EYE": 0.8474645030425964,
+        "RIGHT_EYE": 0.8253871571926725,
+        "EYE_GLASS": 0.9177440476713629
+      },
+      "learning_rate": 2.9663167846209998e-05
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.03855322211872316,
+      "val_loss": 0.032862084135413167,
+      "val_pixel_accuracy": 0.9897247314453125,
+      "val_mean_iou": 0.8148398606011261,
+      "val_target_mean_iou": 0.7797801420777339,
+      "val_mean_dice": 0.8952523354934856,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9901384532180868,
+        "LEFT_BROW": 0.8027729322668482,
+        "RIGHT_BROW": 0.8011845244517978,
+        "LEFT_EYE": 0.7342456157906587,
+        "RIGHT_EYE": 0.7075931640776951,
+        "EYE_GLASS": 0.8531044738016704
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.995044793609225,
+        "LEFT_BROW": 0.8905979426454146,
+        "RIGHT_BROW": 0.8896195959663195,
+        "LEFT_EYE": 0.8467608153138209,
+        "RIGHT_EYE": 0.8287608301124585,
+        "EYE_GLASS": 0.9207300353136748
+      },
+      "learning_rate": 2.5000000000000018e-05
+    },
+    {
+      "epoch": 21,
+      "train_loss": 0.03640858870162403,
+      "val_loss": 0.032560043297708036,
+      "val_pixel_accuracy": 0.989687156677246,
+      "val_mean_iou": 0.813626633914359,
+      "val_target_mean_iou": 0.7783297723918708,
+      "val_mean_dice": 0.894449373606634,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9901109415268,
+        "LEFT_BROW": 0.8015259787395351,
+        "RIGHT_BROW": 0.8037109197181304,
+        "LEFT_EYE": 0.7360583536300652,
+        "RIGHT_EYE": 0.7003762996761462,
+        "EYE_GLASS": 0.849977310195477
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9950309009076583,
+        "LEFT_BROW": 0.8898300531867266,
+        "RIGHT_BROW": 0.8911748672494902,
+        "LEFT_EYE": 0.8479649916040911,
+        "RIGHT_EYE": 0.8237897691346792,
+        "EYE_GLASS": 0.9189056595571591
+      },
+      "learning_rate": 2.0610737385376356e-05
+    },
+    {
+      "epoch": 22,
+      "train_loss": 0.03613625448739644,
+      "val_loss": 0.03169335849583149,
+      "val_pixel_accuracy": 0.9896971893310547,
+      "val_mean_iou": 0.8146275898951041,
+      "val_target_mean_iou": 0.779534208534194,
+      "val_mean_dice": 0.8951490751977782,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900944966996543,
+        "LEFT_BROW": 0.7944979247702036,
+        "RIGHT_BROW": 0.8060526973712293,
+        "LEFT_EYE": 0.7326110591388334,
+        "RIGHT_EYE": 0.7114524345150364,
+        "EYE_GLASS": 0.8530569268756671
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.995022596506461,
+        "LEFT_BROW": 0.885482132693961,
+        "RIGHT_BROW": 0.8926126004456749,
+        "LEFT_EYE": 0.8456728418932822,
+        "RIGHT_EYE": 0.8314019369362564,
+        "EYE_GLASS": 0.9207023427110331
+      },
+      "learning_rate": 1.654346968205711e-05
+    },
+    {
+      "epoch": 23,
+      "train_loss": 0.03630155297810013,
+      "val_loss": 0.03121102288365364,
+      "val_pixel_accuracy": 0.9898892211914062,
+      "val_mean_iou": 0.815400061971185,
+      "val_target_mean_iou": 0.7804171939018859,
+      "val_mean_dice": 0.8955819732593778,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9903144023176806,
+        "LEFT_BROW": 0.7995513954190571,
+        "RIGHT_BROW": 0.8028717065986217,
+        "LEFT_EYE": 0.7360085405676966,
+        "RIGHT_EYE": 0.7070777031441938,
+        "EYE_GLASS": 0.8565766237798607
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9951336343288072,
+        "LEFT_BROW": 0.8886119034492678,
+        "RIGHT_BROW": 0.8906587237018161,
+        "LEFT_EYE": 0.8479319350894582,
+        "RIGHT_EYE": 0.8284071683929296,
+        "EYE_GLASS": 0.9227484745939872
+      },
+      "learning_rate": 1.2842758726130297e-05
+    },
+    {
+      "epoch": 24,
+      "train_loss": 0.03679694817627518,
+      "val_loss": 0.03232520218938589,
+      "val_pixel_accuracy": 0.9894525909423828,
+      "val_mean_iou": 0.8122799326231153,
+      "val_target_mean_iou": 0.7767560714937276,
+      "val_mean_dice": 0.8936727340589807,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9898992382700529,
+        "LEFT_BROW": 0.8003007535007061,
+        "RIGHT_BROW": 0.8020614849883143,
+        "LEFT_EYE": 0.7307870110074091,
+        "RIGHT_EYE": 0.7058212458158594,
+        "EYE_GLASS": 0.8448098621563492
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9949239833175029,
+        "LEFT_BROW": 0.8890745081837153,
+        "RIGHT_BROW": 0.8901599547737022,
+        "LEFT_EYE": 0.8444563153753419,
+        "RIGHT_EYE": 0.827544207867196,
+        "EYE_GLASS": 0.9158774348364264
+      },
+      "learning_rate": 9.549150281252636e-06
+    },
+    {
+      "epoch": 25,
+      "train_loss": 0.035831967748484565,
+      "val_loss": 0.03186562363058329,
+      "val_pixel_accuracy": 0.9894449996948242,
+      "val_mean_iou": 0.8127008452937892,
+      "val_target_mean_iou": 0.7772657821846644,
+      "val_mean_dice": 0.8939063276904907,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9898761608394131,
+        "LEFT_BROW": 0.8026616660255589,
+        "RIGHT_BROW": 0.803085877839645,
+        "LEFT_EYE": 0.7323784820119544,
+        "RIGHT_EYE": 0.7027809740519995,
+        "EYE_GLASS": 0.845421910994164
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9949123270282728,
+        "LEFT_BROW": 0.8905294666804973,
+        "RIGHT_BROW": 0.8907904916895659,
+        "LEFT_EYE": 0.8455178699303431,
+        "RIGHT_EYE": 0.8254508181162447,
+        "EYE_GLASS": 0.9162369926980211
+      },
+      "learning_rate": 6.698729810778068e-06
+    },
+    {
+      "epoch": 26,
+      "train_loss": 0.03654686554145176,
+      "val_loss": 0.03164142571389675,
+      "val_pixel_accuracy": 0.9896231079101563,
+      "val_mean_iou": 0.814041585036767,
+      "val_target_mean_iou": 0.7788339219715263,
+      "val_mean_dice": 0.8947704526384026,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900799003629704,
+        "LEFT_BROW": 0.8036063599004334,
+        "RIGHT_BROW": 0.7980217957829898,
+        "LEFT_EYE": 0.737121872276858,
+        "RIGHT_EYE": 0.705160401292998,
+        "EYE_GLASS": 0.8502591806043525
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.99501522545139,
+        "LEFT_BROW": 0.8911105857320173,
+        "RIGHT_BROW": 0.8876664316913611,
+        "LEFT_EYE": 0.8486703023440804,
+        "RIGHT_EYE": 0.827089816017643,
+        "EYE_GLASS": 0.9190703545939236
+      },
+      "learning_rate": 4.322727117869953e-06
+    },
+    {
+      "epoch": 27,
+      "train_loss": 0.0355598251832631,
+      "val_loss": 0.031578097641468045,
+      "val_pixel_accuracy": 0.9895934677124023,
+      "val_mean_iou": 0.8125986630963725,
+      "val_target_mean_iou": 0.7771052756334568,
+      "val_mean_dice": 0.8937992817871273,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900656004109516,
+        "LEFT_BROW": 0.8018243279497773,
+        "RIGHT_BROW": 0.8032577044406698,
+        "LEFT_EYE": 0.7329605897924346,
+        "RIGHT_EYE": 0.6999627282892285,
+        "EYE_GLASS": 0.8475210276951737
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9950080039637905,
+        "LEFT_BROW": 0.8900138770599691,
+        "RIGHT_BROW": 0.890896184680184,
+        "LEFT_EYE": 0.8459056646870717,
+        "RIGHT_EYE": 0.8235036176277132,
+        "EYE_GLASS": 0.9174683427040354
+      },
+      "learning_rate": 2.447174185242324e-06
+    },
+    {
+      "epoch": 28,
+      "train_loss": 0.03619416589279053,
+      "val_loss": 0.03152296043932438,
+      "val_pixel_accuracy": 0.9895806121826172,
+      "val_mean_iou": 0.8139911237885668,
+      "val_target_mean_iou": 0.7787878002564301,
+      "val_mean_dice": 0.8947439980175304,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900077414492495,
+        "LEFT_BROW": 0.8010855459768568,
+        "RIGHT_BROW": 0.8032190630399846,
+        "LEFT_EYE": 0.7347275729223995,
+        "RIGHT_EYE": 0.7062571601426236,
+        "EYE_GLASS": 0.848649659200286
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9949787840807728,
+        "LEFT_BROW": 0.8895585751229502,
+        "RIGHT_BROW": 0.8908724175595896,
+        "LEFT_EYE": 0.8470812182741116,
+        "RIGHT_EYE": 0.8278437466994584,
+        "EYE_GLASS": 0.9181292463682994
+      },
+      "learning_rate": 1.092619963309716e-06
+    },
+    {
+      "epoch": 29,
+      "train_loss": 0.03523061105312364,
+      "val_loss": 0.031450840085744856,
+      "val_pixel_accuracy": 0.9895812225341797,
+      "val_mean_iou": 0.8144432944413983,
+      "val_target_mean_iou": 0.7793308880932408,
+      "val_mean_dice": 0.8950283878299573,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900053261821862,
+        "LEFT_BROW": 0.8023956901117596,
+        "RIGHT_BROW": 0.8026008569227807,
+        "LEFT_EYE": 0.7354662747833017,
+        "RIGHT_EYE": 0.7066350527685785,
+        "EYE_GLASS": 0.8495565658797837
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.9949775642877355,
+        "LEFT_BROW": 0.8903657443410844,
+        "RIGHT_BROW": 0.8904920396996818,
+        "LEFT_EYE": 0.8475719585794146,
+        "RIGHT_EYE": 0.8281032920567805,
+        "EYE_GLASS": 0.9186597280150475
+      },
+      "learning_rate": 2.7390523158633003e-07
+    },
+    {
+      "epoch": 30,
+      "train_loss": 0.035663460593815276,
+      "val_loss": 0.03119341630488634,
+      "val_pixel_accuracy": 0.9895973587036133,
+      "val_mean_iou": 0.8138980867339932,
+      "val_target_mean_iou": 0.7786731333282744,
+      "val_mean_dice": 0.8946653775008011,
+      "per_class_iou": {
+        "AUX_BACKGROUND": 0.9900228537625876,
+        "LEFT_BROW": 0.8011154615665942,
+        "RIGHT_BROW": 0.802878480936111,
+        "LEFT_EYE": 0.7347888466096937,
+        "RIGHT_EYE": 0.7048976579795704,
+        "EYE_GLASS": 0.8496852195494029
+      },
+      "per_class_dice": {
+        "AUX_BACKGROUND": 0.994986416252181,
+        "LEFT_BROW": 0.8895770189766636,
+        "RIGHT_BROW": 0.8906628920649509,
+        "LEFT_EYE": 0.8471219399936715,
+        "RIGHT_EYE": 0.8269090577729178,
+        "EYE_GLASS": 0.918734939944422
+      },
+      "learning_rate": 0.0
+    }
+  ],
+  "param_summary": {
+    "bisenet_total": 13300416,
+    "bisenet_trainable": 0,
+    "head_total": 369408,
+    "head_trainable": 369408,
+    "optimizer_params": 7
+  },
+  "bisenet_param_hash": "18e6835e6a9a0c5e29329f2781e06276",
+  "bisenet_bn_hash": "d4cde435d20034cac808af22c57de8f6",
+  "reproducibility": {
+    "seed": 42,
+    "python_version": "3.12.2",
+    "torch_version": "2.11.0+cu128",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "gpu_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "device": "cuda:0",
+    "train_samples": 825,
+    "val_samples": 100,
+    "test_samples": 114,
+    "optimizer": "adamw",
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "scheduler": "cosine",
+    "epochs": 30,
+    "batch_size": 4,
+    "augmentation": {
+      "enabled": true,
+      "horizontal_flip_probability": 0.5,
+      "max_rotation_degrees": 8.0,
+      "max_translation_fraction": 0.04,
+      "min_scale": 0.96,
+      "max_scale": 1.04,
+      "brightness_delta": 0.08,
+      "contrast_delta": 0.08
+    },
+    "loss": "CE only, no class weights, no Dice"
+  },
+  "freezing_verification": {
+    "checks": [
+      "PASS: All BiSeNet parameters are frozen",
+      "PASS: All auxiliary head parameters are trainable",
+      "PASS: BiSeNet is in eval mode",
+      "PASS: All BatchNorm layers are in eval mode",
+      "PASS: Both models on cuda:0"
+    ],
+    "passed": true
+  },
+  "early_stopping": {
+    "patience": 7,
+    "triggered": true
+  }
+}

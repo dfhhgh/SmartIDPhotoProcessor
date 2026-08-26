@@ -1,0 +1,133 @@
+{
+  "phase_status": "PHASE_4_FINAL_CLOSED",
+  "verdict": "PASS",
+  "generated": "2026-08-26",
+  "test_suite": {
+    "full_repository": {
+      "total": 1054,
+      "passed": 1028,
+      "failed": 26,
+      "skipped": 0,
+      "errors": 0,
+      "warnings": 1,
+      "duration_seconds": 31.58
+    },
+    "phase4_dedicated": {
+      "unit_integration": {"total": 25, "passed": 25, "failed": 0},
+      "real_model": {"total": 13, "passed": 13, "failed": 0},
+      "end_to_end": {"total": 16, "passed": 16, "failed": 0},
+      "total": {"total": 54, "passed": 54, "failed": 0}
+    },
+    "existing_relevant": {
+      "parser": {"total": 48, "passed": 48, "failed": 0},
+      "pipeline": {"total": 3, "passed": 3, "failed": 0}
+    },
+    "new_regressions": 0,
+    "pre_existing_failures": 26
+  },
+  "failure_classification": {
+    "all_26_in_file": "tests/validators/test_face_visibility_validator.py",
+    "all_26_classified_as": "PRE-EXISTING",
+    "evidence": "Git history confirms no Phase 4 commit modified validator files. Most recent commits: 1c786cd, faefabc (both pre-Phase 4)."
+  },
+  "runtime_benchmark": {
+    "hardware": {
+      "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "cuda_version": "12.8",
+      "pytorch_version": "2.11.0+cu128",
+      "compute_capability": "8.9",
+      "total_gpu_memory_gb": 8.0,
+      "device": "cuda:0"
+    },
+    "methodology": {
+      "input": "Same face image from dataset, 112x112 BGR uint8",
+      "warmup_iterations": 20,
+      "measured_iterations": 50,
+      "cuda_synchronization": true,
+      "measurement_boundary": "parse() full call",
+      "cold_start_separate": true
+    },
+    "cold_start": {
+      "original_ms": 173.98,
+      "fused_ms": 456.83,
+      "fused_peak_allocated_mb": 122.6,
+      "fused_peak_reserved_mb": 144.0
+    },
+    "warm_inference": {
+      "original": {
+        "mean_ms": 65.75,
+        "median_ms": 66.06,
+        "p95_ms": 72.09,
+        "min_ms": 58.76,
+        "max_ms": 73.64,
+        "stddev_ms": 3.29,
+        "backend": "ONNX Runtime CPU"
+      },
+      "fused": {
+        "mean_ms": 15.49,
+        "median_ms": 15.33,
+        "p95_ms": 16.18,
+        "min_ms": 14.67,
+        "max_ms": 20.18,
+        "stddev_ms": 0.79,
+        "peak_allocated_mb": 175.9,
+        "peak_reserved_mb": 206.0,
+        "backend": "PyTorch CUDA"
+      }
+    }
+  },
+  "code_verification": {
+    "double_computation_fix": {
+      "status": "VERIFIED",
+      "location": "services/face_parser_service.py:281-284",
+      "description": "Single cp+ffm+conv_out path, no redundant bisenet(tensor) call"
+    },
+    "non_target_safety_guard": {
+      "status": "VERIFIED",
+      "location": "services/face_parser_service.py:143-147",
+      "description": "is_original_target guard prevents non-target class overwrite"
+    },
+    "fusion_strategy": {
+      "strategy": 1,
+      "threshold": 0.0,
+      "min_component_size": 10,
+      "status": "UNCHANGED"
+    }
+  },
+  "protected_artifacts": {
+    "onnx_model": {
+      "path": "ai_models/bisenet/bisenet_resnet18.onnx",
+      "sha256_prefix": "2218b6183c26ca5c",
+      "verified_unchanged": true
+    },
+    "aux_checkpoint": {
+      "path": "training_aux_eye_brow_phase1/checkpoints/best.pt",
+      "sha256_prefix": "961e08bf64fdd0b8",
+      "verified_unchanged": true
+    }
+  },
+  "acceptance_criteria": {
+    "full_test_suite_rerun": true,
+    "one_authoritative_count": true,
+    "all_failures_classified": true,
+    "new_regressions_zero": true,
+    "phase4_tests_54_54": true,
+    "benchmark_identical_methodology": true,
+    "modes_measured_fairly": true,
+    "warm_separated_from_cold": true,
+    "cuda_sync_correct": true,
+    "gpu_memory_measured": true,
+    "double_computation_verified": true,
+    "safety_guard_intact": true,
+    "fusion_strategy_unchanged": true,
+    "artifacts_verified": true,
+    "no_contradictory_numbers": true,
+    "json_markdown_agree": true
+  },
+  "limitations": [
+    "ONNX Runtime CUDAExecutionProvider unavailable — ORIGINAL runs on CPU",
+    "26 pre-existing face_visibility_validator test failures unrelated to Phase 4",
+    "Benchmark used 112x112 input; larger inputs show different timings",
+    "FUSED cold start 2.6x slower due to PyTorch loading + CUDA memory allocation (one-time cost)"
+  ]
+}
