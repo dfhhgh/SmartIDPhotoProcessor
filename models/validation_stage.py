@@ -10,4 +10,3 @@ class ValidationStage(StrEnum):
 
     CHEAP = "cheap"
     PARSING = "parsing"
-    GLASSES = "glasses"

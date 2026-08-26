@@ -36,11 +36,6 @@ _ROOT_CAUSE_MAP: dict[ValidationType, RootCauseResult] = {
         confidence=0.95,
         explanation="Head pitch, yaw, or roll exceeds maximum allowed angular limits.",
     ),
-    ValidationType.GLASSES: RootCauseResult(
-        cause="REAL_OCCLUSION",
-        confidence=0.90,
-        explanation="Classifier detected prohibited eyewear (sunglasses).",
-    ),
     ValidationType.OCCLUSION: RootCauseResult(
         cause="REAL_OCCLUSION",
         confidence=0.92,
@@ -62,7 +57,6 @@ _PIPELINE_ORDER: list[ValidationType] = [
     ValidationType.HEAD_POSE,
     ValidationType.FACE_VISIBILITY,
     ValidationType.OCCLUSION,
-    ValidationType.GLASSES,
     ValidationType.FACE_AMBIGUITY,
 ]
 

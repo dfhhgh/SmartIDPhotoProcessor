@@ -4,7 +4,7 @@ Validation pipeline orchestrator.
 Executes a sequence of validators against an image and optional face /
 parsing data, collecting the results into a single ValidationResult,
 with optimized multi-stage execution and short-circuiting to avoid
-unnecessary model inference (FaceParserService and GlassesDetectorClassifier).
+unnecessary model inference (FaceParserService).
 Validators are dynamically grouped by their explicit `stage` property.
 
 Two execution modes are supported (see ValidationExecutionMode):
@@ -44,11 +44,10 @@ class ValidationOrchestrator:
     Validators are dynamically grouped by their ``stage`` property into:
     - ValidationStage.CHEAP: Blur, Brightness, Contrast, FaceSize, HeadPose.
     - ValidationStage.PARSING: FaceVisibility, Occlusion.
-    - ValidationStage.GLASSES: GlassesValidator.
 
     In ValidationExecutionMode.PRODUCTION (default), the orchestrator stops
     immediately on the first failing stage without running FaceParserService
-    or GlassesDetectorClassifier if not reached.
+    if not reached.
 
     In ValidationExecutionMode.DEVELOPMENT, every stage always runs and every
     metric is collected, regardless of earlier failures.
@@ -197,16 +196,6 @@ class ValidationOrchestrator:
                 stages[ValidationStage.PARSING], image, face, parsing_result, original_image, original_face
             )
             metrics.extend(parsing_metrics)
-            if not all(metric.passed for metric in parsing_metrics):
-                logger.info("Stage PARSING validation failed. Short-circuiting pipeline.")
-                return ValidationResult(metrics=metrics)
-
-        # Stage 3: GLASSES validators (GlassesValidator)
-        if stages[ValidationStage.GLASSES]:
-            glasses_metrics = self._run_stage(
-                stages[ValidationStage.GLASSES], image, face, parsing_result, original_image, original_face
-            )
-            metrics.extend(glasses_metrics)
 
         return ValidationResult(metrics=metrics)
 
@@ -236,11 +225,6 @@ class ValidationOrchestrator:
 
         metrics.extend(
             self._run_stage(stages[ValidationStage.PARSING], image, face, parsing_result, original_image, original_face)
-        )
-
-        # Stage 3: GLASSES validators -- always run, regardless of earlier failures.
-        metrics.extend(
-            self._run_stage(stages[ValidationStage.GLASSES], image, face, parsing_result, original_image, original_face)
         )
 
         return ValidationResult(metrics=metrics)

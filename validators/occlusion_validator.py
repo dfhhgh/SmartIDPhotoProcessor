@@ -22,9 +22,9 @@ class OcclusionValidator(BaseValidator):
     the face parser (e.g. hats). It does NOT check whether mandatory
     anatomical regions are visible; that responsibility belongs to
     FaceVisibilityValidator. It also does NOT distinguish normal
-    eyeglasses from sunglasses; a dedicated GlassesValidator handles
-    that distinction, so FacePart.EYE_GLASS is never treated as an
-    occlusion here. Hair is likewise allowed: hair covering the eyes
+    eyeglasses from sunglasses; FacePart.EYE_GLASS is a semantic
+    segmentation class produced by the face parser and is never treated as
+    an occlusion here. Hair is likewise allowed: hair covering the eyes
     only affects FaceVisibilityValidator's assessment, not this one.
     """
 

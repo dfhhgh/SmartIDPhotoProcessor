@@ -225,9 +225,9 @@ HEAD_POSE_ROLL_MAX_DEGREES = 10.0
 # Semantic classes that are never acceptable in a student ID photo.
 #
 # Notably absent:
-#   - FacePart.EYE_GLASS: normal eyeglasses are allowed. A future
-#     GlassesValidator will distinguish normal glasses from sunglasses;
-#     OcclusionValidator must not treat eyeglasses as an occlusion.
+#   - FacePart.EYE_GLASS: normal eyeglasses are allowed. The face parser
+#     produces EYE_GLASS as a semantic class; OcclusionValidator must not
+#     treat eyeglasses as an occlusion.
 #   - FacePart.HAIR: hair is allowed. Hair covering the eyes already
 #     reduces eye visibility, which FaceVisibilityValidator handles.
 #
@@ -236,20 +236,6 @@ HEAD_POSE_ROLL_MAX_DEGREES = 10.0
 OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = (
     FacePart.HAT,
 )
-
-# -------------------------------
-# Glasses Validation
-# -------------------------------
-
-GLASSES_SUCCESS_MESSAGE = "Acceptable eyewear detected."
-GLASSES_FAILURE_MESSAGE = "Sunglasses are not permitted."
-# Decision thresholds for the glasses-detector binary classifiers.
-# Both classifiers output a probability in [0.0, 1.0]; a value strictly
-# greater than the threshold is treated as a positive detection.
-# Not scientifically fixed; calibrate later against a representative
-# dataset of real student ID photos.
-GLASSES_SUNGLASSES_PROBABILITY_THRESHOLD = 0.5
-GLASSES_EYEGLASSES_PROBABILITY_THRESHOLD = 0.5
 
 # -------------------------------
 # Semantic Evidence Fusion

@@ -8,7 +8,6 @@ import pytest
 from scripts.check_models import (
     check_insightface,
     check_face_parser,
-    check_glasses_detector,
 )
 
 
@@ -59,28 +58,4 @@ def test_check_face_parser_failure():
         success, error, elapsed = check_face_parser()
         assert success is False
         assert "Model not found" in error
-        assert isinstance(elapsed, float)
-
-
-def test_check_glasses_detector_success():
-    """Verify check_glasses_detector succeeds when GlassesDetectorClassifier loads successfully."""
-    with patch("scripts.check_models.GlassesDetectorClassifier") as mock_cls:
-        mock_instance = mock_cls.return_value
-        mock_instance._device = "cpu"
-        mock_instance._ensure_loaded.return_value = (MagicMock(), MagicMock())
-
-        success, device, elapsed = check_glasses_detector()
-        assert success is True
-        assert device == "CPU"
-        assert isinstance(elapsed, float)
-
-
-def test_check_glasses_detector_failure():
-    """Verify check_glasses_detector handles exceptions correctly."""
-    with patch("scripts.check_models.GlassesDetectorClassifier") as mock_cls:
-        mock_cls.side_effect = Exception("Init failed")
-
-        success, error, elapsed = check_glasses_detector()
-        assert success is False
-        assert "Init failed" in error
         assert isinstance(elapsed, float)

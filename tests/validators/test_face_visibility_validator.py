@@ -1985,8 +1985,7 @@ def test_validate_sunglasses_parser_misses_eyes_no_landmarks_fails(
     sample_image: np.ndarray,
 ):
     """Sunglasses cause the parser to miss eyes. EYE_GLASS is present.
-    Without valid landmarks, the eyes are correctly reported as missing.
-    (Sunglasses rejection is the responsibility of GlassesValidator.)"""
+    Without valid landmarks, the eyes are correctly reported as missing."""
     # Arrange
     counts = _all_sufficient_counts_with_eye_glass()
     del counts[FacePart.LEFT_EYE]

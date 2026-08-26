@@ -2,7 +2,7 @@
 """
 Model loading verification script.
 
-Instantiates and tests FaceService, FaceParserService, and GlassesDetectorClassifier,
+Instantiates and tests FaceService and FaceParserService,
 forces lazy-loaded models to initialize, measures and prints loading time, detects
 whether GPU or CPU is used, and reports overall status.
 """
@@ -15,7 +15,6 @@ import logging
 
 from services.face_service import FaceService
 from services.face_parser_service import FaceParserService
-from services.glasses_detector_classifier import GlassesDetectorClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -53,22 +52,6 @@ def check_face_parser() -> tuple[bool, str, float]:
         return False, str(e), elapsed
 
 
-def check_glasses_detector() -> tuple[bool, str, float]:
-    """Test loading GlassesDetectorClassifier."""
-    start_time = time.perf_counter()
-    try:
-        classifier = GlassesDetectorClassifier()
-        classifier._ensure_loaded()
-        elapsed = time.perf_counter() - start_time
-
-        is_gpu = classifier._device.startswith("cuda")
-        device_str = "GPU" if is_gpu else "CPU"
-        return True, device_str, elapsed
-    except Exception as e:
-        elapsed = time.perf_counter() - start_time
-        return False, str(e), elapsed
-
-
 def main() -> None:
     """Main entry point for checking AI models."""
     print("========================================")
@@ -79,7 +62,6 @@ def main() -> None:
     models_to_check = [
         ("InsightFace", check_insightface),
         ("Face Parser", check_face_parser),
-        ("Glasses Detector", check_glasses_detector),
     ]
 
     success_all = True

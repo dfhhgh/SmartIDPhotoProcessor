@@ -6,4 +6,3 @@ scipy
 pytest
 pytest-cov
 pytest-mock
-glasses-detector

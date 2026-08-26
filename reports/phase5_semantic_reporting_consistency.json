@@ -1,0 +1,79 @@
+{
+  "phase": 5,
+  "title": "Semantic Reporting Consistency Fix",
+  "date": "2026-08-26",
+  "verdict": "PASS",
+  "summary": "Unified compute_eye_evidence() and is_eye_visible() to use a single _compute_effective_parser_confidence() method, eliminating the reporting/production semantic path discrepancy.",
+  "root_cause": "compute_eye_evidence() (reporting) did not apply the 0.65 glasses fallback that is_eye_visible() (production) applies. Two independent implementations of the same logic.",
+  "files_changed": [
+    "reasoning/semantic_engine.py",
+    "tests/reasoning/test_semantic_engine.py"
+  ],
+  "change_description": "Added _compute_effective_parser_confidence() private method as single source of truth for the glasses-obscured-eye fallback. Updated compute_eye_evidence() and is_eye_visible() to call it.",
+  "production_behavior_unchanged": true,
+  "weights_unchanged": {
+    "SEMANTIC_PARSER_WEIGHT": 0.35,
+    "SEMANTIC_LANDMARK_WEIGHT": 0.20,
+    "SEMANTIC_POSE_WEIGHT": 0.20,
+    "SEMANTIC_OCCLUSION_WEIGHT": 0.10,
+    "SEMANTIC_DECISION_THRESHOLD": 0.50
+  },
+  "eye_support_confidence_added_to_formula": false,
+  "glasses_classifier_introduced": false,
+  "before_after": {
+    "transparent_glasses": {
+      "before_report_parser_conf": 0.0,
+      "after_report_parser_conf": 0.65,
+      "production_parser_conf": 0.65,
+      "before_report_final": 0.5447,
+      "after_report_final": 0.8123,
+      "production_final": 0.8123
+    },
+    "sunglasses": {
+      "before_report_parser_conf": 0.0,
+      "after_report_parser_conf": 0.0,
+      "production_parser_conf": 0.0,
+      "before_report_final": 0.3529,
+      "after_report_final": 0.3529,
+      "production_final": 0.3529
+    },
+    "no_glasses": {
+      "before_report_parser_conf": 1.0,
+      "after_report_parser_conf": 1.0,
+      "production_parser_conf": 1.0,
+      "before_report_final": 0.9564,
+      "after_report_final": 0.9564,
+      "production_final": 0.9564
+    }
+  },
+  "test_results": {
+    "new_tests_added": 8,
+    "new_tests_passed": 8,
+    "full_suite": {
+      "total": 1054,
+      "passed": 1028,
+      "failed": 26,
+      "new_regressions": 0
+    }
+  },
+  "acceptance_criteria": {
+    "production_decision_unchanged": true,
+    "reporting_uses_production_logic": true,
+    "065_fallback_intact": true,
+    "no_duplicate_fallback": true,
+    "weights_unchanged": true,
+    "threshold_unchanged": true,
+    "eye_support_not_in_formula": true,
+    "no_glasses_classifier": true,
+    "eYE_GLASS_unchanged": true,
+    "fused_parser_unchanged": true,
+    "cheap_short_circuit_unchanged": true,
+    "no_false_validatorClaims": true,
+    "transparent_glasses_correct": true,
+    "sunglasses_unchanged": true,
+    "no_new_regressions": true,
+    "focused_tests_added": true,
+    "full_suite_executed": true,
+    "report_generated": true
+  }
+}

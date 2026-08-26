@@ -31,7 +31,7 @@ def _metric(
 def test_validation_orchestrator_initialization_defaults():
     """Verify default initialization creates built-in validators and parser service."""
     orchestrator = ValidationOrchestrator()
-    assert len(orchestrator._validators) == 8
+    assert len(orchestrator._validators) == 7
 
 
 def test_validation_orchestrator_custom_validators():
@@ -50,7 +50,7 @@ def test_validation_orchestrator_custom_validators():
 
 
 def test_validation_orchestrator_short_circuits_on_stage1_failure():
-    """If a Stage 1 default validator fails, execution stops immediately after Stage CHEPS and FaceParserService is not called."""
+    """If a Stage 1 default validator fails, execution stops immediately after Stage CHEAP and FaceParserService is not called."""
     mock_parser = MagicMock()
 
     v1 = MagicMock()
@@ -69,16 +69,13 @@ def test_validation_orchestrator_short_circuits_on_stage1_failure():
     v5.stage = ValidationStage.CHEAP
     v5.validate.return_value = _metric(ValidationType.HEAD_POSE)
     v6 = MagicMock()
-    v6.stage = ValidationStage.GLASSES
-    v6.validate.return_value = _metric(ValidationType.GLASSES)
+    v6.stage = ValidationStage.PARSING
+    v6.validate.return_value = _metric(ValidationType.FACE_VISIBILITY)
     v7 = MagicMock()
     v7.stage = ValidationStage.PARSING
-    v7.validate.return_value = _metric(ValidationType.FACE_VISIBILITY)
-    v8 = MagicMock()
-    v8.stage = ValidationStage.PARSING
-    v8.validate.return_value = _metric(ValidationType.OCCLUSION)
+    v7.validate.return_value = _metric(ValidationType.OCCLUSION)
 
-    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2, v3, v4, v5, v6, v7, v8)):
+    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2, v3, v4, v5, v6, v7)):
         orchestrator = ValidationOrchestrator(parser_service=mock_parser)
         result = orchestrator.validate(image=np.zeros((10, 10, 3), dtype=np.uint8))
 
@@ -87,4 +84,3 @@ def test_validation_orchestrator_short_circuits_on_stage1_failure():
     mock_parser.parse.assert_not_called()
     v6.validate.assert_not_called()
     v7.validate.assert_not_called()
-    v8.validate.assert_not_called()

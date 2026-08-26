@@ -1,0 +1,197 @@
+{
+  "audit_date": "2026-08-26",
+  "scope": "Complete repository audit for GlassesValidator removal",
+  "summary": {
+    "files_to_delete": 8,
+    "files_to_modify": 14,
+    "files_to_preserve": "10+",
+    "glasses_infrastructure": "REMOVE",
+    "eye_glass_infrastructure": "PRESERVE"
+  },
+  "glasses_validator_infrastructure": {
+    "core_source_files": [
+      {
+        "path": "validators/glasses_validator.py",
+        "lines": 138,
+        "purpose": "GlassesValidator class definition",
+        "action": "DELETE"
+      },
+      {
+        "path": "services/glasses_detector_classifier.py",
+        "lines": 364,
+        "purpose": "GlassesDetectorClassifier service (wraps glasses-detector library)",
+        "action": "DELETE"
+      },
+      {
+        "path": "services/eyewear_classifier.py",
+        "lines": 47,
+        "purpose": "EyewearClassifier ABC (abstract interface)",
+        "action": "DELETE"
+      },
+      {
+        "path": "models/eyewear_type.py",
+        "lines": 21,
+        "purpose": "EyewearType enum (NONE, CLEAR_GLASSES, PRESCRIPTION_GLASSES, SUNGLASSES)",
+        "action": "DELETE"
+      },
+      {
+        "path": "models/eyewear_prediction.py",
+        "lines": 56,
+        "purpose": "EyewearPrediction dataclass",
+        "action": "DELETE"
+      }
+    ],
+    "test_files": [
+      {
+        "path": "tests/validators/test_glasses_validator.py",
+        "lines": 390,
+        "purpose": "GlassesValidator unit tests",
+        "action": "DELETE"
+      },
+      {
+        "path": "tests/services/test_glasses_detector_classifier.py",
+        "lines": 380,
+        "purpose": "GlassesDetectorClassifier unit tests",
+        "action": "DELETE"
+      },
+      {
+        "path": "tests/models/test_eyewear_prediction.py",
+        "lines": 123,
+        "purpose": "EyewearPrediction model tests",
+        "action": "DELETE"
+      }
+    ],
+    "files_requiring_modification": [
+      {
+        "path": "pipeline/validator_factory.py",
+        "lines": "8, 14, 29, 37",
+        "change": "Remove GlassesDetectorClassifier import + GlassesValidator import + instantiation"
+      },
+      {
+        "path": "pipeline/validation_orchestrator.py",
+        "lines": "7, 47, 204-209, 241-244",
+        "change": "Remove GLASSES stage references and handling"
+      },
+      {
+        "path": "config/constants.py",
+        "lines": "240-252",
+        "change": "Remove Glasses Validation section (messages + thresholds)"
+      },
+      {
+        "path": "models/validation_type.py",
+        "lines": 20,
+        "change": "Remove GLASSES enum value"
+      },
+      {
+        "path": "models/validation_stage.py",
+        "lines": 13,
+        "change": "Remove GLASSES enum value"
+      },
+      {
+        "path": "evaluation/root_cause.py",
+        "lines": "39-43, 65",
+        "change": "Remove GLASSES root cause mapping + pipeline order entry"
+      },
+      {
+        "path": "scripts/check_models.py",
+        "lines": "18, 56-69, 82",
+        "change": "Remove glasses detector check function + registration"
+      },
+      {
+        "path": "tests/scripts/test_check_models.py",
+        "lines": "11, 65-86",
+        "change": "Remove glasses detector test functions"
+      },
+      {
+        "path": "tests/pipeline/test_validation_orchestrator.py",
+        "lines": "72-73, 81, 88",
+        "change": "Remove GLASSES stage mock + update validator count"
+      },
+      {
+        "path": "validators/occlusion_validator.py",
+        "lines": "25-28",
+        "change": "Update comment referencing GlassesValidator"
+      },
+      {
+        "path": "tests/validators/test_face_visibility_validator.py",
+        "lines": 1989,
+        "change": "Update comment referencing GlassesValidator"
+      },
+      {
+        "path": "requirement.txt",
+        "lines": 9,
+        "change": "Remove glasses-detector dependency"
+      },
+      {
+        "path": "requirements-lock.txt",
+        "lines": 8,
+        "change": "Remove glasses-detector==1.0.4 lock entry"
+      }
+    ]
+  },
+  "eye_glass_infrastructure": {
+    "face_part_definition": {
+      "path": "models/parsing/face_part.py",
+      "line": "38-39",
+      "purpose": "EYE_GLASS = 6 enum definition"
+    },
+    "parser_infrastructure": [
+      {
+        "path": "services/face_parser_service.py",
+        "purpose": "BiSeNet produces 19-class output including EYE_GLASS"
+      },
+      {
+        "path": "ai_models/bisenet/bisenet_resnet18.onnx",
+        "purpose": "Protected ONNX model with EYE_GLASS class"
+      }
+    ],
+    "validators_using_eye_glass": [
+      {
+        "path": "validators/face_visibility_validator.py",
+        "lines": "51, 74, 179",
+        "purpose": "EYE_GLASS as secondary evidence for eye visibility under glasses"
+      },
+      {
+        "path": "validators/occlusion_validator.py",
+        "lines": "26-28",
+        "purpose": "EYE_GLASS is intentionally NOT treated as occlusion"
+      }
+    ],
+    "evaluation_using_eye_glass": [
+      {
+        "path": "evaluation/parser_qa.py",
+        "lines": "52, 62, 115, 122, 434-435",
+        "purpose": "EYE_GLASS pixel counts in QA metrics"
+      },
+      {
+        "path": "evaluation/overlay_renderer.py",
+        "line": 23,
+        "purpose": "EYE_GLASS color mapping (0, 255, 255)"
+      }
+    ],
+    "config_references": [
+      {
+        "path": "config/constants.py",
+        "lines": "228-230",
+        "purpose": "Comment explaining why EYE_GLASS is excluded from prohibited parts"
+      },
+      {
+        "path": "freeze_pilot.py",
+        "line": 16,
+        "purpose": "6:'EYE_GLASS' class ID mapping"
+      }
+    ]
+  },
+  "protected_artifacts": [
+    {
+      "path": "ai_models/bisenet/bisenet_resnet18.onnx",
+      "sha256_prefix": "2218b6183c26ca5c",
+      "action": "VERIFY_UNCHANGED"
+    },
+    {
+      "path": "dataset_builder/dataset/parser_finetune_current/training_aux_eye_brow_phase1/checkpoints/best.pt",
+      "sha256_prefix": "961e08bf64fdd0b8",
+      "action": "VERIFY_UNCHANGED"
+    }
+  ]
+}

@@ -107,9 +107,32 @@ class SemanticEvidenceEngine:
         return float(min(max(ratio / min_ratio, 0.0), 1.0))
 
     def _compute_parser_confidence(self, part: FacePart, min_ratio: float) -> float:
-        """Compute parser confidence from target part segmentation ratio."""
+        """Compute raw parser confidence from target part segmentation ratio."""
         ratio = self._parsing.part_ratio(part)
         return self._normalize_ratio(ratio, min_ratio)
+
+    def _compute_effective_parser_confidence(
+        self,
+        part: FacePart,
+        min_ratio: float = 0.0015,
+    ) -> float:
+        """Compute the effective parser confidence used by production validators.
+
+        When the parser misses an eye due to transparent eyewear (parser_conf
+        == 0.0) but EYE_GLASS is present and a valid landmark exists, this
+        returns 0.65 as a blended prior.  This is the single source of truth
+        for the glasses-obscured-eye fallback used by both production
+        ``is_eye_visible()`` and evaluation ``compute_eye_evidence()``.
+        """
+        parser_conf = self._compute_parser_confidence(part, min_ratio)
+        landmark_conf = self._compute_landmark_confidence(part)
+        if (
+            parser_conf == 0.0
+            and self._parsing.has_part(FacePart.EYE_GLASS)
+            and landmark_conf > 0.0
+        ):
+            return 0.65
+        return parser_conf
 
     def _compute_landmark_confidence(self, part: FacePart) -> float:
         """Compute continuous landmark confidence in [0.0, 1.0]."""
@@ -213,8 +236,12 @@ class SemanticEvidenceEngine:
         part: FacePart,
         min_ratio: float = 0.0015,
     ) -> SemanticEvidence:
-        """Compute semantic evidence for a single eye region."""
-        parser_conf = self._compute_parser_confidence(part, min_ratio)
+        """Compute semantic evidence for a single eye region.
+
+        Uses the same effective parser confidence as the production
+        ``is_eye_visible()`` path, including the 0.65 glasses fallback.
+        """
+        parser_conf = self._compute_effective_parser_confidence(part, min_ratio)
         eye_support_conf = parser_conf
         if parser_conf == 0.0 and self._parsing.has_part(FacePart.EYE_GLASS):
             eye_support_conf = 0.5
@@ -308,15 +335,8 @@ class SemanticEvidenceEngine:
         if part not in (FacePart.LEFT_EYE, FacePart.RIGHT_EYE):
             raise ValueError(f"Expected eye part, got {part!r}.")
 
-        ratio = self._parsing.part_ratio(part)
-        parser_conf = self._normalize_ratio(ratio, min_ratio)
-
-        # Transparent glasses support: if parser missed eye due to prescription glasses,
-        # landmark confidence and eyewear presence provide continuous fallback support.
+        parser_conf = self._compute_effective_parser_confidence(part, min_ratio)
         landmark_conf = self._compute_landmark_confidence(part)
-        if parser_conf == 0.0 and self._parsing.has_part(FacePart.EYE_GLASS) and landmark_conf > 0.0:
-            parser_conf = 0.65  # Blended prior for glasses-obscured segmentation
-
         pose_conf = self._compute_pose_confidence()
         occlusion_conf = self._compute_occlusion_confidence()
 

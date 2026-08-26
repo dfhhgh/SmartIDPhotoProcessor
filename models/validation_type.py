@@ -17,5 +17,4 @@ class ValidationType(StrEnum):
     HEAD_POSE = "head_pose"
     FACE_VISIBILITY = "face_visibility"
     OCCLUSION = "occlusion"
-    GLASSES = "glasses"
     FACE_AMBIGUITY = "face_ambiguity"

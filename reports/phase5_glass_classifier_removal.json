@@ -1,0 +1,100 @@
+{
+  "phase": 5,
+  "title": "Glasses Classifier Removal",
+  "date": "2026-08-26",
+  "verdict": "PASS",
+  "summary": "Removed separate GlassesValidator/glasses-detector classification subsystem. FUSED FaceParser is now the semantic source of truth for EYE_GLASS and eye visibility.",
+  "files_deleted": [
+    "validators/glasses_validator.py",
+    "services/glasses_detector_classifier.py",
+    "services/eyewear_classifier.py",
+    "models/eyewear_type.py",
+    "models/eyewear_prediction.py",
+    "tests/validators/test_glasses_validator.py",
+    "tests/services/test_glasses_detector_classifier.py",
+    "tests/models/test_eyewear_prediction.py"
+  ],
+  "files_modified": [
+    "pipeline/validator_factory.py",
+    "pipeline/validation_orchestrator.py",
+    "models/validation_type.py",
+    "models/validation_stage.py",
+    "models/validation_execution_mode.py",
+    "config/constants.py",
+    "evaluation/root_cause.py",
+    "scripts/check_models.py",
+    "tests/scripts/test_check_models.py",
+    "tests/pipeline/test_validation_orchestrator.py",
+    "validators/occlusion_validator.py",
+    "tests/validators/test_face_visibility_validator.py",
+    "requirement.txt",
+    "requirements-lock.txt"
+  ],
+  "dependencies_removed": ["glasses-detector==1.0.4"],
+  "validators_before": 8,
+  "validators_after": 7,
+  "test_results": {
+    "before": {"total": 1103, "passed": 1077, "failed": 26},
+    "after": {"total": 1046, "passed": 1020, "failed": 26},
+    "tests_removed": 57,
+    "new_regressions": 0,
+    "pre_existing_failures": 26
+  },
+  "benchmark": {
+    "before": {
+      "warm_median_ms": 161.12,
+      "warm_mean_ms": 162.42,
+      "warm_p95_ms": 168.43,
+      "peak_gpu_mb": 230.8
+    },
+    "after": {
+      "warm_median_ms": 172.89,
+      "warm_mean_ms": 175.68,
+      "warm_p95_ms": 184.66,
+      "peak_gpu_mb": 230.8
+    }
+  },
+  "protected_artifacts": {
+    "onnx": {"sha256_prefix": "2218b6183c26ca5c", "status": "UNCHANGED"},
+    "aux_checkpoint": {"sha256_prefix": "961e08bf64fdd0b8", "status": "UNCHANGED"}
+  },
+  "empirical_verification": {
+    "transparent_glasses": {"images": 2, "result": "PASS", "verified": true},
+    "sunglasses": {"images": 0, "result": "UNVERIFIED", "verified": false, "reason": "No sunglasses images in test set"},
+    "no_glasses": {"images": 1, "result": "PASS", "verified": true},
+    "occluded": {"images": 2, "result": "PASS", "verified": true}
+  },
+  "sunglasses_mechanism": {
+    "theoretical_analysis": "Opaque lenses prevent InsightFace landmark detection. Override condition requires landmark_conf > 0.0. Without valid landmarks, eyes remain missing, causing FaceVisibilityValidator to FAIL.",
+    "empirical_status": "UNVERIFIED - no sunglasses test images available"
+  },
+  "stale_reference_scan": {
+    "executable_code_references": 0,
+    "comment_references": 2,
+    "doc_references": "audit trail documents (acceptable)"
+  },
+  "limitations": [
+    "Sunglasses rejection empirically UNVERIFIED (no test images)",
+    "26 pre-existing test failures in test_face_visibility_validator.py",
+    "2 images fail face detection (not parser/validator issue)"
+  ],
+  "acceptance_criteria": {
+    "separate_glasses_classifier_removed": true,
+    "no_replacement_classifier": true,
+    "glasses_stage_removed": true,
+    "eye_glass_preserved": true,
+    "fused_parser_unchanged": true,
+    "face_visibility_validator_active": true,
+    "production_pipeline_works": true,
+    "sunglasses_empirically_verified": false,
+    "transparent_glasses_verified": true,
+    "no_glasses_verified": true,
+    "no_new_regressions": true,
+    "full_test_suite_executed": true,
+    "protected_artifacts_unchanged": true,
+    "no_stale_references": true,
+    "production_experiment_completed": true,
+    "runtime_benchmark_completed": true,
+    "final_reports_generated": true
+  }
+}
