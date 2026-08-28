@@ -19,7 +19,13 @@ from validators.base_validator import BaseValidator
 
 
 class FaceSizeValidator(BaseValidator):
-    """Validates whether the detected face occupies an acceptable proportion of the image."""
+    """Validates whether the detected face occupies an acceptable proportion of the image.
+
+    When ``crop_image`` and ``crop_face`` are supplied to :meth:`validate`,
+    the ratio is computed in crop space (the ID-photo composition).
+    Otherwise the ratio falls back to the ``image``/``face`` arguments
+    (preserving legacy behaviour).
+    """
 
     @property
     def stage(self) -> ValidationStage:
@@ -31,13 +37,25 @@ class FaceSizeValidator(BaseValidator):
         image: np.ndarray,
         face: Face | None = None,
         parsing_result: FaceParsingResult | None = None,
+        crop_image: np.ndarray | None = None,
+        crop_face: Face | None = None,
     ) -> ValidationMetric:
         """Validate face size using the ratio of face area to image area.
+
+        When *crop_image* and *crop_face* are both provided the ratio is
+        computed in crop space (face_area / crop_image_area).  This is the
+        semantically correct measure for an ID-photo pipeline because the
+        crop represents the final output composition.
+
+        When crop data is not available the validator falls back to computing
+        the ratio from *image* and *face* (legacy behaviour).
 
         Args:
             image: Image data to validate.
             face: Detected face with bounding box information.
             parsing_result: Optional face parsing result. Unused by this validator.
+            crop_image: Optional cropped image from FaceCropper.
+            crop_face: Optional face with bounding box in crop coordinates.
 
         Returns:
             A ValidationMetric containing a quality score clamped to the
@@ -71,15 +89,20 @@ class FaceSizeValidator(BaseValidator):
                 "Face must not be None."
             )
 
-        face_ratio = self._compute_face_ratio(
-            image=image,
-            face=face,
-        )
+        if crop_image is not None and crop_face is not None:
+            face_ratio = self._compute_face_ratio(
+                image=crop_image,
+                face=crop_face,
+            )
+        else:
+            face_ratio = self._compute_face_ratio(
+                image=image,
+                face=face,
+            )
         score = self._normalize_face_ratio(
             face_ratio=face_ratio,
         )
-        
-        
+
         passed = (
             FACE_SIZE_MIN_RATIO - FLOAT_COMPARISON_EPSILON
             <= face_ratio

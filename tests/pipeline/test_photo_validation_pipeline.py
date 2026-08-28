@@ -198,6 +198,8 @@ def test_pipeline_does_not_mix_crop_space_face_with_aligned_image(valid_image):
         parsing_result=parsing_result,
         original_image=valid_image,
         original_face=selected_face,
+        crop_image=cropped_image,
+        crop_face=crop_space_face,
     )
 
 

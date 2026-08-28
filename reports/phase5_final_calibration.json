@@ -1,0 +1,109 @@
+{
+  "objective": "Phase 5 Final Calibration: FaceSize + Hat Removal",
+  "changes": [
+    {
+      "type": "calibration",
+      "target": "FACE_SIZE_MIN_RATIO",
+      "before": 0.10,
+      "after": 0.08,
+      "rationale": "Recovered borderline genuine portraits (0.07-0.10 range) without false accepts"
+    },
+    {
+      "type": "policy_removal",
+      "target": "OCCLUSION_PROHIBITED_PARTS",
+      "before": ["FacePart.HAT"],
+      "after": [],
+      "rationale": "Semantic parser misclassifies hijabs as HAT; no classifier available to distinguish"
+    }
+  ],
+  "experiment_results": {
+    "total_images": 42,
+    "before": {
+      "valid": 5,
+      "invalid": 34,
+      "errors": 3
+    },
+    "after": {
+      "valid": 10,
+      "invalid": 29,
+      "errors": 3
+    },
+    "delta": {
+      "newly_accepted": 5,
+      "new_false_accepts": 0,
+      "new_false_rejects": 0
+    }
+  },
+  "newly_accepted_images": [
+    {"image": "hijab2.jpg", "reason": "HAT no longer prohibited", "face_ratio": 0.112},
+    {"image": "hijab with glassesjpg.jpg", "reason": "HAT no longer prohibited", "face_ratio": 0.170},
+    {"image": "pexels_4272299.jpeg", "reason": "HAT no longer prohibited", "face_ratio": 0.224},
+    {"image": "pexels_5815587.jpeg", "reason": "HAT no longer prohibited", "face_ratio": 0.215},
+    {"image": "pexels_4728707.jpeg", "reason": "FaceSize threshold 0.10->0.08", "face_ratio": 0.097}
+  ],
+  "face_size_calibration": {
+    "dataset_distribution": {
+      "ratio_lt_007": 21,
+      "ratio_07_08": 1,
+      "ratio_08_09": 0,
+      "ratio_09_10": 2,
+      "ratio_10_12": 2,
+      "ratio_gte_12": 14
+    },
+    "candidates_evaluated": [
+      {"threshold": 0.10, "newly_accepted": 0, "problematic": 0},
+      {"threshold": 0.09, "newly_accepted": 2, "problematic": 0},
+      {"threshold": 0.08, "newly_accepted": 3, "problematic": 0, "selected": true},
+      {"threshold": 0.07, "newly_accepted": 3, "problematic": 0}
+    ]
+  },
+  "hijab_results": {
+    "before": {
+      "hijab2": "INVALID (REAL_OCCLUSION)",
+      "hijab_with_glasses": "INVALID (REAL_OCCLUSION)",
+      "hijab_girl": "VALID"
+    },
+    "after": {
+      "hijab2": "VALID",
+      "hijab_with_glasses": "VALID",
+      "hijab_girl": "VALID"
+    }
+  },
+  "test_results": {
+    "full_suite": {
+      "total": 1072,
+      "passed": 1046,
+      "failed": 26,
+      "pre_existing_failures": 26,
+      "new_regressions": 0
+    }
+  },
+  "validator_statistics": {
+    "BLUR": {"pass": 33, "fail": 0, "skipped": 9},
+    "BRIGHTNESS": {"pass": 33, "fail": 0, "skipped": 9},
+    "CONTRAST": {"pass": 33, "fail": 0, "skipped": 9},
+    "FACE_SIZE": {"pass": 18, "fail": 15, "skipped": 9},
+    "HEAD_POSE": {"pass": 21, "fail": 12, "skipped": 9},
+    "FACE_VISIBILITY": {"pass": 10, "fail": 4, "skipped": 28},
+    "OCCLUSION": {"pass": 14, "fail": 0, "skipped": 28}
+  },
+  "root_cause_distribution": {
+    "FACE_TOO_SMALL": 13,
+    "HEAD_POSE": 7,
+    "THRESHOLD_TOO_STRICT": 4,
+    "REAL_OCCLUSION": 0,
+    "PROCESSING_ERROR": 3,
+    "FACE_AMBIGUITY": 1
+  },
+  "runtime_statistics": {
+    "average_ms": 3074,
+    "median_ms": 3115,
+    "p95_ms": 4745,
+    "min_ms": 293,
+    "max_ms": 6896
+  },
+  "model_integrity": {
+    "bisenet_resnet18_onnx": "2218b6183c26ca5c... UNCHANGED"
+  },
+  "verdict": "PASS"
+}

@@ -156,6 +156,8 @@ def process_image(
                     parsing_result=parsing_result,
                     original_image=image,
                     original_face=selected_face,
+                    crop_image=crop_result.image,
+                    crop_face=transformed_face,
                 )
 
                 if True:  # Always export if validation passes

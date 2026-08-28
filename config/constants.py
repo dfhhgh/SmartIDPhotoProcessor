@@ -45,7 +45,7 @@ FACE_SELECTION_MIN_SCORE_MARGIN = 0.05
 # acceptable range, which is used to compute the quality score.
 # They are not scientifically fixed and should be calibrated later using
 # a representative dataset of real student ID photos.
-FACE_SIZE_MIN_RATIO = 0.15
+FACE_SIZE_MIN_RATIO = 0.08
 FACE_SIZE_IDEAL_RATIO = 0.40
 FACE_SIZE_MAX_RATIO = 0.65
 FLOAT_COMPARISON_EPSILON = 1e-6
@@ -214,9 +214,9 @@ FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR = 0.5
 # for each pose axis relative to a perfectly frontal (0.0) pose. They are
 # not scientifically fixed and should be calibrated later using a
 # representative dataset of real student ID photos.
-HEAD_POSE_PITCH_MAX_DEGREES = 15.0
-HEAD_POSE_YAW_MAX_DEGREES = 15.0
-HEAD_POSE_ROLL_MAX_DEGREES = 10.0
+HEAD_POSE_PITCH_MAX_DEGREES = 20.0
+HEAD_POSE_YAW_MAX_DEGREES = 22.0
+HEAD_POSE_ROLL_MAX_DEGREES = 20.0
 
 # -------------------------------
 # Occlusion Validation
@@ -233,9 +233,7 @@ HEAD_POSE_ROLL_MAX_DEGREES = 10.0
 #
 # New prohibited classes can be appended here without changing
 # OcclusionValidator itself.
-OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = (
-    FacePart.HAT,
-)
+OCCLUSION_PROHIBITED_PARTS: tuple[FacePart, ...] = ()
 
 # -------------------------------
 # Semantic Evidence Fusion

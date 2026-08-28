@@ -84,3 +84,59 @@ def test_validation_orchestrator_short_circuits_on_stage1_failure():
     mock_parser.parse.assert_not_called()
     v6.validate.assert_not_called()
     v7.validate.assert_not_called()
+
+
+def test_orchestrator_routes_crop_data_to_face_size_validator():
+    """FaceSizeValidator receives crop_image and crop_face when provided."""
+    mock_parser = MagicMock()
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    crop_img = np.zeros((200, 150, 3), dtype=np.uint8)
+
+    v1 = MagicMock()
+    v1.stage = ValidationStage.CHEAP
+    v1.validate.return_value = _metric(ValidationType.BLUR)
+    v2 = MagicMock(spec=["stage", "validate"])
+    v2.stage = ValidationStage.CHEAP
+    # Make it pass isinstance check for FaceSizeValidator
+    from validators.face_size_validator import FaceSizeValidator
+    v2.__class__ = FaceSizeValidator
+    v2.validate.return_value = _metric(ValidationType.FACE_SIZE)
+
+    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2)):
+        orchestrator = ValidationOrchestrator(parser_service=mock_parser)
+        result = orchestrator.validate(
+            image=img,
+            crop_image=crop_img,
+            crop_face=MagicMock(),
+        )
+
+    assert len(result.metrics) == 2
+    v2.validate.assert_called_once()
+    call_kwargs = v2.validate.call_args
+    assert call_kwargs.kwargs.get("crop_image") is crop_img
+    assert call_kwargs.kwargs.get("crop_face") is not None
+
+
+def test_orchestrator_does_not_pass_crop_to_non_face_size_validators():
+    """Non-FaceSizeValidator validators must NOT receive crop_image/crop_face."""
+    mock_parser = MagicMock()
+    img = np.zeros((10, 10, 3), dtype=np.uint8)
+    crop_img = np.zeros((200, 150, 3), dtype=np.uint8)
+
+    v1 = MagicMock()
+    v1.stage = ValidationStage.CHEAP
+    v1.validate.return_value = _metric(ValidationType.BLUR)
+
+    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1,)):
+        orchestrator = ValidationOrchestrator(parser_service=mock_parser)
+        result = orchestrator.validate(
+            image=img,
+            crop_image=crop_img,
+            crop_face=MagicMock(),
+        )
+
+    assert len(result.metrics) == 1
+    v1.validate.assert_called_once()
+    call_kwargs = v1.validate.call_args
+    assert "crop_image" not in call_kwargs.kwargs
+    assert "crop_face" not in call_kwargs.kwargs

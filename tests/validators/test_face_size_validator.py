@@ -530,31 +530,17 @@ def test_ideal_ratio_produces_highest_score(
     assert metric.passed is True
 
 
-@pytest.mark.parametrize(
-    "face_ratio",
-    [
-        pytest.param(
-            FACE_SIZE_MIN_RATIO,
-            id="at_minimum",
-        ),
-        pytest.param(
-            FACE_SIZE_MAX_RATIO,
-            id="at_maximum",
-        ),
-    ],
-)
-def test_boundary_ratio_produces_half_score(
+def test_boundary_at_minimum_produces_expected_score(
     validator: FaceSizeValidator,
-    face_ratio: float,
 ):
-    """Verify that boundary face ratios yield a score of approximately 0.5."""
+    """Verify that the minimum boundary produces the expected score."""
     # Arrange
     image = _create_image(
         height=_IMAGE_SIZE,
         width=_IMAGE_SIZE,
     )
     face = _create_face_for_ratio(
-        face_ratio=face_ratio,
+        face_ratio=FACE_SIZE_MIN_RATIO,
     )
 
     # Act
@@ -565,8 +551,35 @@ def test_boundary_ratio_produces_half_score(
 
     # Assert
     assert metric.score == pytest.approx(
-        0.5,
+        _expected_score(FACE_SIZE_MIN_RATIO),
     )
+    assert metric.passed is True
+
+
+def test_boundary_at_maximum_produces_expected_score(
+    validator: FaceSizeValidator,
+):
+    """Verify that the maximum boundary produces the expected score."""
+    # Arrange
+    image = _create_image(
+        height=_IMAGE_SIZE,
+        width=_IMAGE_SIZE,
+    )
+    face = _create_face_for_ratio(
+        face_ratio=FACE_SIZE_MAX_RATIO,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=image,
+        face=face,
+    )
+
+    # Assert
+    assert metric.score == pytest.approx(
+        _expected_score(FACE_SIZE_MAX_RATIO),
+    )
+    assert metric.passed is True
 
 
 @pytest.mark.parametrize(
@@ -1014,3 +1027,334 @@ def test_validate_uses_face_coordinates_matching_the_provided_image(
     assert metric.score == pytest.approx(
         _expected_score(expected_ratio),
     )
+
+
+# ------------------------------------------------------------------
+# Calibration Regression Tests (Phase 5 face-size calibration)
+# ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "face_ratio, expected_passed, expected_message",
+    [
+        pytest.param(
+            0.093,
+            True,
+            "Face size is acceptable.",
+            id="borderline_093_now_passes",
+        ),
+        pytest.param(
+            FACE_SIZE_MIN_RATIO - 0.01,
+            False,
+            "Face is too small.",
+            id="just_below_new_min",
+        ),
+        pytest.param(
+            FACE_SIZE_MIN_RATIO,
+            True,
+            "Face size is acceptable.",
+            id="exactly_at_new_min",
+        ),
+        pytest.param(
+            FACE_SIZE_MIN_RATIO + 0.01,
+            True,
+            "Face size is acceptable.",
+            id="just_above_new_min",
+        ),
+        pytest.param(
+            0.112,
+            True,
+            "Face size is acceptable.",
+            id="hijab2_ratio",
+        ),
+        pytest.param(
+            FACE_SIZE_IDEAL_RATIO,
+            True,
+            "Face size is acceptable.",
+            id="at_ideal",
+        ),
+        pytest.param(
+            FACE_SIZE_MAX_RATIO,
+            True,
+            "Face size is acceptable.",
+            id="at_max",
+        ),
+        pytest.param(
+            0.80,
+            False,
+            "Face is too large.",
+            id="clearly_oversized",
+        ),
+        pytest.param(
+            0.05,
+            False,
+            "Face is too small.",
+            id="clearly_undersized",
+        ),
+    ],
+)
+def test_calibrated_face_size_threshold(
+    validator: FaceSizeValidator,
+    face_ratio: float,
+    expected_passed: bool,
+    expected_message: str,
+):
+    """Verify calibrated pass/fail and message for representative face sizes."""
+    # Arrange
+    image = _create_image(
+        height=_IMAGE_SIZE,
+        width=_IMAGE_SIZE,
+    )
+    face = _create_face_for_ratio(
+        face_ratio=face_ratio,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=image,
+        face=face,
+    )
+
+    # Assert
+    assert metric.type == ValidationType.FACE_SIZE
+    assert metric.passed is expected_passed
+    _assert_normalized_score(metric.score)
+    assert metric.message == expected_message
+
+
+def test_calibrated_score_at_min_boundary(
+    validator: FaceSizeValidator,
+):
+    """Verify that score at the new minimum boundary matches expected formula."""
+    # Arrange
+    image = _create_image(
+        height=_IMAGE_SIZE,
+        width=_IMAGE_SIZE,
+    )
+    face = _create_face_for_ratio(
+        face_ratio=FACE_SIZE_MIN_RATIO,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=image,
+        face=face,
+    )
+
+    # Assert
+    expected = _expected_score(FACE_SIZE_MIN_RATIO)
+    assert metric.score == pytest.approx(expected)
+    assert metric.passed is True
+
+
+def test_calibrated_hijab_portrait_accepted(
+    validator: FaceSizeValidator,
+):
+    """Verify that a hijab portrait with face_ratio ~0.112 is accepted."""
+    # Arrange
+    image = _create_image(
+        height=_IMAGE_SIZE,
+        width=_IMAGE_SIZE,
+    )
+    face = _create_face_for_ratio(
+        face_ratio=0.112,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=image,
+        face=face,
+    )
+
+    # Assert
+    assert metric.passed is True
+    assert metric.score == pytest.approx(
+        _expected_score(0.112),
+    )
+
+
+def test_calibrated_genuinely_small_face_rejected(
+    validator: FaceSizeValidator,
+):
+    """Verify that genuinely small faces (ratio < 0.07) are still rejected."""
+    # Arrange
+    image = _create_image(
+        height=_IMAGE_SIZE,
+        width=_IMAGE_SIZE,
+    )
+    face = _create_face_for_ratio(
+        face_ratio=0.05,
+    )
+
+    # Act
+    metric = validator.validate(
+        image=image,
+        face=face,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert metric.message == "Face is too small."
+
+
+# ------------------------------------------------------------------
+# Crop-Space Validation Tests
+# ------------------------------------------------------------------
+
+
+def test_crop_space_ratio_computed_from_crop_image_and_crop_face(
+    validator: FaceSizeValidator,
+):
+    """When crop_image and crop_face are provided, ratio uses crop space."""
+    # Arrange
+    crop_image = _create_image(height=400, width=300)
+    crop_face = _create_face(x1=50.0, y1=80.0, x2=250.0, y2=320.0)
+    expected_ratio = (200.0 * 240.0) / (300.0 * 400.0)
+
+    # Act
+    metric = validator.validate(
+        image=crop_image,
+        face=crop_face,
+        crop_image=crop_image,
+        crop_face=crop_face,
+    )
+
+    # Assert
+    assert metric.score == pytest.approx(_expected_score(expected_ratio))
+
+
+def test_crop_space_ignores_original_image_dimensions(
+    validator: FaceSizeValidator,
+):
+    """Crop-space validation must use crop dimensions, not original image dimensions."""
+    # Arrange: original is 4000x6000, crop is 200x300
+    original_image = _create_image(height=6000, width=4000)
+    original_face = _create_face(x1=1500.0, y1=2000.0, x2=2500.0, y2=4000.0)
+    # original ratio: (1000 * 2000) / (4000 * 6000) = 0.0833
+
+    crop_image = _create_image(height=300, width=200)
+    crop_face = _create_face(x1=20.0, y1=30.0, x2=180.0, y2=270.0)
+    # crop ratio: (160 * 240) / (200 * 300) = 0.64
+
+    # Act
+    metric = validator.validate(
+        image=original_image,
+        face=original_face,
+        crop_image=crop_image,
+        crop_face=crop_face,
+    )
+
+    # Assert: score must match crop-space ratio, not original-space ratio
+    assert metric.score == pytest.approx(_expected_score(0.64))
+
+
+def test_crop_space_fallback_to_original_when_crop_not_provided(
+    validator: FaceSizeValidator,
+):
+    """When crop_image/crop_face are None, validator uses image/face as before."""
+    image = _create_image(height=_IMAGE_SIZE, width=_IMAGE_SIZE)
+    face = _create_face_for_ratio(face_ratio=FACE_SIZE_IDEAL_RATIO)
+
+    # Act — no crop_image or crop_face
+    metric = validator.validate(image=image, face=face)
+
+    # Assert — uses image/face, which have ideal ratio
+    assert metric.score == pytest.approx(1.0)
+    assert metric.passed is True
+
+
+def test_crop_space_fallback_when_only_crop_image_provided(
+    validator: FaceSizeValidator,
+):
+    """When only crop_image is provided (without crop_face), falls back to image/face."""
+    image = _create_image(height=_IMAGE_SIZE, width=_IMAGE_SIZE)
+    face = _create_face_for_ratio(face_ratio=FACE_SIZE_IDEAL_RATIO)
+    crop_image = _create_image(height=100, width=100)
+
+    # Act — only crop_image, no crop_face
+    metric = validator.validate(image=image, face=face, crop_image=crop_image)
+
+    # Assert — falls back to image/face
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_crop_space_fallback_when_only_crop_face_provided(
+    validator: FaceSizeValidator,
+):
+    """When only crop_face is provided (without crop_image), falls back to image/face."""
+    image = _create_image(height=_IMAGE_SIZE, width=_IMAGE_SIZE)
+    face = _create_face_for_ratio(face_ratio=FACE_SIZE_IDEAL_RATIO)
+    crop_face = _create_face(x1=10.0, y1=10.0, x2=90.0, y2=90.0)
+
+    # Act — only crop_face, no crop_image
+    metric = validator.validate(image=image, face=face, crop_face=crop_face)
+
+    # Assert — falls back to image/face
+    assert metric.score == pytest.approx(1.0)
+
+
+def test_crop_space_pass_fail_uses_correct_thresholds(
+    validator: FaceSizeValidator,
+):
+    """Crop-space ratio is evaluated against the same MIN/MAX thresholds."""
+    # Arrange: face_ratio in crop space = 0.05, below MIN_RATIO (0.08)
+    crop_image = _create_image(height=1000, width=1000)
+    crop_face = _create_face_for_ratio(face_ratio=0.05, image_size=1000)
+
+    # Act
+    metric = validator.validate(
+        image=crop_image,
+        face=crop_face,
+        crop_image=crop_image,
+        crop_face=crop_face,
+    )
+
+    # Assert
+    assert metric.passed is False
+    assert metric.message == "Face is too small."
+
+
+def test_crop_space_score_formula_unchanged(
+    validator: FaceSizeValidator,
+):
+    """Score formula is the same regardless of coordinate space."""
+    crop_image = _create_image(height=100, width=100)
+    crop_face = _create_face_for_ratio(face_ratio=0.30, image_size=100)
+
+    # Act
+    metric = validator.validate(
+        image=crop_image,
+        face=crop_face,
+        crop_image=crop_image,
+        crop_face=crop_face,
+    )
+
+    # Assert
+    assert metric.score == pytest.approx(_expected_score(0.30))
+
+
+def test_crop_space_coordinate_system_safety(
+    validator: FaceSizeValidator,
+):
+    """Verify crop-space ratio differs from original-space when coordinate systems diverge."""
+    # Original: small face in large image → low ratio
+    original_image = _create_image(height=6000, width=4000)
+    original_face = _create_face(x1=1800.0, y1=1100.0, x2=2700.0, y2=2200.0)
+    # original_ratio = (900 * 1100) / (4000 * 6000) = 0.04125
+
+    # Crop: face occupies large portion of small crop
+    crop_image = _create_image(height=2372, width=1780)
+    crop_face = _create_face(x1=463.0, y1=485.0, x2=1315.0, y2=1563.0)
+    # crop_ratio = (852 * 1078) / (1780 * 2372) = 0.2175
+
+    # Act
+    metric = validator.validate(
+        image=original_image,
+        face=original_face,
+        crop_image=crop_image,
+        crop_face=crop_face,
+    )
+
+    # Assert: uses crop-space ratio (0.2175), not original-space (0.04125)
+    assert metric.passed is True
+    assert metric.score == pytest.approx(_expected_score(0.2175), abs=0.01)

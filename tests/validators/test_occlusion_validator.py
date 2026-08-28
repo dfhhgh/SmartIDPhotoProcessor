@@ -202,14 +202,14 @@ class TestFindProhibitedOcclusions:
             parsing_result=clean_parsing_result,
         ) == ()
 
-    def test_detects_hat(
+    def test_hat_no_longer_prohibited(
         self,
         validator: OcclusionValidator,
         hat_parsing_result: FaceParsingResult,
     ) -> None:
         assert validator._find_prohibited_occlusions(
             parsing_result=hat_parsing_result,
-        ) == (FacePart.HAT,)
+        ) == ()
 
     def test_ignores_eyeglasses(
         self,
@@ -245,7 +245,7 @@ class TestFindProhibitedOcclusions:
             parsing_result=parsing_result,
         ) == ()
 
-    def test_hat_detected_alongside_allowed_parts(
+    def test_hat_alongside_allowed_parts_not_prohibited(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -260,7 +260,7 @@ class TestFindProhibitedOcclusions:
 
         assert validator._find_prohibited_occlusions(
             parsing_result=parsing_result,
-        ) == (FacePart.HAT,)
+        ) == ()
 
 
 # ----------------------------------------------------------------------
@@ -274,7 +274,7 @@ class TestComputeScore:
     ) -> None:
         assert validator._compute_score(prohibited_occlusions=()) == 1.0
 
-    def test_score_drops_when_hat_detected(
+    def test_hat_no_longer_reduces_score(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -282,8 +282,7 @@ class TestComputeScore:
             prohibited_occlusions=(FacePart.HAT,),
         )
 
-        assert score < 1.0
-        assert score == pytest.approx(0.0)
+        assert score == 1.0
 
     def test_score_is_float(
         self,
@@ -306,7 +305,7 @@ class TestBuildMessage:
             prohibited_occlusions=(),
         ) == "No prohibited occlusions detected."
 
-    def test_message_when_hat_detected(
+    def test_message_when_hat_present(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -359,7 +358,7 @@ class TestValidateWorkflow:
         assert result.score == 1.0
         assert result.message == "No prohibited occlusions detected."
 
-    def test_hat_fails_validation(
+    def test_hat_now_passes_validation(
         self,
         validator: OcclusionValidator,
         hat_parsing_result: FaceParsingResult,
@@ -370,9 +369,9 @@ class TestValidateWorkflow:
         )
 
         assert result.type == ValidationType.OCCLUSION
-        assert result.passed is False
-        assert result.score == pytest.approx(0.0)
-        assert result.message == "Hat detected."
+        assert result.passed is True
+        assert result.score == 1.0
+        assert result.message == "No prohibited occlusions detected."
 
     def test_glasses_alone_pass_validation(
         self,
@@ -400,7 +399,7 @@ class TestValidateWorkflow:
         assert result.passed is True
         assert result.score == 1.0
 
-    def test_hat_with_allowed_accessories_still_fails(
+    def test_hat_with_allowed_accessories_now_passes(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -418,8 +417,126 @@ class TestValidateWorkflow:
             parsing_result=parsing_result,
         )
 
-        assert result.passed is False
-        assert result.message == "Hat detected."
+        assert result.passed is True
+        assert result.message == "No prohibited occlusions detected."
+
+
+# ----------------------------------------------------------------------
+# Regression tests: HAT removal (Phase 5 final calibration)
+# ----------------------------------------------------------------------
+
+class TestHatRemovalRegression:
+    """Verify that HAT is no longer a prohibited occlusion class."""
+
+    def test_hijab_head_covering_not_rejected(
+        self,
+        validator: OcclusionValidator,
+    ) -> None:
+        """A hijab/head-covering image must NOT be rejected by OcclusionValidator."""
+        parsing_result = _make_parsing_result(
+            {
+                FacePart.SKIN: 40,
+                FacePart.LEFT_EYE: 5,
+                FacePart.RIGHT_EYE: 5,
+                FacePart.HAT: 20,
+            }
+        )
+
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=parsing_result,
+        )
+
+        assert result.passed is True
+        assert result.score == 1.0
+        assert result.message == "No prohibited occlusions detected."
+
+    def test_eyeglass_still_allowed(
+        self,
+        validator: OcclusionValidator,
+        glasses_parsing_result: FaceParsingResult,
+    ) -> None:
+        """EYE_GLASS must remain allowed (not treated as occlusion)."""
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=glasses_parsing_result,
+        )
+
+        assert result.passed is True
+        assert result.score == 1.0
+
+    def test_hair_still_allowed(
+        self,
+        validator: OcclusionValidator,
+        hair_parsing_result: FaceParsingResult,
+    ) -> None:
+        """HAIR must remain allowed."""
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=hair_parsing_result,
+        )
+
+        assert result.passed is True
+        assert result.score == 1.0
+
+    def test_clean_face_passes(
+        self,
+        validator: OcclusionValidator,
+        clean_parsing_result: FaceParsingResult,
+    ) -> None:
+        """A clean face with no HAT still passes."""
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=clean_parsing_result,
+        )
+
+        assert result.passed is True
+        assert result.score == 1.0
+
+    def test_empty_prohibited_list_always_passes(
+        self,
+        validator: OcclusionValidator,
+    ) -> None:
+        """With empty OCCLUSION_PROHIBITED_PARTS, any parsing result passes."""
+        parsing_result = _make_parsing_result(
+            {
+                FacePart.SKIN: 30,
+                FacePart.HAT: 30,
+                FacePart.HAIR: 20,
+                FacePart.EYE_GLASS: 10,
+            }
+        )
+
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=parsing_result,
+        )
+
+        assert result.passed is True
+        assert result.score == 1.0
+
+    def test_validator_returns_metric_instance(
+        self,
+        validator: OcclusionValidator,
+    ) -> None:
+        """Validate returns proper ValidationMetric regardless of content."""
+        parsing_result = _make_parsing_result(
+            {
+                FacePart.SKIN: 40,
+                FacePart.HAT: 10,
+            }
+        )
+
+        result = validator.validate(
+            image=_make_image(),
+            parsing_result=parsing_result,
+        )
+
+        assert result.type == ValidationType.OCCLUSION
+        assert isinstance(result.passed, bool)
+        assert isinstance(result.score, float)
+        assert 0.0 <= result.score <= 1.0
+        assert isinstance(result.message, str)
 
     def test_returns_validation_metric_instance(
         self,
@@ -441,7 +558,7 @@ class TestValidateWorkflow:
 # ----------------------------------------------------------------------
 
 class TestBoundaryCases:
-    def test_single_pixel_of_hat_is_detected(
+    def test_single_pixel_of_hat_no_longer_fails(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -457,7 +574,7 @@ class TestBoundaryCases:
             parsing_result=parsing_result,
         )
 
-        assert result.passed is False
+        assert result.passed is True
 
     def test_entirely_background_mask_passes(
         self,
@@ -473,7 +590,7 @@ class TestBoundaryCases:
         assert result.passed is True
         assert result.score == 1.0
 
-    def test_1x1_image_and_mask_are_handled(
+    def test_1x1_image_with_hat_now_passes(
         self,
         validator: OcclusionValidator,
     ) -> None:
@@ -490,5 +607,5 @@ class TestBoundaryCases:
             parsing_result=parsing_result,
         )
 
-        assert result.passed is False
-        assert result.message == "Hat detected."
+        assert result.passed is True
+        assert result.message == "No prohibited occlusions detected."

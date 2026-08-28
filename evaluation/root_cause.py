@@ -39,7 +39,7 @@ _ROOT_CAUSE_MAP: dict[ValidationType, RootCauseResult] = {
     ValidationType.OCCLUSION: RootCauseResult(
         cause="REAL_OCCLUSION",
         confidence=0.92,
-        explanation="Prohibited head covering (non-religious hat/cap) detected.",
+        explanation="Prohibited occluding object detected.",
     ),
     ValidationType.FACE_AMBIGUITY: RootCauseResult(
         cause="FACE_AMBIGUITY",

@@ -76,7 +76,7 @@ class ValidationOrchestrator:
         self._executors: dict[
             ValidationExecutionMode,
             Callable[
-                [np.ndarray, Face | None, FaceParsingResult | None, np.ndarray | None, Face | None, dict[ValidationStage, list[BaseValidator]]],
+                [np.ndarray, Face | None, FaceParsingResult | None, np.ndarray | None, Face | None, dict[ValidationStage, list[BaseValidator]], np.ndarray | None, Face | None],
                 ValidationResult,
             ],
         ] = {
@@ -91,6 +91,8 @@ class ValidationOrchestrator:
         parsing_result: FaceParsingResult | None = None,
         original_image: np.ndarray | None = None,
         original_face: Face | None = None,
+        crop_image: np.ndarray | None = None,
+        crop_face: Face | None = None,
     ) -> ValidationResult:
         """Run validators according to the configured execution mode.
 
@@ -98,8 +100,10 @@ class ValidationOrchestrator:
             image: BGR image data to validate (typically aligned image for quality checks).
             face: Optional detected face (typically aligned face).
             parsing_result: Optional semantic parsing result.
-            original_image: Optional original uploaded image, used by FaceSizeValidator.
+            original_image: Optional original uploaded image (retained for backward compatibility).
             original_face: Optional original selected face in original image coordinate space.
+            crop_image: Optional cropped image from FaceCropper, used by FaceSizeValidator.
+            crop_face: Optional face with bounding box in crop coordinates, used by FaceSizeValidator.
 
         Returns:
             A :class:`ValidationResult` containing collected metrics.
@@ -108,20 +112,24 @@ class ValidationOrchestrator:
         if self._is_custom_validators:
             metrics = []
             for validator in self._validators:
-                v_img = (original_image if original_image is not None else image) if isinstance(validator, FaceSizeValidator) else image
-                v_face = (original_face if original_face is not None else face) if isinstance(validator, FaceSizeValidator) else face
+                kwargs: dict[str, object] = {}
+                if isinstance(validator, FaceSizeValidator):
+                    if crop_image is not None and crop_face is not None:
+                        kwargs["crop_image"] = crop_image
+                        kwargs["crop_face"] = crop_face
                 metrics.append(
                     validator.validate(
-                        image=v_img,
-                        face=v_face,
+                        image=image,
+                        face=face,
                         parsing_result=parsing_result,
+                        **kwargs,
                     )
                 )
             return ValidationResult(metrics=metrics)
 
         stages = self._group_by_stage()
         executor = self._executors[self._execution_mode]
-        return executor(image, face, parsing_result, original_image, original_face, stages)
+        return executor(image, face, parsing_result, original_image, original_face, stages, crop_image, crop_face)
 
     def _group_by_stage(self) -> dict[ValidationStage, list[BaseValidator]]:
         """Group configured validators by their declared ``stage`` property.
@@ -154,14 +162,19 @@ class ValidationOrchestrator:
         parsing_result: FaceParsingResult | None,
         original_image: np.ndarray | None = None,
         original_face: Face | None = None,
+        crop_image: np.ndarray | None = None,
+        crop_face: Face | None = None,
     ) -> list[ValidationMetric]:
         """Run every validator in a stage and return their metrics, in order."""
         metrics = []
         for validator in validators:
-            v_img = (original_image if original_image is not None else image) if isinstance(validator, FaceSizeValidator) else image
-            v_face = (original_face if original_face is not None else face) if isinstance(validator, FaceSizeValidator) else face
+            kwargs: dict[str, object] = {}
+            if isinstance(validator, FaceSizeValidator):
+                if crop_image is not None and crop_face is not None:
+                    kwargs["crop_image"] = crop_image
+                    kwargs["crop_face"] = crop_face
             metrics.append(
-                validator.validate(image=v_img, face=v_face, parsing_result=parsing_result)
+                validator.validate(image=image, face=face, parsing_result=parsing_result, **kwargs)
             )
         return metrics
 
@@ -173,13 +186,15 @@ class ValidationOrchestrator:
         original_image: np.ndarray | None,
         original_face: Face | None,
         stages: dict[ValidationStage, list[BaseValidator]],
+        crop_image: np.ndarray | None = None,
+        crop_face: Face | None = None,
     ) -> ValidationResult:
         """Run stages with short-circuiting and lazy inference (existing behavior)."""
         metrics: list[ValidationMetric] = []
 
         # Stage 1: CHEAP validators (Blur, Brightness, Contrast, FaceSize, HeadPose)
         cheap_metrics = self._run_stage(
-            stages[ValidationStage.CHEAP], image, face, None, original_image, original_face
+            stages[ValidationStage.CHEAP], image, face, None, original_image, original_face, crop_image, crop_face
         )
         metrics.extend(cheap_metrics)
         if not all(metric.passed for metric in cheap_metrics):
@@ -207,13 +222,15 @@ class ValidationOrchestrator:
         original_image: np.ndarray | None,
         original_face: Face | None,
         stages: dict[ValidationStage, list[BaseValidator]],
+        crop_image: np.ndarray | None = None,
+        crop_face: Face | None = None,
     ) -> ValidationResult:
         """Run every stage and every validator unconditionally, collecting all metrics."""
         metrics: list[ValidationMetric] = []
 
         # Stage 1: CHEAP validators -- always run, failures do not stop the pipeline.
         metrics.extend(
-            self._run_stage(stages[ValidationStage.CHEAP], image, face, None, original_image, original_face)
+            self._run_stage(stages[ValidationStage.CHEAP], image, face, None, original_image, original_face, crop_image, crop_face)
         )
 
         # Stage 2: PARSING validators -- always run if any exist, regardless of

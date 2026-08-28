@@ -18,14 +18,17 @@ from validators.base_validator import BaseValidator
 class OcclusionValidator(BaseValidator):
     """Validates that no prohibited semantic objects occlude the ID photo.
 
-    This validator only detects prohibited semantic classes returned by
-    the face parser (e.g. hats). It does NOT check whether mandatory
-    anatomical regions are visible; that responsibility belongs to
+    This validator detects prohibited semantic classes returned by
+    the face parser. It does NOT check whether mandatory anatomical
+    regions are visible; that responsibility belongs to
     FaceVisibilityValidator. It also does NOT distinguish normal
     eyeglasses from sunglasses; FacePart.EYE_GLASS is a semantic
     segmentation class produced by the face parser and is never treated as
     an occlusion here. Hair is likewise allowed: hair covering the eyes
     only affects FaceVisibilityValidator's assessment, not this one.
+    FacePart.HAT is also allowed: the semantic parser can misclassify
+    legitimate head coverings (hijabs, headscarves) as HAT, and we do not
+    attempt to distinguish hat types with a classifier.
     """
 
     @property

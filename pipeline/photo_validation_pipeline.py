@@ -158,6 +158,8 @@ class PhotoValidationPipeline:
                 parsing_result=None,
                 original_image=image,
                 original_face=selected_face,
+                crop_image=crop_result.image,
+                crop_face=transformed_face,
             )
         else:
             parsing_result = self._parser_service.parse(alignment_result.aligned_image)
@@ -167,6 +169,8 @@ class PhotoValidationPipeline:
                 parsing_result=parsing_result,
                 original_image=image,
                 original_face=selected_face,
+                crop_image=crop_result.image,
+                crop_face=transformed_face,
             )
 
         cropped_image = crop_result.image
