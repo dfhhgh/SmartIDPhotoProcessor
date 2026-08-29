@@ -1,4 +1,4 @@
-"""Parser mode enum for selecting between ORIGINAL (ONNX) and FUSED (PyTorch + Auxiliary Refinement) parsing."""
+"""Parser mode enum for selecting between ORIGINAL (ONNX) and FUSED (ONNX + Auxiliary Refinement) parsing."""
 from __future__ import annotations
 
 from enum import Enum
@@ -11,4 +11,4 @@ class ParserMode(str, Enum):
     """Use the existing production BiSeNet ONNX model without auxiliary refinement."""
 
     FUSED = "FUSED"
-    """Use frozen BiSeNet + Phase 1 Auxiliary Head + Phase 3 confidence-aware fusion."""
+    """Use bisenet_resnet18_with_ffm.onnx + aux_head.onnx + deterministic Python fusion (production default)."""

@@ -1,0 +1,34 @@
+{
+  "phase": 6,
+  "title": "Fused Parser ONNX Deployment Readiness Audit",
+  "generated": "2026-08-28",
+  "status": "NOT_READY_FOR_EXPORT",
+  "recommendation": "OPTION_B",
+  "recommendation_description": "ONNX Backbone + ONNX Auxiliary Head + Deterministic External Fusion (Python)",
+  "metrics": {
+    "original_target_miou": 0.5438,
+    "fused_target_miou": 0.7168,
+    "target_miou_improvement": 0.1730,
+    "target_miou_relative_pct": 31.8,
+    "aux_head_parameters": 369408,
+    "aux_head_checkpoint_size_bytes": 4470853,
+    "aux_head_sha256_prefix": "961e08bf64fdd0b8"
+  },
+  "export_feasibility": {
+    "bisenet_backbone": "EXPORTABLE",
+    "auxiliary_head": "EXPORTABLE",
+    "confidence_aware_fusion": "NOT_EXPORTABLE_TO_SINGLE_GRAPH",
+    "reason": "SciPy connected components, Python control flow, and NumPy conditional indexing cannot be represented in static ONNX graphs."
+  },
+  "production_readiness_blockers": [
+    "Auxiliary head is currently only exported as PyTorch state_dict (.pt), not ONNX",
+    "Fused mode currently requires PyTorch runtime and CUDA",
+    "PyTorch-vs-ONNX numerical parity test suite for the auxiliary head is not yet implemented"
+  ],
+  "next_steps": [
+    "Export EyeBrowRefinementHead to ONNX",
+    "Update EyeBrowRefinementService to support ONNX Runtime for the auxiliary head",
+    "Implement PyTorch-vs-ONNX numerical parity test suite",
+    "Verify 100% mask equivalence across test images"
+  ]
+}

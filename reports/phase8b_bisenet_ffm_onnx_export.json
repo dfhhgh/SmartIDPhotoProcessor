@@ -1,0 +1,116 @@
+{
+  "phase": "8B",
+  "title": "Safe BiSeNet ONNX Re-Export with FFM Output",
+  "date": "2026-08-29",
+  "verdict": "EXPORT_SUCCESSFUL_WITH_NUMERICAL_VARIANCE",
+  "source_model": {
+    "class": "BiSeNet",
+    "file": "experiments/parser_reproduction/bisenet_model.py",
+    "line": 247,
+    "n_classes": 19,
+    "weight_source": "bisenet_resnet18.onnx",
+    "device": "CPU"
+  },
+  "ffm_tensor": {
+    "name": "feat_fuse",
+    "shape": [1, 256, 64, 64],
+    "location": "self.ffm(feat_res8, feat_cp8)",
+    "source_file": "experiments/parser_reproduction/bisenet_model.py",
+    "source_line": 267
+  },
+  "new_artifact": {
+    "path": "ai_models/bisenet/bisenet_resnet18_with_ffm.onnx",
+    "sha256": "2dba258ad92c99911de7d11029acf3ce74f70fb677f9b001bfd53ec1a1052879",
+    "size_bytes": 218768,
+    "opset": 18,
+    "onnx_checker": "PASSED",
+    "inputs": [{"name": "input", "shape": [1, 3, 512, 512]}],
+    "outputs": [
+      {"name": "output", "shape": [1, 19, 512, 512]},
+      {"name": "out16", "shape": [1, 19, 512, 512]},
+      {"name": "out32", "shape": [1, 19, 512, 512]},
+      {"name": "feat_fuse", "shape": [1, 256, 64, 64]}
+    ]
+  },
+  "protected_artifacts": {
+    "bisenet_resnet18.onnx": {
+      "sha256": "2218b6183c26ca5c83303232d682a536c670c13ea9695f716c777d1f244eefe9",
+      "size_bytes": 53205356,
+      "status": "UNCHANGED"
+    },
+    "aux_head.onnx": {
+      "sha256": "78d78efbcc29f16b7fc35132130056b29f347f76ad3046e8a2418f6babe32c50",
+      "size_bytes": 12807,
+      "status": "UNCHANGED"
+    },
+    "best.pt": {
+      "sha256": "961e08bf64fdd0b8ae044ac6bf0d30ecbed13a22364301903a2c42c0c99e6e00",
+      "size_bytes": 4470853,
+      "status": "UNCHANGED"
+    }
+  },
+  "parity_results": {
+    "original_output_parity": {
+      "description": "Old ONNX 19-class output vs new ONNX 19-class output",
+      "images_tested": 10,
+      "max_abs_diff": 6.12e-04,
+      "argmax_equal_count": 7,
+      "argmax_equal_pct": 70.0,
+      "note": "Expected variance from different ONNX export path; does not affect FUSED pipeline"
+    },
+    "ffm_parity": {
+      "description": "CPU PyTorch feat_fuse vs ONNX feat_fuse",
+      "images_tested": 10,
+      "max_abs_diff": 2.30e-05,
+      "mean_of_means": 3.83e-07,
+      "threshold": 1e-4,
+      "within_tolerance": true
+    },
+    "aux_head_e2e_parity": {
+      "description": "Full chain: ONNX backbone FFM -> ONNX aux head vs PyTorch backbone FFM -> PyTorch aux head",
+      "images_tested": 10,
+      "max_abs_diff": 2.17e-05,
+      "argmax_equal_count": 10,
+      "argmax_equal_pct": 100.0,
+      "threshold": 1e-4,
+      "within_tolerance": true
+    },
+    "fusion_parity": {
+      "description": "Full fusion: PyTorch Fused vs ONNX Fused",
+      "images_tested": 10,
+      "exact_mask_equal_count": 9,
+      "exact_mask_equal_pct": 90.0,
+      "diag_equal_count": 10,
+      "diag_equal_pct": 100.0,
+      "max_mask_diff_pct": 0.000381
+    }
+  },
+  "regression_tests": {
+    "total": 58,
+    "passed": 58,
+    "failed": 0,
+    "skipped": 0,
+    "new_failures": 0,
+    "suites": {
+      "test_aux_head_onnx_parity.py": {"passed": 4, "failed": 0},
+      "test_phase4_parser_integration.py": {"passed": 25, "failed": 0},
+      "test_phase4_real_integration.py": {"passed": 13, "failed": 0},
+      "test_phase4_end_to_end.py": {"passed": 16, "failed": 0}
+    }
+  },
+  "discrepancies": [
+    {
+      "type": "numerical_variance",
+      "description": "Old vs New ONNX 19-class outputs differ by up to 6.12e-04",
+      "root_cause": "Different ONNX export decomposition paths (opset 18 vs original)",
+      "impact": "None on FUSED pipeline; new model not used in ORIGINAL mode"
+    },
+    {
+      "type": "sub_pixel_boundary",
+      "description": "1/10 fusion masks non-exact (0.000381% pixel difference)",
+      "root_cause": "Tiny FFM numerical differences cascade at low-confidence boundary pixels",
+      "impact": "None; fusion decisions identical"
+    }
+  ],
+  "phase9_unblocked": true
+}

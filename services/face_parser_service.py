@@ -176,8 +176,117 @@ class EyeBrowRefinementFusion:
         return final_mask.astype(np.int64), diagnostics
 
 
+class OnnxFusedRefinementService:
+    """ONNX-only FUSED parser: bisenet_resnet18_with_ffm.onnx + aux_head.onnx + Python fusion.
+
+    This is the production FUSED path.  It requires NO PyTorch at inference time.
+    """
+
+    _BACKBONE_NAME = "bisenet_resnet18_with_ffm.onnx"
+    _AUX_HEAD_NAME = "aux_head.onnx"
+
+    def __init__(
+        self,
+        model_root: Path,
+        fusion: EyeBrowRefinementFusion,
+        use_gpu: bool = True,
+        gpu_id: int = 0,
+    ) -> None:
+        self._model_root = Path(model_root)
+        self._fusion = fusion
+        self._use_gpu = use_gpu
+        self._gpu_id = gpu_id
+        self._bb_session: ort.InferenceSession | None = None
+        self._aux_session: ort.InferenceSession | None = None
+        self._load_lock = threading.Lock()
+        self.last_diagnostics: FusionDiagnostics | None = None
+
+    # -- provider resolution --------------------------------------------------
+
+    def _resolve_providers(self) -> list[ExecutionProvider]:
+        available = ort.get_available_providers()
+        if self._use_gpu and "CUDAExecutionProvider" in available:
+            return [
+                ("CUDAExecutionProvider", {"device_id": self._gpu_id}),
+                "CPUExecutionProvider",
+            ]
+        return ["CPUExecutionProvider"]
+
+    # -- lazy loading ---------------------------------------------------------
+
+    def _ensure_loaded(self) -> tuple[ort.InferenceSession, ort.InferenceSession]:
+        if self._bb_session is None or self._aux_session is None:
+            with self._load_lock:
+                if self._bb_session is None:
+                    bb_path = self._model_root / "bisenet" / self._BACKBONE_NAME
+                    if not bb_path.exists():
+                        raise FileNotFoundError(f"ONNX backbone not found: {bb_path}")
+                    providers = self._resolve_providers()
+                    self._bb_session = ort.InferenceSession(str(bb_path), providers=providers)
+                    logger.info("ONNX FUSED backbone loaded (providers=%s).", self._bb_session.get_providers())
+
+                if self._aux_session is None:
+                    aux_path = self._model_root / "bisenet" / self._AUX_HEAD_NAME
+                    if not aux_path.exists():
+                        raise FileNotFoundError(f"ONNX auxiliary head not found: {aux_path}")
+                    providers = self._resolve_providers()
+                    self._aux_session = ort.InferenceSession(str(aux_path), providers=providers)
+                    logger.info("ONNX FUSED auxiliary head loaded.")
+
+        return self._bb_session, self._aux_session
+
+    # -- public inference API -------------------------------------------------
+
+    def refine(
+        self,
+        input_tensor: npt.NDArray[np.float32],
+        original_height: int,
+        original_width: int,
+    ) -> npt.NDArray[np.int32]:
+        """Run ONNX FUSED inference and return a resized 19-class mask.
+
+        Parameters
+        ----------
+        input_tensor : (1, 3, 512, 512) float32 NCHW
+            Preprocessed parser input.
+        original_height, original_width : int
+            Target size for the output mask (typically 112x112 aligned face size).
+        """
+        bb_session, aux_session = self._ensure_loaded()
+
+        # Backbone: produces logits_19, out16, out32, feat_fuse
+        bb_outs = bb_session.run(None, {"input": input_tensor})
+        logits_19_np = bb_outs[0]          # (1, 19, 512, 512)
+        feat_fuse_np = bb_outs[3]          # (1, 256, 64, 64)
+
+        # Auxiliary head: produces 6-class logits from feat_fuse
+        aux_outs = aux_session.run(None, {"ffm_features": feat_fuse_np})
+        logits_aux_np = aux_outs[0]        # (1, 6, 512, 512)
+
+        # Fusion (pure Python/NumPy/SciPy — same implementation as PyTorch path)
+        logits_19_t = torch.from_numpy(logits_19_np).squeeze(0)
+        logits_aux_t = torch.from_numpy(logits_aux_np).squeeze(0)
+        final_mask, diagnostics = self._fusion.apply(logits_19_t, logits_aux_t)
+
+        self.last_diagnostics = diagnostics
+
+        if final_mask.shape != (original_height, original_width):
+            final_mask = cv2.resize(
+                final_mask.astype(np.uint8),
+                (original_width, original_height),
+                interpolation=cv2.INTER_NEAREST,
+            )
+
+        return final_mask.astype(np.int32)
+
+
 class EyeBrowRefinementService:
-    """Lazy frozen PyTorch BiSeNet + auxiliary head for fused parser mode."""
+    """Lazy frozen PyTorch BiSeNet + auxiliary head for fused parser mode.
+
+    .. deprecated::
+        Use :class:`OnnxFusedRefinementService` for production inference.
+        This class is retained for offline evaluation and parity testing only.
+    """
 
     def __init__(
         self,
@@ -335,7 +444,7 @@ class FaceParserService:
     def __init__(
         self,
         parser_mode: ParserMode | str | None = None,
-        refinement_service: EyeBrowRefinementService | None = None,
+        refinement_service: EyeBrowRefinementService | OnnxFusedRefinementService | None = None,
     ) -> None:
         if self._initialized:
             return
@@ -353,14 +462,15 @@ class FaceParserService:
         self._parser_mode = ParserMode(configured_mode)
         self._refinement_service = refinement_service
         if self._parser_mode is ParserMode.FUSED and self._refinement_service is None:
-            self._refinement_service = EyeBrowRefinementService(
-                onnx_model_path=self._model_path,
-                checkpoint_path=getattr(settings, "AUX_EYE_BROW_CHECKPOINT_PATH", Settings.AUX_EYE_BROW_CHECKPOINT_PATH),
+            self._refinement_service = OnnxFusedRefinementService(
+                model_root=settings.MODEL_ROOT,
                 fusion=EyeBrowRefinementFusion(
                     strategy=getattr(settings, "EYE_BROW_FUSION_STRATEGY", Settings.EYE_BROW_FUSION_STRATEGY),
                     threshold=getattr(settings, "EYE_BROW_FUSION_THRESHOLD", Settings.EYE_BROW_FUSION_THRESHOLD),
                     min_component_size=getattr(settings, "EYE_BROW_FUSION_MIN_COMPONENT_SIZE", Settings.EYE_BROW_FUSION_MIN_COMPONENT_SIZE),
                 ),
+                use_gpu=self._use_gpu,
+                gpu_id=self._gpu_id,
             )
 
         self._session: ort.InferenceSession | None = None

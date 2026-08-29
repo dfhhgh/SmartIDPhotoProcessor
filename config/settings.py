@@ -21,8 +21,8 @@ class Settings:
     GPU_ID: int = 0
 
     # Face parser
-    # ORIGINAL preserves the existing production ONNX behavior by default.
-    PARSER_MODE: ParserMode = ParserMode.ORIGINAL
+    # FUSED is the production default: ONNX backbone + ONNX aux head + Python fusion.
+    PARSER_MODE: ParserMode = ParserMode.FUSED
     AUX_EYE_BROW_CHECKPOINT_PATH: Path = (
         BASE_DIR
         / "dataset_builder"

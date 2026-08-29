@@ -104,8 +104,8 @@ class TestParserFUSED:
         fp = FaceParserService(parser_mode=ParserMode.FUSED)
         fp.parse(_get_real_face())
         svc = fp._refinement_service
-        assert svc.bisenet is not None
-        assert svc.head is not None
+        assert svc._bb_session is not None
+        assert svc._aux_session is not None
 
 
 class TestModeComparison:
