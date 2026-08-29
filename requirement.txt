@@ -3,6 +3,7 @@ onnxruntime-gpu
 opencv-python
 numpy
 scipy
+faiss-cpu
 pytest
 pytest-cov
 pytest-mock
