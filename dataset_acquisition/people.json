@@ -1,0 +1,169 @@
+{
+  "version": "celebrity-v2-pilot",
+  "description": "Contemporary actors and professional football players for face-embedding retrieval calibration",
+  "people": [
+    {
+      "person_id": "tom_hanks",
+      "display_name": "Tom Hanks",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Tom Hanks portrait",
+        "Tom Hanks interview",
+        "Tom Hanks red carpet",
+        "Tom Hanks event"
+      ]
+    },
+    {
+      "person_id": "scarlett_johansson",
+      "display_name": "Scarlett Johansson",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Scarlett Johansson portrait",
+        "Scarlett Johansson interview",
+        "Scarlett Johansson red carpet",
+        "Scarlett Johansson event"
+      ]
+    },
+    {
+      "person_id": "denzel_washington",
+      "display_name": "Denzel Washington",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Denzel Washington portrait",
+        "Denzel Washington interview",
+        "Denzel Washington red carpet",
+        "Denzel Washington event"
+      ]
+    },
+    {
+      "person_id": "cate_blanchett",
+      "display_name": "Cate Blanchett",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Cate Blanchett portrait",
+        "Cate Blanchett interview",
+        "Cate Blanchett red carpet",
+        "Cate Blanchett event"
+      ]
+    },
+    {
+      "person_id": "keanu_reeves",
+      "display_name": "Keanu Reeves",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Keanu Reeves portrait",
+        "Keanu Reeves interview",
+        "Keanu Reeves red carpet",
+        "Keanu Reeves event"
+      ]
+    },
+    {
+      "person_id": "natalie_portman",
+      "display_name": "Natalie Portman",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Natalie Portman portrait",
+        "Natalie Portman interview",
+        "Natalie Portman red carpet",
+        "Natalie Portman event"
+      ]
+    },
+    {
+      "person_id": "lionel_messi",
+      "display_name": "Lionel Messi",
+      "category": "football_player",
+      "aliases": ["Leo Messi"],
+      "search_queries": [
+        "Lionel Messi portrait",
+        "Lionel Messi interview",
+        "Lionel Messi match",
+        "Lionel Messi training",
+        "Lionel Messi press conference"
+      ]
+    },
+    {
+      "person_id": "cristiano_ronaldo",
+      "display_name": "Cristiano Ronaldo",
+      "category": "football_player",
+      "aliases": ["CR7"],
+      "search_queries": [
+        "Cristiano Ronaldo portrait",
+        "Cristiano Ronaldo interview",
+        "Cristiano Ronaldo match",
+        "Cristiano Ronaldo training",
+        "Cristiano Ronaldo press conference"
+      ]
+    },
+    {
+      "person_id": "kylian_mbappe",
+      "display_name": "Kylian Mbappe",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Kylian Mbappe portrait",
+        "Kylian Mbappe interview",
+        "Kylian Mbappe match",
+        "Kylian Mbappe training",
+        "Kylian Mbappe press conference"
+      ]
+    },
+    {
+      "person_id": "neymar",
+      "display_name": "Neymar Jr",
+      "category": "football_player",
+      "aliases": ["Neymar"],
+      "search_queries": [
+        "Neymar Jr portrait",
+        "Neymar Jr interview",
+        "Neymar Jr match",
+        "Neymar Jr training",
+        "Neymar Jr press conference"
+      ]
+    },
+    {
+      "person_id": "erling_haaland",
+      "display_name": "Erling Haaland",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Erling Haaland portrait",
+        "Erling Haaland interview",
+        "Erling Haaland match",
+        "Erling Haaland training",
+        "Erling Haaland press conference"
+      ]
+    },
+    {
+      "person_id": "mohamed_salah",
+      "display_name": "Mohamed Salah",
+      "category": "football_player",
+      "aliases": ["Mo Salah"],
+      "search_queries": [
+        "Mohamed Salah portrait",
+        "Mohamed Salah interview",
+        "Mohamed Salah match",
+        "Mohamed Salah training",
+        "Mohamed Salah press conference"
+      ]
+    },
+    {
+      "person_id": "robert_lewandowski",
+      "display_name": "Robert Lewandowski",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Robert Lewandowski portrait",
+        "Robert Lewandowski interview",
+        "Robert Lewandowski match",
+        "Robert Lewandowski training",
+        "Robert Lewandowski press conference"
+      ]
+    }
+  ]
+}

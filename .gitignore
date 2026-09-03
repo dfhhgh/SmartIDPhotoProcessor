@@ -1,6 +1,7 @@
 ai_models/
 test_images/
 evaluation_results/
+datasets/
 outputs/
 experiments/finetune_experiment_a/checkpoints/
 .codex_pytest_tmp/

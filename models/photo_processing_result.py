@@ -11,6 +11,7 @@ from insightface.app.common import Face
 
 from models.export_result import ExportResult
 from models.validation_result import ValidationResult
+from search.reverse_search_service import ReverseSearchResult
 
 
 @dataclass(slots=True)
@@ -28,6 +29,7 @@ class PhotoProcessingResult:
     aligned_image: np.ndarray | None
     cropped_image: np.ndarray | None
     export_result: ExportResult | None = None
+    reverse_search_result: ReverseSearchResult | None = None
 
     def __post_init__(self) -> None:
         """
@@ -99,4 +101,13 @@ class PhotoProcessingResult:
             ):
                 raise TypeError(
                     "Export result must be an ExportResult instance or None."
+                )
+
+        if self.reverse_search_result is not None:
+            if not isinstance(
+                self.reverse_search_result,
+                ReverseSearchResult,
+            ):
+                raise TypeError(
+                    "Reverse search result must be a ReverseSearchResult instance or None."
                 )

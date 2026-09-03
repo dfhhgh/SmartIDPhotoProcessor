@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +41,31 @@ class ReverseSearchUnavailableError(ReverseSearchError):
 
 class ArtifactError(ReverseSearchError):
     """Raised when artifacts (FAISS index or metadata.json) are missing or invalid."""
+
+
+# ---------------------------------------------------------------------------
+# Status enum
+# ---------------------------------------------------------------------------
+
+class ReverseSearchStatus(StrEnum):
+    """Status of a reverse search operation.
+
+    Attributes
+    ----------
+    COMPLETED:
+        Search completed successfully; candidates may be empty or populated.
+    UNAVAILABLE:
+        Service cannot operate (empty index, missing artifacts).
+    DISABLED:
+        Reverse search is not enabled in configuration.
+    ERROR:
+        An unexpected error occurred during search.
+    """
+
+    COMPLETED = "completed"
+    UNAVAILABLE = "unavailable"
+    DISABLED = "disabled"
+    ERROR = "error"
 
 
 # ---------------------------------------------------------------------------
@@ -77,17 +104,28 @@ class ReverseSearchResult:
 
     Attributes
     ----------
-    query_dimension:
-        Dimensionality of the query embedding.
+    status:
+        Outcome of the search operation.
     candidates:
         Tuple of candidate matches sorted by similarity descending.
+        Empty when status is not COMPLETED or no matches were found.
     top_k:
         Requested top-k limit.
+    query_dimension:
+        Dimensionality of the query embedding.
+    processing_time_ms:
+        Wall-clock time of the search operation in milliseconds.
+    error_message:
+        Human-readable error description when status is ERROR or UNAVAILABLE.
+        None when status is COMPLETED or DISABLED.
     """
 
-    query_dimension: int
+    status: ReverseSearchStatus
     candidates: tuple[CandidateMatch, ...]
     top_k: int
+    query_dimension: int
+    processing_time_ms: float
+    error_message: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -301,7 +339,7 @@ class ReverseSearchService:
         Returns
         -------
         ReverseSearchResult
-            Contains query dimension, ranked candidate matches, and top_k.
+            Contains status, ranked candidate matches, timing, and error info.
 
         Raises
         ------
@@ -312,15 +350,33 @@ class ReverseSearchService:
         ValueError
             If *k* is not positive.
         """
+        start_time = time.perf_counter()
+
         if self.is_empty:
-            raise ReverseSearchUnavailableError("Cannot search an empty reference index.")
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            return ReverseSearchResult(
+                status=ReverseSearchStatus.UNAVAILABLE,
+                candidates=(),
+                top_k=k,
+                query_dimension=self.dimension,
+                processing_time_ms=elapsed_ms,
+                error_message="Cannot search an empty reference index.",
+            )
 
         if k <= 0:
             raise ValueError(f"k must be positive, got {k}.")
 
         # Validate query embedding contract via Phase 13.1 validator
         if self._validator is None:
-            raise ReverseSearchUnavailableError("Service validator is not initialized.")
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            return ReverseSearchResult(
+                status=ReverseSearchStatus.UNAVAILABLE,
+                candidates=(),
+                top_k=k,
+                query_dimension=self.dimension,
+                processing_time_ms=elapsed_ms,
+                error_message="Service validator is not initialized.",
+            )
 
         try:
             validated_query = self._validator.validate(embedding)
@@ -331,7 +387,15 @@ class ReverseSearchService:
 
         # Execute FAISS search via FlatIndex
         if self._index is None:
-            raise ReverseSearchUnavailableError("Service FAISS index is not initialized.")
+            elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+            return ReverseSearchResult(
+                status=ReverseSearchStatus.UNAVAILABLE,
+                candidates=(),
+                top_k=k,
+                query_dimension=self.dimension,
+                processing_time_ms=elapsed_ms,
+                error_message="Service FAISS index is not initialized.",
+            )
 
         faiss_result = self._index.search(validated_query, k=k)
 
@@ -353,8 +417,12 @@ class ReverseSearchService:
                 )
             )
 
+        elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+
         return ReverseSearchResult(
-            query_dimension=self._index.dimension,
+            status=ReverseSearchStatus.COMPLETED,
             candidates=tuple(candidates),
             top_k=k,
+            query_dimension=self._index.dimension,
+            processing_time_ms=elapsed_ms,
         )

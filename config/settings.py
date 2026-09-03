@@ -45,3 +45,8 @@ class Settings:
     DEBUG_OUTPUT: Path = OUTPUT_DIR / "debug"
     ALIGNED_OUTPUT: Path = OUTPUT_DIR / "aligned"
     CROPPED_OUTPUT: Path = OUTPUT_DIR / "cropped"
+
+    # Reverse Search
+    REVERSE_SEARCH_ENABLED: bool = False
+    REVERSE_SEARCH_INDEX_PATH: Path | None = None
+    REVERSE_SEARCH_METADATA_PATH: Path | None = None

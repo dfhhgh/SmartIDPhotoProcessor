@@ -22,6 +22,8 @@ from pipeline.photo_exporter import PhotoExporter
 from pipeline.selector import FaceSelector
 from pipeline.validation_orchestrator import ValidationOrchestrator
 from services.face_parser_service import FaceParserService
+from services.reverse_search_manager import ReverseSearchServiceManager
+from search.reverse_search_service import ReverseSearchService, ReverseSearchResult
 from validators.base_selection_validator import BaseSelectionValidator
 from validators.face_ambiguity_validator import FaceAmbiguityValidator
 
@@ -62,6 +64,8 @@ class PhotoValidationPipeline:
         exporter: PhotoExporter | None = None,
         execution_mode: ValidationExecutionMode = ValidationExecutionMode.PRODUCTION,
         parser_mode=None,
+        reverse_search_service: ReverseSearchService | None = None,
+        reverse_search_enabled: bool | None = None,
     ) -> None:
         """Initialise pipeline components with optional dependency injection.
 
@@ -71,6 +75,8 @@ class PhotoValidationPipeline:
                 (PRODUCTION) or runs every validator unconditionally (DEVELOPMENT).
             parser_mode: ParserMode for FaceParserService. Only used when
                 `parser_service` is not injected.
+            reverse_search_service: Optional injected ReverseSearchService.
+            reverse_search_enabled: Optional override for reverse search activation.
         """
         self._detector = detector if detector is not None else FaceDetector()
         self._selector = selector if selector is not None else FaceSelector()
@@ -96,6 +102,14 @@ class PhotoValidationPipeline:
             )
         )
         self._exporter = exporter if exporter is not None else PhotoExporter()
+
+        rs_manager = ReverseSearchServiceManager()
+        self._reverse_search_enabled = (
+            reverse_search_enabled if reverse_search_enabled is not None else rs_manager.enabled
+        )
+        self._reverse_search_service = (
+            reverse_search_service if reverse_search_service is not None else rs_manager.get_service()
+        )
 
     def validate(self, image: np.ndarray) -> PhotoProcessingResult:
         """Execute the complete validation workflow on an input image.
@@ -178,6 +192,19 @@ class PhotoValidationPipeline:
         if validation_result.is_valid:
             export_result = self._exporter.export(cropped_image)
 
+        # Execute Reverse Search screening if enabled and embedding is available
+        reverse_search_result: ReverseSearchResult | None = None
+        if self._reverse_search_enabled and self._reverse_search_service is not None:
+            try:
+                embedding = getattr(selected_face, "normed_embedding", None)
+                if embedding is not None:
+                    reverse_search_result = self._reverse_search_service.search(embedding, k=5)
+                else:
+                    logger.warning("Reverse search enabled, but selected face has no normed_embedding.")
+            except Exception as exc:
+                logger.exception("Reverse search execution failed; continuing without search evidence.")
+                reverse_search_result = None
+
         logger.info("Photo validation pipeline completed successfully.")
         return PhotoProcessingResult(
             validation_result=validation_result,
@@ -185,4 +212,5 @@ class PhotoValidationPipeline:
             aligned_image=alignment_result.aligned_image,
             cropped_image=cropped_image,
             export_result=export_result,
+            reverse_search_result=reverse_search_result,
         )

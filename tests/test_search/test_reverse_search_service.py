@@ -31,6 +31,7 @@ from search.reverse_search_service import (
     CandidateMatch,
     ReverseSearchResult,
     ReverseSearchService,
+    ReverseSearchStatus,
     ReverseSearchUnavailableError,
 )
 
@@ -330,13 +331,16 @@ class TestReverseSearchServiceSearch:
         with pytest.raises(EmbeddingError, match="Zero-norm"):
             svc.search(np.zeros(512, dtype=np.float32))
 
-    def test_empty_index_raises_unavailable(self, tmp_path: Path) -> None:
+    def test_empty_index_returns_unavailable_status(self, tmp_path: Path) -> None:
         idx_path, meta_path = _create_mock_artifacts(tmp_path, [], [])
         svc = ReverseSearchService(idx_path, meta_path)
         assert svc.is_empty
 
-        with pytest.raises(ReverseSearchUnavailableError, match="empty reference index"):
-            svc.search(_make_valid_vector())
+        result = svc.search(_make_valid_vector())
+        assert isinstance(result, ReverseSearchResult)
+        assert result.status == ReverseSearchStatus.UNAVAILABLE
+        assert result.candidates == ()
+        assert result.error_message is not None
 
     def test_multiple_reference_images_same_person(self, tmp_path: Path) -> None:
         """Verify multiple reference images for the same person are returned separately (no aggregation)."""
@@ -416,3 +420,121 @@ class TestReverseSearchServiceSearch:
         assert len(results) == 20
         for res in results:
             assert len(res.candidates) == 3
+
+
+# ---------------------------------------------------------------------------
+# Phase 13.12 — Contract Enhancement Tests
+# ---------------------------------------------------------------------------
+
+class TestReverseSearchResultContract:
+    """Tests for the enhanced ReverseSearchResult contract (Phase 13.12)."""
+
+    @pytest.fixture
+    def populated_service(self, tmp_path: Path) -> tuple[ReverseSearchService, list[np.ndarray]]:
+        rng = np.random.RandomState(42)
+        vectors = []
+        records = []
+        for i in range(5):
+            v = rng.randn(512).astype(np.float32)
+            v /= np.linalg.norm(v)
+            vectors.append(v)
+            records.append({
+                "vector_id": i,
+                "person_id": f"person_{i:03d}",
+                "label": f"label_{i}",
+                "image": f"person_{i:03d}/img.jpg",
+            })
+        idx_path, meta_path = _create_mock_artifacts(tmp_path, vectors, records)
+        svc = ReverseSearchService(idx_path, meta_path)
+        return svc, vectors
+
+    def test_successful_search_has_completed_status(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=3)
+        assert result.status == ReverseSearchStatus.COMPLETED
+        assert result.error_message is None
+        assert result.processing_time_ms >= 0.0
+
+    def test_successful_search_has_valid_timing(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=3)
+        assert isinstance(result.processing_time_ms, float)
+        assert result.processing_time_ms >= 0.0
+        assert result.processing_time_ms < 10000.0  # Should complete in < 10s
+
+    def test_successful_search_has_query_dimension(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=3)
+        assert result.query_dimension == 512
+
+    def test_empty_index_returns_unavailable_with_error_message(self, tmp_path: Path) -> None:
+        idx_path, meta_path = _create_mock_artifacts(tmp_path, [], [])
+        svc = ReverseSearchService(idx_path, meta_path)
+        result = svc.search(_make_valid_vector())
+        assert result.status == ReverseSearchStatus.UNAVAILABLE
+        assert result.error_message is not None
+        assert "empty" in result.error_message.lower()
+        assert result.candidates == ()
+        assert result.processing_time_ms >= 0.0
+
+    def test_result_is_frozen(self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=3)
+        assert isinstance(result, ReverseSearchResult)
+        # frozen=True prevents attribute assignment
+        with pytest.raises(AttributeError):
+            result.status = ReverseSearchStatus.ERROR  # type: ignore[misc]
+
+    def test_result_has_all_required_fields(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=3)
+        assert hasattr(result, "status")
+        assert hasattr(result, "candidates")
+        assert hasattr(result, "top_k")
+        assert hasattr(result, "query_dimension")
+        assert hasattr(result, "processing_time_ms")
+        assert hasattr(result, "error_message")
+
+    def test_error_status_via_invalid_embedding(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        """Verify that EmbeddingError still propagates (caller handles via try/except)."""
+        svc, _ = populated_service
+        with pytest.raises(EmbeddingError):
+            svc.search(np.zeros(512, dtype=np.float32))
+
+    def test_status_enum_values(self) -> None:
+        assert ReverseSearchStatus.COMPLETED == "completed"
+        assert ReverseSearchStatus.UNAVAILABLE == "unavailable"
+        assert ReverseSearchStatus.DISABLED == "disabled"
+        assert ReverseSearchStatus.ERROR == "error"
+
+    def test_result_candidate_fields_populated(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        result = svc.search(vectors[0], k=2)
+        assert len(result.candidates) == 2
+        for c in result.candidates:
+            assert isinstance(c, CandidateMatch)
+            assert isinstance(c.vector_id, int)
+            assert isinstance(c.person_id, str)
+            assert isinstance(c.label, str)
+            assert isinstance(c.image, str)
+            assert isinstance(c.similarity, float)
+
+    def test_search_timing_is_non_negative(
+        self, populated_service: tuple[ReverseSearchService, list[np.ndarray]]
+    ) -> None:
+        svc, vectors = populated_service
+        for _ in range(10):
+            result = svc.search(vectors[0], k=1)
+            assert result.processing_time_ms >= 0.0

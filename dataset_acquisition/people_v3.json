@@ -1,0 +1,478 @@
+{
+  "version": "celebrity-v3-expanded",
+  "description": "Expanded identity-labeled celebrity dataset for reverse-search calibration. Contemporary actors and professional football players.",
+  "people": [
+    {
+      "person_id": "leonardo_dicaprio",
+      "display_name": "Leonardo DiCaprio",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Leonardo DiCaprio portrait",
+        "Leonardo DiCaprio interview",
+        "Leonardo DiCaprio red carpet",
+        "Leonardo DiCaprio premiere",
+        "Leonardo DiCaprio press conference",
+        "Leonardo DiCaprio Cannes"
+      ]
+    },
+    {
+      "person_id": "ryan_gosling",
+      "display_name": "Ryan Gosling",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Ryan Gosling portrait",
+        "Ryan Gosling interview",
+        "Ryan Gosling red carpet",
+        "Ryan Gosling premiere",
+        "Ryan Gosling press conference",
+        "Ryan Gosling event"
+      ]
+    },
+    {
+      "person_id": "keanu_reeves",
+      "display_name": "Keanu Reeves",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Keanu Reeves portrait",
+        "Keanu Reeves interview",
+        "Keanu Reeves red carpet",
+        "Keanu Reeves premiere",
+        "Keanu Reeves press conference",
+        "Keanu Reeves convention"
+      ]
+    },
+    {
+      "person_id": "cillian_murphy",
+      "display_name": "Cillian Murphy",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Cillian Murphy portrait",
+        "Cillian Murphy interview",
+        "Cillian Murphy red carpet",
+        "Cillian Murphy premiere",
+        "Cillian Murphy press conference",
+        "Cillian Murphy Oscar"
+      ]
+    },
+    {
+      "person_id": "zendaya",
+      "display_name": "Zendaya",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Zendaya portrait",
+        "Zendaya interview",
+        "Zendaya red carpet",
+        "Zendaya premiere",
+        "Zendaya press conference",
+        "Zendaya event"
+      ]
+    },
+    {
+      "person_id": "margot_robbie",
+      "display_name": "Margot Robbie",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Margot Robbie portrait",
+        "Margot Robbie interview",
+        "Margot Robbie red carpet",
+        "Margot Robbie premiere",
+        "Margot Robbie press conference",
+        "Margot Robbie event"
+      ]
+    },
+    {
+      "person_id": "anne_hathaway",
+      "display_name": "Anne Hathaway",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Anne Hathaway portrait",
+        "Anne Hathaway interview",
+        "Anne Hathaway red carpet",
+        "Anne Hathaway premiere",
+        "Anne Hathaway press conference",
+        "Anne Hathaway event"
+      ]
+    },
+    {
+      "person_id": "brad_pitt",
+      "display_name": "Brad Pitt",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Brad Pitt portrait",
+        "Brad Pitt interview",
+        "Brad Pitt red carpet",
+        "Brad Pitt premiere",
+        "Brad Pitt press conference",
+        "Brad Pitt event"
+      ]
+    },
+    {
+      "person_id": "robert_downey_jr",
+      "display_name": "Robert Downey Jr.",
+      "category": "actor",
+      "aliases": ["RDJ"],
+      "search_queries": [
+        "Robert Downey Jr. portrait",
+        "Robert Downey Jr. interview",
+        "Robert Downey Jr. red carpet",
+        "Robert Downey Jr. premiere",
+        "Robert Downey Jr. press conference",
+        "Robert Downey Jr. event"
+      ]
+    },
+    {
+      "person_id": "christian_bale",
+      "display_name": "Christian Bale",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Christian Bale portrait",
+        "Christian Bale interview",
+        "Christian Bale red carpet",
+        "Christian Bale premiere",
+        "Christian Bale press conference",
+        "Christian Bale event"
+      ]
+    },
+    {
+      "person_id": "chris_hemsworth",
+      "display_name": "Chris Hemsworth",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Chris Hemsworth portrait",
+        "Chris Hemsworth interview",
+        "Chris Hemsworth red carpet",
+        "Chris Hemsworth premiere",
+        "Chris Hemsworth press conference",
+        "Chris Hemsworth event"
+      ]
+    },
+    {
+      "person_id": "tom_holland",
+      "display_name": "Tom Holland",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Tom Holland portrait",
+        "Tom Holland interview",
+        "Tom Holland red carpet",
+        "Tom Holland premiere",
+        "Tom Holland press conference",
+        "Tom Holland event"
+      ]
+    },
+    {
+      "person_id": "florence_pugh",
+      "display_name": "Florence Pugh",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Florence Pugh portrait",
+        "Florence Pugh interview",
+        "Florence Pugh red carpet",
+        "Florence Pugh premiere",
+        "Florence Pugh press conference",
+        "Florence Pugh event"
+      ]
+    },
+    {
+      "person_id": "jenna_ortega",
+      "display_name": "Jenna Ortega",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Jenna Ortega portrait",
+        "Jenna Ortega interview",
+        "Jenna Ortega red carpet",
+        "Jenna Ortega premiere",
+        "Jenna Ortega press conference",
+        "Jenna Ortega event"
+      ]
+    },
+    {
+      "person_id": "tom_hanks",
+      "display_name": "Tom Hanks",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Tom Hanks portrait",
+        "Tom Hanks interview",
+        "Tom Hanks red carpet",
+        "Tom Hanks premiere",
+        "Tom Hanks press conference",
+        "Tom Hanks event"
+      ]
+    },
+    {
+      "person_id": "scarlett_johansson",
+      "display_name": "Scarlett Johansson",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Scarlett Johansson portrait",
+        "Scarlett Johansson interview",
+        "Scarlett Johansson red carpet",
+        "Scarlett Johansson premiere",
+        "Scarlett Johansson press conference",
+        "Scarlett Johansson event"
+      ]
+    },
+    {
+      "person_id": "denzel_washington",
+      "display_name": "Denzel Washington",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Denzel Washington portrait",
+        "Denzel Washington interview",
+        "Denzel Washington red carpet",
+        "Denzel Washington premiere",
+        "Denzel Washington press conference",
+        "Denzel Washington event"
+      ]
+    },
+    {
+      "person_id": "cate_blanchett",
+      "display_name": "Cate Blanchett",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Cate Blanchett portrait",
+        "Cate Blanchett interview",
+        "Cate Blanchett red carpet",
+        "Cate Blanchett premiere",
+        "Cate Blanchett press conference",
+        "Cate Blanchett event"
+      ]
+    },
+    {
+      "person_id": "natalie_portman",
+      "display_name": "Natalie Portman",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Natalie Portman portrait",
+        "Natalie Portman interview",
+        "Natalie Portman red carpet",
+        "Natalie Portman premiere",
+        "Natalie Portman press conference",
+        "Natalie Portman event"
+      ]
+    },
+    {
+      "person_id": "emma_stone",
+      "display_name": "Emma Stone",
+      "category": "actor",
+      "aliases": [],
+      "search_queries": [
+        "Emma Stone portrait",
+        "Emma Stone interview",
+        "Emma Stone red carpet",
+        "Emma Stone premiere",
+        "Emma Stone press conference",
+        "Emma Stone event"
+      ]
+    },
+    {
+      "person_id": "lionel_messi",
+      "display_name": "Lionel Messi",
+      "category": "football_player",
+      "aliases": ["Leo Messi"],
+      "search_queries": [
+        "Lionel Messi portrait",
+        "Lionel Messi interview",
+        "Lionel Messi match",
+        "Lionel Messi training",
+        "Lionel Messi celebration",
+        "Lionel Messi press conference",
+        "Lionel Messi Inter Miami",
+        "Lionel Messi Argentina"
+      ]
+    },
+    {
+      "person_id": "cristiano_ronaldo",
+      "display_name": "Cristiano Ronaldo",
+      "category": "football_player",
+      "aliases": ["CR7"],
+      "search_queries": [
+        "Cristiano Ronaldo portrait",
+        "Cristiano Ronaldo interview",
+        "Cristiano Ronaldo match",
+        "Cristiano Ronaldo training",
+        "Cristiano Ronaldo celebration",
+        "Cristiano Ronaldo press conference",
+        "Cristiano Ronaldo Al Nassr",
+        "Cristiano Ronaldo Portugal"
+      ]
+    },
+    {
+      "person_id": "kylian_mbappe",
+      "display_name": "Kylian Mbappe",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Kylian Mbappe portrait",
+        "Kylian Mbappe interview",
+        "Kylian Mbappe match",
+        "Kylian Mbappe training",
+        "Kylian Mbappe celebration",
+        "Kylian Mbappe press conference",
+        "Kylian Mbappe Real Madrid",
+        "Kylian Mbappe France"
+      ]
+    },
+    {
+      "person_id": "neymar",
+      "display_name": "Neymar Jr",
+      "category": "football_player",
+      "aliases": ["Neymar"],
+      "search_queries": [
+        "Neymar Jr portrait",
+        "Neymar Jr interview",
+        "Neymar Jr match",
+        "Neymar Jr training",
+        "Neymar Jr celebration",
+        "Neymar Jr press conference",
+        "Neymar Jr Al Hilal",
+        "Neymar Jr Brazil"
+      ]
+    },
+    {
+      "person_id": "mohamed_salah",
+      "display_name": "Mohamed Salah",
+      "category": "football_player",
+      "aliases": ["Mo Salah"],
+      "search_queries": [
+        "Mohamed Salah portrait",
+        "Mohamed Salah interview",
+        "Mohamed Salah match",
+        "Mohamed Salah training",
+        "Mohamed Salah celebration",
+        "Mohamed Salah press conference",
+        "Mohamed Salah Liverpool",
+        "Mohamed Salah Egypt"
+      ]
+    },
+    {
+      "person_id": "erling_haaland",
+      "display_name": "Erling Haaland",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Erling Haaland portrait",
+        "Erling Haaland interview",
+        "Erling Haaland match",
+        "Erling Haaland training",
+        "Erling Haaland celebration",
+        "Erling Haaland press conference",
+        "Erling Haaland Manchester City",
+        "Erling Haaland Norway"
+      ]
+    },
+    {
+      "person_id": "vinicius_junior",
+      "display_name": "Vinícius Júnior",
+      "category": "football_player",
+      "aliases": ["Vini Jr"],
+      "search_queries": [
+        "Vinícius Júnior portrait",
+        "Vinícius Júnior interview",
+        "Vinícius Júnior match",
+        "Vinícius Júnior training",
+        "Vinícius Júnior celebration",
+        "Vinícius Júnior press conference",
+        "Vinícius Júnior Real Madrid",
+        "Vinícius Júnior Brazil"
+      ]
+    },
+    {
+      "person_id": "jude_bellingham",
+      "display_name": "Jude Bellingham",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Jude Bellingham portrait",
+        "Jude Bellingham interview",
+        "Jude Bellingham match",
+        "Jude Bellingham training",
+        "Jude Bellingham celebration",
+        "Jude Bellingham press conference",
+        "Jude Bellingham Real Madrid",
+        "Jude Bellingham England"
+      ]
+    },
+    {
+      "person_id": "kevin_de_bruyne",
+      "display_name": "Kevin De Bruyne",
+      "category": "football_player",
+      "aliases": ["KDB"],
+      "search_queries": [
+        "Kevin De Bruyne portrait",
+        "Kevin De Bruyne interview",
+        "Kevin De Bruyne match",
+        "Kevin De Bruyne training",
+        "Kevin De Bruyne celebration",
+        "Kevin De Bruyne press conference",
+        "Kevin De Bruyne Manchester City",
+        "Kevin De Bruyne Belgium"
+      ]
+    },
+    {
+      "person_id": "robert_lewandowski",
+      "display_name": "Robert Lewandowski",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Robert Lewandowski portrait",
+        "Robert Lewandowski interview",
+        "Robert Lewandowski match",
+        "Robert Lewandowski training",
+        "Robert Lewandowski celebration",
+        "Robert Lewandowski press conference",
+        "Robert Lewandowski Barcelona",
+        "Robert Lewandowski Poland"
+      ]
+    },
+    {
+      "person_id": "harry_kane",
+      "display_name": "Harry Kane",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Harry Kane portrait",
+        "Harry Kane interview",
+        "Harry Kane match",
+        "Harry Kane training",
+        "Harry Kane celebration",
+        "Harry Kane press conference",
+        "Harry Kane Bayern Munich",
+        "Harry Kane England"
+      ]
+    },
+    {
+      "person_id": "lamine_yamal",
+      "display_name": "Lamine Yamal",
+      "category": "football_player",
+      "aliases": [],
+      "search_queries": [
+        "Lamine Yamal portrait",
+        "Lamine Yamal interview",
+        "Lamine Yamal match",
+        "Lamine Yamal training",
+        "Lamine Yamal celebration",
+        "Lamine Yamal press conference",
+        "Lamine Yamal Barcelona",
+        "Lamine Yamal Spain"
+      ]
+    }
+  ]
+}

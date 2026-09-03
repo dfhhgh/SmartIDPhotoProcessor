@@ -1,0 +1,687 @@
+{
+  "version": "celebrity-v4-diverse",
+  "description": "Expanded diverse identity-labeled celebrity dataset for reverse-search calibration. 42 identities: 25 actors + 17 athletes.",
+  "target_images_per_person": 20,
+  "min_images_per_person": 16,
+  "controlled_images_per_person": 16,
+  "seed": 42,
+  "split": {
+    "reference": 8,
+    "calibration": 4,
+    "held_out_evaluation": 4
+  },
+  "people": [
+    {
+      "person_id": "tom_hanks",
+      "display_name": "Tom Hanks",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Tom Hanks",
+      "search_queries": [
+        "Tom Hanks portrait",
+        "Tom Hanks interview",
+        "Tom Hanks red carpet",
+        "Tom Hanks premiere",
+        "Tom Hanks press conference",
+        "Tom Hanks event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "scarlett_johansson",
+      "display_name": "Scarlett Johansson",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Scarlett Johansson",
+      "search_queries": [
+        "Scarlett Johansson portrait",
+        "Scarlett Johansson interview",
+        "Scarlett Johansson red carpet",
+        "Scarlett Johansson premiere",
+        "Scarlett Johansson press conference",
+        "Scarlett Johansson event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "denzel_washington",
+      "display_name": "Denzel Washington",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Denzel Washington",
+      "search_queries": [
+        "Denzel Washington portrait",
+        "Denzel Washington interview",
+        "Denzel Washington red carpet",
+        "Denzel Washington premiere",
+        "Denzel Washington press conference",
+        "Denzel Washington event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "cate_blanchett",
+      "display_name": "Cate Blanchett",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Cate Blanchett",
+      "search_queries": [
+        "Cate Blanchett portrait",
+        "Cate Blanchett interview",
+        "Cate Blanchett red carpet",
+        "Cate Blanchett premiere",
+        "Cate Blanchett press conference",
+        "Cate Blanchett event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "keanu_reeves",
+      "display_name": "Keanu Reeves",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Keanu Reeves",
+      "search_queries": [
+        "Keanu Reeves portrait",
+        "Keanu Reeves interview",
+        "Keanu Reeves red carpet",
+        "Keanu Reeves premiere",
+        "Keanu Reeves press conference",
+        "Keanu Reeves event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "natalie_portman",
+      "display_name": "Natalie Portman",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Natalie Portman",
+      "search_queries": [
+        "Natalie Portman portrait",
+        "Natalie Portman interview",
+        "Natalie Portman red carpet",
+        "Natalie Portman premiere",
+        "Natalie Portman press conference",
+        "Natalie Portman event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "leonardo_dicaprio",
+      "display_name": "Leonardo DiCaprio",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Leonardo DiCaprio",
+      "search_queries": [
+        "Leonardo DiCaprio portrait",
+        "Leonardo DiCaprio interview",
+        "Leonardo DiCaprio red carpet",
+        "Leonardo DiCaprio premiere",
+        "Leonardo DiCaprio press conference",
+        "Leonardo DiCaprio event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "morgan_freeman",
+      "display_name": "Morgan Freeman",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Morgan Freeman",
+      "search_queries": [
+        "Morgan Freeman portrait",
+        "Morgan Freeman interview",
+        "Morgan Freeman red carpet",
+        "Morgan Freeman premiere",
+        "Morgan Freeman press conference",
+        "Morgan Freeman event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "robert_downey_jr",
+      "display_name": "Robert Downey Jr.",
+      "category": "actor",
+      "aliases": ["RDJ"],
+      "wikimedia_category": "Robert Downey Jr.",
+      "search_queries": [
+        "Robert Downey Jr. portrait",
+        "Robert Downey Jr. interview",
+        "Robert Downey Jr. red carpet",
+        "Robert Downey Jr. premiere",
+        "Robert Downey Jr. press conference",
+        "Robert Downey Jr. event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "brad_pitt",
+      "display_name": "Brad Pitt",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Brad Pitt",
+      "search_queries": [
+        "Brad Pitt portrait",
+        "Brad Pitt interview",
+        "Brad Pitt red carpet",
+        "Brad Pitt premiere",
+        "Brad Pitt press conference",
+        "Brad Pitt event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "angelina_jolie",
+      "display_name": "Angelina Jolie",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Angelina Jolie",
+      "search_queries": [
+        "Angelina Jolie portrait",
+        "Angelina Jolie interview",
+        "Angelina Jolie red carpet",
+        "Angelina Jolie premiere",
+        "Angelina Jolie press conference",
+        "Angelina Jolie event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "jennifer_lawrence",
+      "display_name": "Jennifer Lawrence",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Jennifer Lawrence",
+      "search_queries": [
+        "Jennifer Lawrence portrait",
+        "Jennifer Lawrence interview",
+        "Jennifer Lawrence red carpet",
+        "Jennifer Lawrence premiere",
+        "Jennifer Lawrence press conference",
+        "Jennifer Lawrence event"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "lionel_messi",
+      "display_name": "Lionel Messi",
+      "category": "football_player",
+      "aliases": ["Leo Messi"],
+      "wikimedia_category": "Lionel Messi",
+      "search_queries": [
+        "Lionel Messi portrait",
+        "Lionel Messi interview",
+        "Lionel Messi match",
+        "Lionel Messi training",
+        "Lionel Messi celebration",
+        "Lionel Messi press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "cristiano_ronaldo",
+      "display_name": "Cristiano Ronaldo",
+      "category": "football_player",
+      "aliases": ["CR7"],
+      "wikimedia_category": "Cristiano Ronaldo",
+      "search_queries": [
+        "Cristiano Ronaldo portrait",
+        "Cristiano Ronaldo interview",
+        "Cristiano Ronaldo match",
+        "Cristiano Ronaldo training",
+        "Cristiano Ronaldo celebration",
+        "Cristiano Ronaldo press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "kylian_mbappe",
+      "display_name": "Kylian Mbappe",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Kylian Mbappe",
+      "search_queries": [
+        "Kylian Mbappe portrait",
+        "Kylian Mbappe interview",
+        "Kylian Mbappe match",
+        "Kylian Mbappe training",
+        "Kylian Mbappe celebration",
+        "Kylian Mbappe press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "neymar",
+      "display_name": "Neymar Jr",
+      "category": "football_player",
+      "aliases": ["Neymar"],
+      "wikimedia_category": "Neymar Jr",
+      "search_queries": [
+        "Neymar Jr portrait",
+        "Neymar Jr interview",
+        "Neymar Jr match",
+        "Neymar Jr training",
+        "Neymar Jr celebration",
+        "Neymar Jr press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "erling_haaland",
+      "display_name": "Erling Haaland",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Erling Haaland",
+      "search_queries": [
+        "Erling Haaland portrait",
+        "Erling Haaland interview",
+        "Erling Haaland match",
+        "Erling Haaland training",
+        "Erling Haaland celebration",
+        "Erling Haaland press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "mohamed_salah",
+      "display_name": "Mohamed Salah",
+      "category": "football_player",
+      "aliases": ["Mo Salah"],
+      "wikimedia_category": "Mohamed Salah",
+      "search_queries": [
+        "Mohamed Salah portrait",
+        "Mohamed Salah interview",
+        "Mohamed Salah match",
+        "Mohamed Salah training",
+        "Mohamed Salah celebration",
+        "Mohamed Salah press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "robert_lewandowski",
+      "display_name": "Robert Lewandowski",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Robert Lewandowski",
+      "search_queries": [
+        "Robert Lewandowski portrait",
+        "Robert Lewandowski interview",
+        "Robert Lewandowski match",
+        "Robert Lewandowski training",
+        "Robert Lewandowski celebration",
+        "Robert Lewandowski press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "kevin_de_bruyne",
+      "display_name": "Kevin De Bruyne",
+      "category": "football_player",
+      "aliases": ["KDB"],
+      "wikimedia_category": "Kevin De Bruyne",
+      "search_queries": [
+        "Kevin De Bruyne portrait",
+        "Kevin De Bruyne interview",
+        "Kevin De Bruyne match",
+        "Kevin De Bruyne training",
+        "Kevin De Bruyne celebration",
+        "Kevin De Bruyne press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "jude_bellingham",
+      "display_name": "Jude Bellingham",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Jude Bellingham",
+      "search_queries": [
+        "Jude Bellingham portrait",
+        "Jude Bellingham interview",
+        "Jude Bellingham match",
+        "Jude Bellingham training",
+        "Jude Bellingham celebration",
+        "Jude Bellingham press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "vinicius_junior",
+      "display_name": "Vinícius Júnior",
+      "category": "football_player",
+      "aliases": ["Vini Jr"],
+      "wikimedia_category": "Vinícius Júnior",
+      "search_queries": [
+        "Vinícius Júnior portrait",
+        "Vinícius Júnior interview",
+        "Vinícius Júnior match",
+        "Vinícius Júnior training",
+        "Vinícius Júnior celebration",
+        "Vinícius Júnior press conference"
+      ],
+      "dataset_status": "existing"
+    },
+    {
+      "person_id": "will_smith",
+      "display_name": "Will Smith",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Will Smith",
+      "search_queries": [
+        "Will Smith portrait",
+        "Will Smith interview",
+        "Will Smith red carpet",
+        "Will Smith premiere",
+        "Will Smith press conference",
+        "Will Smith event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "samuel_l_jackson",
+      "display_name": "Samuel L. Jackson",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Samuel L. Jackson",
+      "search_queries": [
+        "Samuel L. Jackson portrait",
+        "Samuel L. Jackson interview",
+        "Samuel L. Jackson red carpet",
+        "Samuel L. Jackson premiere",
+        "Samuel L. Jackson press conference",
+        "Samuel L. Jackson event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "tom_cruise",
+      "display_name": "Tom Cruise",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Tom Cruise",
+      "search_queries": [
+        "Tom Cruise portrait",
+        "Tom Cruise interview",
+        "Tom Cruise red carpet",
+        "Tom Cruise premiere",
+        "Tom Cruise press conference",
+        "Tom Cruise event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "oscar_isaac",
+      "display_name": "Oscar Isaac",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Oscar Isaac",
+      "search_queries": [
+        "Oscar Isaac portrait",
+        "Oscar Isaac interview",
+        "Oscar Isaac red carpet",
+        "Oscar Isaac premiere",
+        "Oscar Isaac press conference",
+        "Oscar Isaac event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "rami_malek",
+      "display_name": "Rami Malek",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Rami Malek",
+      "search_queries": [
+        "Rami Malek portrait",
+        "Rami Malek interview",
+        "Rami Malek red carpet",
+        "Rami Malek premiere",
+        "Rami Malek press conference",
+        "Rami Malek event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "pedro_pascal",
+      "display_name": "Pedro Pascal",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Pedro Pascal",
+      "search_queries": [
+        "Pedro Pascal portrait",
+        "Pedro Pascal interview",
+        "Pedro Pascal red carpet",
+        "Pedro Pascal premiere",
+        "Pedro Pascal press conference",
+        "Pedro Pascal event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "zendaya",
+      "display_name": "Zendaya",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Zendaya",
+      "search_queries": [
+        "Zendaya portrait",
+        "Zendaya interview",
+        "Zendaya red carpet",
+        "Zendaya premiere",
+        "Zendaya press conference",
+        "Zendaya event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "florence_pugh",
+      "display_name": "Florence Pugh",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Florence Pugh",
+      "search_queries": [
+        "Florence Pugh portrait",
+        "Florence Pugh interview",
+        "Florence Pugh red carpet",
+        "Florence Pugh premiere",
+        "Florence Pugh press conference",
+        "Florence Pugh event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "vin_diesel",
+      "display_name": "Vin Diesel",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Vin Diesel",
+      "search_queries": [
+        "Vin Diesel portrait",
+        "Vin Diesel interview",
+        "Vin Diesel red carpet",
+        "Vin Diesel premiere",
+        "Vin Diesel press conference",
+        "Vin Diesel event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "ryan_gosling",
+      "display_name": "Ryan Gosling",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Ryan Gosling",
+      "search_queries": [
+        "Ryan Gosling portrait",
+        "Ryan Gosling interview",
+        "Ryan Gosling red carpet",
+        "Ryan Gosling premiere",
+        "Ryan Gosling press conference",
+        "Ryan Gosling event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "matthew_mcconaughey",
+      "display_name": "Matthew McConaughey",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Matthew McConaughey",
+      "search_queries": [
+        "Matthew McConaughey portrait",
+        "Matthew McConaughey interview",
+        "Matthew McConaughey red carpet",
+        "Matthew McConaughey premiere",
+        "Matthew McConaughey press conference",
+        "Matthew McConaughey event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "ian_mckellen",
+      "display_name": "Ian McKellen",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Ian McKellen",
+      "search_queries": [
+        "Ian McKellen portrait",
+        "Ian McKellen interview",
+        "Ian McKellen red carpet",
+        "Ian McKellen premiere",
+        "Ian McKellen press conference",
+        "Ian McKellen event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "harrison_ford",
+      "display_name": "Harrison Ford",
+      "category": "actor",
+      "aliases": [],
+      "wikimedia_category": "Harrison Ford",
+      "search_queries": [
+        "Harrison Ford portrait",
+        "Harrison Ford interview",
+        "Harrison Ford red carpet",
+        "Harrison Ford premiere",
+        "Harrison Ford press conference",
+        "Harrison Ford event"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "serena_williams",
+      "display_name": "Serena Williams",
+      "category": "athlete",
+      "aliases": [],
+      "wikimedia_category": "Serena Williams",
+      "search_queries": [
+        "Serena Williams portrait",
+        "Serena Williams interview",
+        "Serena Williams match",
+        "Serena Williams tournament",
+        "Serena Williams celebration",
+        "Serena Williams press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "lebron_james",
+      "display_name": "LeBron James",
+      "category": "athlete",
+      "aliases": ["LeBron"],
+      "wikimedia_category": "LeBron James",
+      "search_queries": [
+        "LeBron James portrait",
+        "LeBron James interview",
+        "LeBron James game",
+        "LeBron James training",
+        "LeBron James celebration",
+        "LeBron James press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "marcus_rashford",
+      "display_name": "Marcus Rashford",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Marcus Rashford",
+      "search_queries": [
+        "Marcus Rashford portrait",
+        "Marcus Rashford interview",
+        "Marcus Rashford match",
+        "Marcus Rashford training",
+        "Marcus Rashford celebration",
+        "Marcus Rashford press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "bukayo_saka",
+      "display_name": "Bukayo Saka",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Bukayo Saka",
+      "search_queries": [
+        "Bukayo Saka portrait",
+        "Bukayo Saka interview",
+        "Bukayo Saka match",
+        "Bukayo Saka training",
+        "Bukayo Saka celebration",
+        "Bukayo Saka press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "phil_foden",
+      "display_name": "Phil Foden",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Phil Foden",
+      "search_queries": [
+        "Phil Foden portrait",
+        "Phil Foden interview",
+        "Phil Foden match",
+        "Phil Foden training",
+        "Phil Foden celebration",
+        "Phil Foden press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "bernardo_silva",
+      "display_name": "Bernardo Silva",
+      "category": "football_player",
+      "aliases": [],
+      "wikimedia_category": "Bernardo Silva",
+      "search_queries": [
+        "Bernardo Silva portrait",
+        "Bernardo Silva interview",
+        "Bernardo Silva match",
+        "Bernardo Silva training",
+        "Bernardo Silva celebration",
+        "Bernardo Silva press conference"
+      ],
+      "dataset_status": "new"
+    },
+    {
+      "person_id": "alisson_becker",
+      "display_name": "Alisson Becker",
+      "category": "football_player",
+      "aliases": ["Alisson"],
+      "wikimedia_category": "Alisson Becker",
+      "search_queries": [
+        "Alisson Becker portrait",
+        "Alisson Becker interview",
+        "Alisson Becker match",
+        "Alisson Becker training",
+        "Alisson Becker celebration",
+        "Alisson Becker press conference"
+      ],
+      "dataset_status": "new"
+    }
+  ]
+}
