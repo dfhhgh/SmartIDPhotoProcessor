@@ -4,9 +4,9 @@ import cv2
 import numpy as np
 import pytest
 
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.blur_validator import BlurValidator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.blur_validator import BlurValidator
 
 
 def _create_sharp_grayscale_image() -> np.ndarray:

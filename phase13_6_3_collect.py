@@ -65,7 +65,7 @@ def run_collection(persons: list, output_dir: Path) -> dict[str, Any]:
     try:
         import sys
         sys.path.insert(0, ".")
-        from services.face_service import FaceService
+        from smartidphotoprocessor.services.face_service import FaceService
         face_service = FaceService()
         logger.info("FaceService loaded for face validation.")
     except Exception as exc:
@@ -144,7 +144,7 @@ def run_split_and_copy(
 
 def run_faiss_build(ref_dir: Path, index_dir: Path) -> dict[str, Any]:
     """Build FAISS index from reference images."""
-    from search.index_builder import IndexBuilder
+    from smartidphotoprocessor.search.index_builder import IndexBuilder
 
     logger.info("=" * 60)
     logger.info("FAISS Index Build")
@@ -184,7 +184,7 @@ def run_retrieval_evaluation(
     import sys
     sys.path.insert(0, ".")
 
-    from search.reverse_search_service import ReverseSearchService
+    from smartidphotoprocessor.search.reverse_search_service import ReverseSearchService
 
     logger.info("=" * 60)
     logger.info("Retrieval Evaluation")
@@ -196,7 +196,7 @@ def run_retrieval_evaluation(
     )
 
     # Load query images and extract embeddings
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     face_service = FaceService()
     model = face_service.get_model()
 
@@ -302,10 +302,10 @@ def run_calibration(
     import sys
     sys.path.insert(0, ".")
 
-    from search.reverse_search_service import ReverseSearchService
-    from search.calibration.pair_generator import PairGenerator
-    from search.calibration.similarity_evaluator import SimilarityEvaluator
-    from search.calibration.threshold_evaluator import ThresholdEvaluator
+    from smartidphotoprocessor.search.reverse_search_service import ReverseSearchService
+    from smartidphotoprocessor.search.calibration.pair_generator import PairGenerator
+    from smartidphotoprocessor.search.calibration.similarity_evaluator import SimilarityEvaluator
+    from smartidphotoprocessor.search.calibration.threshold_evaluator import ThresholdEvaluator
 
     logger.info("=" * 60)
     logger.info("Calibration: Genuine/Impostor + ROC-AUC + EER")
@@ -316,7 +316,7 @@ def run_calibration(
         metadata_path=str(metadata_path),
     )
 
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     face_service = FaceService()
     model = face_service.get_model()
 
@@ -427,7 +427,7 @@ def run_hard_negatives(
     import sys
     sys.path.insert(0, ".")
 
-    from search.reverse_search_service import ReverseSearchService
+    from smartidphotoprocessor.search.reverse_search_service import ReverseSearchService
 
     logger.info("=" * 60)
     logger.info("Hard Negative Analysis")
@@ -438,7 +438,7 @@ def run_hard_negatives(
         metadata_path=str(metadata_path),
     )
 
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     face_service = FaceService()
     model = face_service.get_model()
 

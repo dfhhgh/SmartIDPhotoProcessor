@@ -15,12 +15,12 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from config.parser_mode import ParserMode
-from services.face_parser_service import FaceParserService, EyeBrowRefinementService
-from pipeline.photo_validation_pipeline import PhotoValidationPipeline
-from pipeline.validation_orchestrator import ValidationOrchestrator
-from models.parsing.face_parsing_result import FaceParsingResult
-from models.parsing.face_part import FacePart
+from smartidphotoprocessor.config.parser_mode import ParserMode
+from smartidphotoprocessor.services.face_parser_service import FaceParserService, EyeBrowRefinementService
+from smartidphotoprocessor.pipeline.photo_validation_pipeline import PhotoValidationPipeline
+from smartidphotoprocessor.pipeline.validation_orchestrator import ValidationOrchestrator
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.parsing.face_part import FacePart
 
 IMAGES_DIR = ROOT / "dataset_builder" / "dataset" / "parser_finetune_current" / "images"
 

@@ -27,13 +27,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import cv2
 import numpy as np
 
-from config.parser_mode import ParserMode
-from models.parsing.face_part import FacePart
-from models.validation_type import ValidationType
-from pipeline.photo_validation_pipeline import PhotoValidationPipeline
-from pipeline.validation_orchestrator import ValidationOrchestrator
-from services.face_parser_service import FaceParserService
-from reasoning.semantic_engine import SemanticEvidenceEngine
+from smartidphotoprocessor.config.parser_mode import ParserMode
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.pipeline.photo_validation_pipeline import PhotoValidationPipeline
+from smartidphotoprocessor.pipeline.validation_orchestrator import ValidationOrchestrator
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.reasoning.semantic_engine import SemanticEvidenceEngine
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 

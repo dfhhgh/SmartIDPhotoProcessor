@@ -22,8 +22,8 @@ import cv2
 import numpy as np
 import pytest
 
-from search.flat_index import FlatIndex
-from search.index_builder import BuildReport, IndexBuilder, MetadataRecord
+from smartidphotoprocessor.search.flat_index import FlatIndex
+from smartidphotoprocessor.search.index_builder import BuildReport, IndexBuilder, MetadataRecord
 
 
 # ---------------------------------------------------------------------------

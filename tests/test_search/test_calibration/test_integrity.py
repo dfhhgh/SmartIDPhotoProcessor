@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from search.flat_index import FlatIndex
+from smartidphotoprocessor.search.flat_index import FlatIndex
 
 
 # ---------------------------------------------------------------------------

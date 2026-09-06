@@ -110,7 +110,7 @@ _detector_singleton = None
 def get_detector():
     global _detector_singleton
     if _detector_singleton is None:
-        from pipeline.detector import FaceDetector
+        from smartidphotoprocessor.pipeline.detector import FaceDetector
         _detector_singleton = FaceDetector()
     return _detector_singleton
 

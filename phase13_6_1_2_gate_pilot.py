@@ -29,7 +29,7 @@ REVIEW_DIR = ROOT / "outputs" / "phase13_6_1_2_gate_pilot"
 
 
 def main() -> int:
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     from dataset_acquisition.models import Person, CollectionStats, RejectionDetail, compute_stats_from_records
     from dataset_acquisition.sources.wikimedia import WikimediaSource
     from dataset_acquisition.downloader import Downloader

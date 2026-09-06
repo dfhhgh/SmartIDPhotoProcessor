@@ -185,7 +185,7 @@ def build_faiss_index() -> dict:
             "metadata_path": str(metadata_path),
         }
 
-    from search.index_builder import IndexBuilder
+    from smartidphotoprocessor.search.index_builder import IndexBuilder
     ref_dir = V4_DATASET / "reference"
     index_dir.mkdir(parents=True, exist_ok=True)
 
@@ -439,7 +439,7 @@ def run_comparison(v3_path: str, v4_cal: dict) -> dict:
 def _load_face_service():
     import sys
     sys.path.insert(0, ".")
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     return FaceService()
 
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from models.validation_type import ValidationType
+from smartidphotoprocessor.models.validation_type import ValidationType
 
 
 @dataclass(frozen=True, slots=True)

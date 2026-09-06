@@ -1,10 +1,10 @@
-from pipeline.selector import FaceSelector
+from smartidphotoprocessor.pipeline.selector import FaceSelector
 
 from tests.factories import create_face
 import pytest
 
-from exceptions.face_exceptions import FaceSelectionError
-from models.selection_result import SelectionResult
+from smartidphotoprocessor.exceptions.face_exceptions import FaceSelectionError
+from smartidphotoprocessor.models.selection_result import SelectionResult
 
 
 def test_select_returns_single_face_when_only_one_face_exists():

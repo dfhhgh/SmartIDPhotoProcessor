@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 import pytest
 
-from config.constants import ALIGNED_FACE_SIZE, ARCFACE_TEMPLATE
+from smartidphotoprocessor.config.constants import ALIGNED_FACE_SIZE, ARCFACE_TEMPLATE
 from insightface.app.common import Face
-from models.alignment_result import AlignmentResult
-from pipeline.aligner import FaceAligner
-from exceptions.face_exceptions import FaceAlignmentError
+from smartidphotoprocessor.models.alignment_result import AlignmentResult
+from smartidphotoprocessor.pipeline.aligner import FaceAligner
+from smartidphotoprocessor.exceptions.face_exceptions import FaceAlignmentError
 from unittest.mock import MagicMock, patch
 @pytest.fixture
 def aligner():
@@ -228,7 +228,7 @@ def test_compute_similarity_transform_success(
     )
 
     with patch(
-        "pipeline.aligner.cv2.estimateAffinePartial2D",
+        "smartidphotoprocessor.pipeline.aligner.cv2.estimateAffinePartial2D",
         return_value=(expected_transform, None),
     ) as mock_estimate:
 
@@ -344,7 +344,7 @@ def test_compute_similarity_transform_transform_none(
     )
 
     with patch(
-        "pipeline.aligner.cv2.estimateAffinePartial2D",
+        "smartidphotoprocessor.pipeline.aligner.cv2.estimateAffinePartial2D",
         return_value=(None, None),
     ):
         with pytest.raises(
@@ -376,7 +376,7 @@ def test_compute_similarity_transform_invalid_transform_shape(
     )
 
     with patch(
-        "pipeline.aligner.cv2.estimateAffinePartial2D",
+        "smartidphotoprocessor.pipeline.aligner.cv2.estimateAffinePartial2D",
         return_value=(invalid_transform, None),
     ):
         with pytest.raises(
@@ -415,7 +415,7 @@ def test_apply_transform_success(
     )
 
     with patch(
-        "pipeline.aligner.cv2.warpAffine",
+        "smartidphotoprocessor.pipeline.aligner.cv2.warpAffine",
         return_value=expected_image,
     ) as mock_warp:
 
@@ -491,7 +491,7 @@ def test_apply_transform_aligned_image_none(
     )
 
     with patch(
-        "pipeline.aligner.cv2.warpAffine",
+        "smartidphotoprocessor.pipeline.aligner.cv2.warpAffine",
         return_value=None,
     ):
         with pytest.raises(
@@ -521,7 +521,7 @@ def test_apply_transform_invalid_aligned_image_type(
     )
 
     with patch(
-        "pipeline.aligner.cv2.warpAffine",
+        "smartidphotoprocessor.pipeline.aligner.cv2.warpAffine",
         return_value="invalid",
     ):
         with pytest.raises(
@@ -557,7 +557,7 @@ def test_apply_transform_empty_aligned_image(
     )
 
     with patch(
-        "pipeline.aligner.cv2.warpAffine",
+        "smartidphotoprocessor.pipeline.aligner.cv2.warpAffine",
         return_value=empty_image,
     ):
         with pytest.raises(
@@ -587,7 +587,7 @@ def test_apply_transform_warp_affine_error(
     )
 
     with patch(
-        "pipeline.aligner.cv2.warpAffine",
+        "smartidphotoprocessor.pipeline.aligner.cv2.warpAffine",
         side_effect=cv2.error("OpenCV error"),
     ):
         with pytest.raises(

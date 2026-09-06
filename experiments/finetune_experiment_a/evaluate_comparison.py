@@ -13,9 +13,9 @@ import torch
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from models.parsing.face_part import FacePart
-from services.face_parser_service import FaceParserService
-from services.fine_tuned_face_parser_service import FineTunedFaceParserService
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.services.fine_tuned_face_parser_service import FineTunedFaceParserService
 from experiments.parser_reproduction.bisenet_model import BiSeNet
 from experiments.parser_reproduction.weight_mapping import load_onnx_to_pytorch
 from dataset_builder.dataset.parser_finetune.training.metrics import SegmentationMetrics

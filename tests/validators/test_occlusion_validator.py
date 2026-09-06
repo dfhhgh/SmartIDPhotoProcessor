@@ -5,10 +5,10 @@ Unit tests for OcclusionValidator.
 import numpy as np
 import pytest
 
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from models.validation_type import ValidationType
-from validators.occlusion_validator import OcclusionValidator
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.occlusion_validator import OcclusionValidator
 
 
 # ----------------------------------------------------------------------

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Deduplication + Replacement Collection for parser_finetune_current.
 
 Usage:
@@ -488,7 +488,7 @@ def run_replacement():
                                 continue
                             # Face filter
                             try:
-                                from pipeline.detector import FaceDetector
+                                from smartidphotoprocessor.pipeline.detector import FaceDetector
                                 detector = FaceDetector()
                                 import cv2
                                 img = cv2.imread(str(local_path))

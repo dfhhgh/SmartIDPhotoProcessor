@@ -17,9 +17,9 @@ from typing import Any
 import cv2
 import numpy as np
 
-from models.parsing.face_part import FacePart
-from services.face_parser_service import FaceParserService
-from services.fine_tuned_face_parser_service import FineTunedFaceParserService
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.services.fine_tuned_face_parser_service import FineTunedFaceParserService
 
 SUPPORTED_EXTENSIONS = {".bmp", ".jpeg", ".jpg", ".png", ".webp"}
 VALID_SPLITS = {"train", "val", "test", "all"}

@@ -20,7 +20,7 @@ REVIEW_DIR = ROOT / "outputs" / "phase13_6_1_review"
 
 
 def main() -> int:
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     from dataset_acquisition.models import Person, CollectionStats
     from dataset_acquisition.sources.wikimedia import WikimediaSource
     from dataset_acquisition.downloader import Downloader

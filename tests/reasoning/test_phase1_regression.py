@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 import types
 
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from reasoning.semantic_engine import SemanticEvidenceEngine, SemanticEvidence
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.reasoning.semantic_engine import SemanticEvidenceEngine, SemanticEvidence
 
 
 def _make_parsing_result(parts: dict[FacePart, int], height: int = 100, width: int = 100) -> FaceParsingResult:

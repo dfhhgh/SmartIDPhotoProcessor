@@ -1,0 +1,16 @@
+# requirements-prod.txt
+# Production-only dependencies for SmartIDPhotoProcessor
+# Install: pip install -r requirements-prod.txt
+
+# Core ML
+insightface
+onnxruntime
+opencv-python
+numpy
+scipy
+
+# PyTorch (CPU-only for production; use requirements-gpu.txt for CUDA)
+torch
+
+# Optional: Reverse Search (enable via REVERSE_SEARCH_ENABLED=True)
+# faiss-cpu

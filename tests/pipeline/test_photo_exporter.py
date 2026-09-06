@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     MAX_ALLOWED_UPSCALE,
     OUTPUT_HEIGHT,
     OUTPUT_WIDTH,
     SAFE_UPSCALE_FACTOR,
 )
-from pipeline.photo_exporter import PhotoExporter
+from smartidphotoprocessor.pipeline.photo_exporter import PhotoExporter
 
 
 @pytest.fixture

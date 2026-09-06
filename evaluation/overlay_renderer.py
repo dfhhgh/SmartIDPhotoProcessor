@@ -8,8 +8,8 @@ import cv2
 import numpy as np
 from insightface.app.common import Face
 
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
 
 
 # Distinct BGR color palette for CelebAMask-HQ 19 classes

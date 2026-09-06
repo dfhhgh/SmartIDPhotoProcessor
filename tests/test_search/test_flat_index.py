@@ -16,8 +16,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from search.embedding_validator import EmbeddingError
-from search.flat_index import FlatIndex, SearchResult
+from smartidphotoprocessor.search.embedding_validator import EmbeddingError
+from smartidphotoprocessor.search.flat_index import FlatIndex, SearchResult
 
 
 # ---------------------------------------------------------------------------

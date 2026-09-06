@@ -25,10 +25,10 @@ import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score
 
-from search.calibration.calibration_report import CalibrationReporter, CalibrationSummary
-from search.calibration.pair_generator import PairGenerator, PairSample
-from search.calibration.similarity_evaluator import SimilarityEvaluator
-from search.calibration.threshold_evaluator import (
+from smartidphotoprocessor.search.calibration.calibration_report import CalibrationReporter, CalibrationSummary
+from smartidphotoprocessor.search.calibration.pair_generator import PairGenerator, PairSample
+from smartidphotoprocessor.search.calibration.similarity_evaluator import SimilarityEvaluator
+from smartidphotoprocessor.search.calibration.threshold_evaluator import (
     EERResult,
     ROCAUCResult,
     ThresholdEvaluator,

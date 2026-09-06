@@ -21,11 +21,11 @@ from evaluation.statistics import StatisticsAggregator
 from evaluation.summary import SummaryGenerator
 from evaluation.visualization import Visualization
 from evaluation.root_cause import RootCauseAnalyzer
-from models.parsing.face_part import FacePart
-from models.validation_type import ValidationType
-from pipeline.photo_validation_pipeline import PhotoValidationPipeline
-from reasoning.semantic_engine import SemanticEvidenceEngine
-from config.constants import (
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.pipeline.photo_validation_pipeline import PhotoValidationPipeline
+from smartidphotoprocessor.reasoning.semantic_engine import SemanticEvidenceEngine
+from smartidphotoprocessor.config.constants import (
     FACE_VISIBILITY_REQUIRED_PART_THRESHOLDS,
     FACE_VISIBILITY_EYEBROW_THRESHOLDS,
 )
@@ -125,7 +125,7 @@ class Evaluator:
             )
 
         # Re-parse aligned image (unavoidable — production does not expose FaceParsingResult)
-        from services.face_parser_service import FaceParserService
+        from smartidphotoprocessor.services.face_parser_service import FaceParserService
         parser_service = FaceParserService()
         target_eval_image = processing_result.aligned_image if processing_result.aligned_image is not None else image
         parsing_result = parser_service.parse(target_eval_image)
@@ -227,7 +227,7 @@ class Evaluator:
 
 if __name__ == "__main__":
     import argparse
-    from config.parser_mode import ParserMode
+    from smartidphotoprocessor.config.parser_mode import ParserMode
 
     ap = argparse.ArgumentParser(description="Run production pipeline evaluation")
     ap.add_argument("--image-dir", required=True, help="Directory of images to evaluate")

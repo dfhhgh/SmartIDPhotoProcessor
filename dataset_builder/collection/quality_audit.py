@@ -647,7 +647,7 @@ class QualityAudit:
     def _detect_faces(self) -> None:
         """Run face detection on all readable images."""
         try:
-            from pipeline.detector import FaceDetector
+            from smartidphotoprocessor.pipeline.detector import FaceDetector
             detector = FaceDetector()
         except ImportError:
             print("  FaceDetector not available — skipping face detection.")

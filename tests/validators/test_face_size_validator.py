@@ -3,14 +3,14 @@
 import numpy as np
 import pytest
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     FACE_SIZE_IDEAL_RATIO,
     FACE_SIZE_MAX_RATIO,
     FACE_SIZE_MIN_RATIO,
 )
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.face_size_validator import FaceSizeValidator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.face_size_validator import FaceSizeValidator
 
 _FACE_SIZE_HALF_RANGE = (
     FACE_SIZE_MAX_RATIO - FACE_SIZE_MIN_RATIO

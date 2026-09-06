@@ -17,15 +17,15 @@ import numpy as np
 import pytest
 import torch
 
-from config.parser_mode import ParserMode
+from smartidphotoprocessor.config.parser_mode import ParserMode
 from dataset_builder.dataset.parser_finetune_current.training_aux_eye_brow_phase1.auxiliary_head import (
     EyeBrowRefinementHead,
 )
 from experiments.parser_reproduction.bisenet_model import BiSeNet
 from experiments.parser_reproduction.weight_mapping import load_onnx_to_pytorch
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from services.face_parser_service import (
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.services.face_parser_service import (
     EyeBrowRefinementFusion,
     FaceParserService,
 )
@@ -297,7 +297,7 @@ class TestFusedModeRejectsCPU:
     """Verify FUSED mode requires CUDA and rejects CPU."""
 
     def test_fused_service_rejects_cpu_device(self):
-        from services.face_parser_service import EyeBrowRefinementService
+        from smartidphotoprocessor.services.face_parser_service import EyeBrowRefinementService
 
         service = EyeBrowRefinementService(
             onnx_model_path=ONNX_PATH,

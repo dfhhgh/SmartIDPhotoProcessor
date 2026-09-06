@@ -345,7 +345,7 @@ class DatasetPreparation:
     def _get_detector(self):
         """Return a shared FaceDetector instance, initializing once."""
         if self._detector is None:
-            from pipeline.detector import FaceDetector
+            from smartidphotoprocessor.pipeline.detector import FaceDetector
             self._detector = FaceDetector()
         return self._detector
 
@@ -585,7 +585,7 @@ class DatasetPreparation:
                 continue
 
             try:
-                from pipeline.selector import FaceSelector
+                from smartidphotoprocessor.pipeline.selector import FaceSelector
 
                 faces = detector.detect(img)
 

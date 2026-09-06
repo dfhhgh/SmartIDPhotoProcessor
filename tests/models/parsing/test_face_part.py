@@ -4,7 +4,7 @@ from enum import IntEnum
 
 import pytest
 
-from models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_part import FacePart
 
 
 # ------------------------------------------------------------------

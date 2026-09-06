@@ -30,16 +30,16 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from config.parser_mode import ParserMode
-from config.settings import Settings
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from pipeline.aligner import FaceAligner
-from pipeline.cropper import FaceCropper
-from pipeline.detector import FaceDetector
-from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
-from pipeline.selector import FaceSelector
-from services.face_parser_service import FaceParserService
+from smartidphotoprocessor.config.parser_mode import ParserMode
+from smartidphotoprocessor.config.settings import Settings
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.pipeline.aligner import FaceAligner
+from smartidphotoprocessor.pipeline.cropper import FaceCropper
+from smartidphotoprocessor.pipeline.detector import FaceDetector
+from smartidphotoprocessor.pipeline.face_coordinate_transformer import FaceCoordinateTransformer
+from smartidphotoprocessor.pipeline.selector import FaceSelector
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

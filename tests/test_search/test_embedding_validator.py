@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from search.embedding_validator import EmbeddingError, EmbeddingValidator
+from smartidphotoprocessor.search.embedding_validator import EmbeddingError, EmbeddingValidator
 
 
 # ---------------------------------------------------------------------------

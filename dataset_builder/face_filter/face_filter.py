@@ -32,7 +32,7 @@ import numpy as np
 from dataset_builder.config.settings import Settings
 
 # Reuse the production face detector directly.
-from pipeline.detector import FaceDetector
+from smartidphotoprocessor.pipeline.detector import FaceDetector
 
 
 # ------------------------------------------------------------------

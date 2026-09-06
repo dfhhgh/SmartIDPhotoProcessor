@@ -8,10 +8,10 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from models.ranked_face import RankedFace
-from models.selection_result import SelectionResult
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
+from smartidphotoprocessor.models.ranked_face import RankedFace
+from smartidphotoprocessor.models.selection_result import SelectionResult
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
 from scripts.run_pipeline import collect_image_paths, process_image
 from tests.factories import create_face
 

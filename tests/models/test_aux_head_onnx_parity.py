@@ -22,9 +22,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config.parser_mode import ParserMode
-from models.parsing.face_part import FacePart
-from services.face_parser_service import (
+from smartidphotoprocessor.config.parser_mode import ParserMode
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.services.face_parser_service import (
     EyeBrowRefinementFusion,
     FaceParserService,
 )

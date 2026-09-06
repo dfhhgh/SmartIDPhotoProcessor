@@ -3,13 +3,13 @@
 import numpy as np
 import pytest
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     BRIGHTNESS_MAX_THRESHOLD,
     BRIGHTNESS_MIN_THRESHOLD,
 )
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.brightness_validator import BrightnessValidator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.brightness_validator import BrightnessValidator
 
 _BRIGHTNESS_MIDPOINT = (
     BRIGHTNESS_MIN_THRESHOLD + BRIGHTNESS_MAX_THRESHOLD

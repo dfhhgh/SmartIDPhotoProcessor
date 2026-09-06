@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 import torch
 
-from models.parsing.face_parsing_result import FaceParsingResult
-from services.fine_tuned_face_parser_service import FineTunedFaceParserService
-from models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.services.fine_tuned_face_parser_service import FineTunedFaceParserService
+from smartidphotoprocessor.models.parsing.face_part import FacePart
 
 
 class TestFineTunedFaceParserIntegration:

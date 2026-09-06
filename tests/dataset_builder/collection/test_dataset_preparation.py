@@ -504,7 +504,7 @@ class TestFaceDetectorReuse:
         )
 
         mock_detector = MagicMock()
-        with patch("pipeline.detector.FaceDetector", return_value=mock_detector) as MockFD:
+        with patch("smartidphotoprocessor.pipeline.detector.FaceDetector", return_value=mock_detector) as MockFD:
             d1 = pipeline._get_detector()
             d2 = pipeline._get_detector()
             d3 = pipeline._get_detector()
@@ -521,7 +521,7 @@ class TestFaceDetectorReuse:
         )
 
         mock_detector = MagicMock()
-        with patch("pipeline.detector.FaceDetector", return_value=mock_detector):
+        with patch("smartidphotoprocessor.pipeline.detector.FaceDetector", return_value=mock_detector):
             d1 = pipeline._get_detector()
             d2 = pipeline._get_detector()
 

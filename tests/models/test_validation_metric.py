@@ -2,8 +2,8 @@
 
 import pytest
 
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
 
 
 def test_create_validation_metric_success():

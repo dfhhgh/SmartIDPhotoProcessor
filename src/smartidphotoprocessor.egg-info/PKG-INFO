@@ -1,0 +1,32 @@
+Metadata-Version: 2.4
+Name: smartidphotoprocessor
+Version: 0.1.0
+Summary: AI-powered photo validation and processing service
+License: MIT
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: insightface
+Requires-Dist: onnxruntime
+Requires-Dist: opencv-python
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: torch
+Provides-Extra: reverse-search
+Requires-Dist: faiss-cpu; extra == "reverse-search"
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-cov; extra == "test"
+Requires-Dist: pytest-mock; extra == "test"
+Requires-Dist: onnx; extra == "test"
+Requires-Dist: Pillow; extra == "test"
+Requires-Dist: imagehash; extra == "test"
+Requires-Dist: requests; extra == "test"
+Requires-Dist: scikit-learn; extra == "test"
+Provides-Extra: research
+Requires-Dist: requests; extra == "research"
+Requires-Dist: python-dotenv; extra == "research"
+Requires-Dist: Pillow; extra == "research"
+Requires-Dist: imagehash; extra == "research"
+Requires-Dist: scikit-learn; extra == "research"
+Requires-Dist: matplotlib; extra == "research"
+Requires-Dist: onnx; extra == "research"

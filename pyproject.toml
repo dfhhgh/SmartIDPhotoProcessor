@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smartidphotoprocessor"
+version = "0.1.0"
+description = "AI-powered photo validation and processing service"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.12"
+
+# Production dependencies — authoritative source: requirements-prod.txt
+dependencies = [
+    "insightface",
+    "onnxruntime",
+    "opencv-python",
+    "numpy",
+    "scipy",
+    "torch",
+]
+
+[project.optional-dependencies]
+# Optional: Reverse Search support
+reverse-search = [
+    "faiss-cpu",
+]
+
+# Test dependencies — authoritative source: requirements-test.txt
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "onnx",
+    "Pillow",
+    "imagehash",
+    "requests",
+    "scikit-learn",
+]
+
+# Research dependencies — authoritative source: requirements-research.txt
+research = [
+    "requests",
+    "python-dotenv",
+    "Pillow",
+    "imagehash",
+    "scikit-learn",
+    "matplotlib",
+    "onnx",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from services.face_parser_service import (
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.services.face_parser_service import (
     FaceParserError,
     FaceParserService,
 )
@@ -58,7 +58,7 @@ def settings_factory(tmp_path):
 def service(settings_factory) -> FaceParserService:
     """A FaceParserService constructed against a valid, existing model file."""
     with patch(
-        "services.face_parser_service.Settings",
+        "smartidphotoprocessor.services.face_parser_service.Settings",
         return_value=settings_factory(),
     ):
         return FaceParserService()
@@ -68,7 +68,7 @@ def service(settings_factory) -> FaceParserService:
 def service_with_missing_model(settings_factory) -> FaceParserService:
     """A FaceParserService whose configured model file does not exist on disk."""
     with patch(
-        "services.face_parser_service.Settings",
+        "smartidphotoprocessor.services.face_parser_service.Settings",
         return_value=settings_factory(model_exists=False),
     ):
         return FaceParserService()
@@ -107,7 +107,7 @@ class TestSingleton:
         """Two calls to FaceParserService() must return the identical object."""
         # Arrange
         with patch(
-            "services.face_parser_service.Settings",
+            "smartidphotoprocessor.services.face_parser_service.Settings",
             return_value=settings_factory(),
         ):
             # Act
@@ -124,7 +124,7 @@ class TestSingleton:
         still hold after subsequent, no-op constructions."""
         # Arrange
         with patch(
-            "services.face_parser_service.Settings",
+            "smartidphotoprocessor.services.face_parser_service.Settings",
             return_value=settings_factory(use_gpu=True, gpu_id=5),
         ):
             FaceParserService()
@@ -132,7 +132,7 @@ class TestSingleton:
 
         # Act
         with patch(
-            "services.face_parser_service.ort.get_available_providers",
+            "smartidphotoprocessor.services.face_parser_service.ort.get_available_providers",
             return_value=["CUDAExecutionProvider", "CPUExecutionProvider"],
         ):
             providers = second._resolve_providers()
@@ -163,7 +163,7 @@ class TestLazyLoading:
         """First access must create and return a real inference session."""
         # Arrange
         with patch(
-            "services.face_parser_service.ort.InferenceSession",
+            "smartidphotoprocessor.services.face_parser_service.ort.InferenceSession",
             return_value=fake_onnx_session,
         ) as mock_ctor:
             # Act
@@ -179,7 +179,7 @@ class TestLazyLoading:
         """Repeated access must not create additional inference sessions."""
         # Arrange
         with patch(
-            "services.face_parser_service.ort.InferenceSession",
+            "smartidphotoprocessor.services.face_parser_service.ort.InferenceSession",
             return_value=fake_onnx_session,
         ) as mock_ctor:
             # Act
@@ -202,7 +202,7 @@ class TestLazyLoading:
         """Any failure while constructing the ONNX session must be wrapped."""
         # Arrange
         with patch(
-            "services.face_parser_service.ort.InferenceSession",
+            "smartidphotoprocessor.services.face_parser_service.ort.InferenceSession",
             side_effect=RuntimeError("corrupt model file"),
         ):
             # Act & Assert
@@ -267,7 +267,7 @@ class TestResolveProviders:
         service._use_gpu = use_gpu
 
         with patch(
-            "services.face_parser_service.ort.get_available_providers",
+            "smartidphotoprocessor.services.face_parser_service.ort.get_available_providers",
             return_value=available_providers,
         ):
             # Act
@@ -284,7 +284,7 @@ class TestResolveProviders:
         service._gpu_id = gpu_id
 
         with patch(
-            "services.face_parser_service.ort.get_available_providers",
+            "smartidphotoprocessor.services.face_parser_service.ort.get_available_providers",
             return_value=["CUDAExecutionProvider", "CPUExecutionProvider"],
         ):
             # Act
@@ -305,7 +305,7 @@ class TestResolveProviders:
         service._gpu_id = 0
 
         with patch(
-            "services.face_parser_service.ort.get_available_providers",
+            "smartidphotoprocessor.services.face_parser_service.ort.get_available_providers",
             return_value=["CPUExecutionProvider", "CUDAExecutionProvider"],
         ):
             # Act
@@ -324,7 +324,7 @@ class TestResolveProviders:
         service._gpu_id = 3
 
         with patch(
-            "services.face_parser_service.ort.get_available_providers",
+            "smartidphotoprocessor.services.face_parser_service.ort.get_available_providers",
             return_value=[
                 "TensorrtExecutionProvider",
                 "CUDAExecutionProvider",

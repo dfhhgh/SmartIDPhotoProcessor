@@ -10,9 +10,9 @@ import types
 
 from insightface.app.common import Face
 
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from reasoning.semantic_engine import SemanticEvidenceEngine
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.reasoning.semantic_engine import SemanticEvidenceEngine
 
 
 def _make_parsing_result(parts: dict[FacePart, int], height: int = 10, width: int = 10) -> FaceParsingResult:

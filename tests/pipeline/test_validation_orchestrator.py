@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from models.validation_metric import ValidationMetric
-from models.validation_result import ValidationResult
-from models.validation_stage import ValidationStage
-from models.validation_type import ValidationType
-from pipeline.validation_orchestrator import ValidationOrchestrator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_result import ValidationResult
+from smartidphotoprocessor.models.validation_stage import ValidationStage
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.pipeline.validation_orchestrator import ValidationOrchestrator
 
 
 def _metric(
@@ -75,7 +75,7 @@ def test_validation_orchestrator_short_circuits_on_stage1_failure():
     v7.stage = ValidationStage.PARSING
     v7.validate.return_value = _metric(ValidationType.OCCLUSION)
 
-    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2, v3, v4, v5, v6, v7)):
+    with patch("smartidphotoprocessor.pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2, v3, v4, v5, v6, v7)):
         orchestrator = ValidationOrchestrator(parser_service=mock_parser)
         result = orchestrator.validate(image=np.zeros((10, 10, 3), dtype=np.uint8))
 
@@ -98,11 +98,11 @@ def test_orchestrator_routes_crop_data_to_face_size_validator():
     v2 = MagicMock(spec=["stage", "validate"])
     v2.stage = ValidationStage.CHEAP
     # Make it pass isinstance check for FaceSizeValidator
-    from validators.face_size_validator import FaceSizeValidator
+    from smartidphotoprocessor.validators.face_size_validator import FaceSizeValidator
     v2.__class__ = FaceSizeValidator
     v2.validate.return_value = _metric(ValidationType.FACE_SIZE)
 
-    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2)):
+    with patch("smartidphotoprocessor.pipeline.validation_orchestrator.create_default_validators", return_value=(v1, v2)):
         orchestrator = ValidationOrchestrator(parser_service=mock_parser)
         result = orchestrator.validate(
             image=img,
@@ -127,7 +127,7 @@ def test_orchestrator_does_not_pass_crop_to_non_face_size_validators():
     v1.stage = ValidationStage.CHEAP
     v1.validate.return_value = _metric(ValidationType.BLUR)
 
-    with patch("pipeline.validation_orchestrator.create_default_validators", return_value=(v1,)):
+    with patch("smartidphotoprocessor.pipeline.validation_orchestrator.create_default_validators", return_value=(v1,)):
         orchestrator = ValidationOrchestrator(parser_service=mock_parser)
         result = orchestrator.validate(
             image=img,

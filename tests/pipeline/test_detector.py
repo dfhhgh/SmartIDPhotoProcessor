@@ -3,8 +3,8 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 
-from pipeline.detector import FaceDetector
-from exceptions.face_exceptions import FaceDetectionError
+from smartidphotoprocessor.pipeline.detector import FaceDetector
+from smartidphotoprocessor.exceptions.face_exceptions import FaceDetectionError
 
 @pytest.fixture
 def detector():
@@ -15,7 +15,7 @@ def detector():
     mock_model = MagicMock()
 
     with patch(
-        "pipeline.detector.FaceService.get_model",
+        "smartidphotoprocessor.pipeline.detector.FaceService.get_model",
         return_value=mock_model,
     ):
         detector = FaceDetector()

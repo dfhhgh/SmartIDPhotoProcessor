@@ -658,7 +658,7 @@ class IncrementalCollector:
         # Face detection
         if self._config.require_face_detection:
             try:
-                from pipeline.detector import FaceDetector
+                from smartidphotoprocessor.pipeline.detector import FaceDetector
 
                 detector = FaceDetector()
                 faces = detector.detect(img)

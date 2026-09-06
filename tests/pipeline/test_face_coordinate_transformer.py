@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from insightface.app.common import Face
 
-from exceptions.face_exceptions import FaceCoordinateTransformationError
-from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
+from smartidphotoprocessor.exceptions.face_exceptions import FaceCoordinateTransformationError
+from smartidphotoprocessor.pipeline.face_coordinate_transformer import FaceCoordinateTransformer
 
 
 @pytest.fixture

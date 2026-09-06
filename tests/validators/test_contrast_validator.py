@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     CONTRAST_MAX_EXPECTED_VALUE,
 )
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.contrast_validator import ContrastValidator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.contrast_validator import ContrastValidator
 
 
 def _create_grayscale_image(

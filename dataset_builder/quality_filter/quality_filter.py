@@ -20,11 +20,11 @@ import numpy as np
 from dataset_builder.config.settings import Settings
 
 # Reuse production validators directly.
-from validators.blur_validator import BlurValidator
-from validators.brightness_validator import BrightnessValidator
-from validators.contrast_validator import ContrastValidator
+from smartidphotoprocessor.validators.blur_validator import BlurValidator
+from smartidphotoprocessor.validators.brightness_validator import BrightnessValidator
+from smartidphotoprocessor.validators.contrast_validator import ContrastValidator
 
-from models.validation_type import ValidationType
+from smartidphotoprocessor.models.validation_type import ValidationType
 
 
 # ------------------------------------------------------------------

@@ -41,7 +41,7 @@ WEAK_IDENTITIES = [
 def _load_face_service():
     import sys
     sys.path.insert(0, ".")
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     return FaceService()
 
 

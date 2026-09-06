@@ -130,9 +130,9 @@ def compute_retrieval_diagnostics(
     try:
         import cv2
         import numpy as np
-        from search.flat_index import FlatIndex
-        from search.reverse_search_service import ReverseSearchService
-        from services.face_service import FaceService
+        from smartidphotoprocessor.search.flat_index import FlatIndex
+        from smartidphotoprocessor.search.reverse_search_service import ReverseSearchService
+        from smartidphotoprocessor.services.face_service import FaceService
     except ImportError as exc:
         logger.warning("Cannot compute retrieval diagnostics: %s", exc)
         return {}
@@ -290,7 +290,7 @@ def main() -> int:
     logger.info("Max images/person: %d", MAX_IMAGES_PER_PERSON)
     logger.info("Dataset: %s", DATASET_DIR)
 
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     from dataset_acquisition.downloader import Downloader
     from dataset_acquisition.models import (
         RejectionDetail, CollectionStats, compute_stats_from_records,
@@ -475,7 +475,7 @@ def main() -> int:
 
     index_metadata = None
     try:
-        from search.index_builder import IndexBuilder
+        from smartidphotoprocessor.search.index_builder import IndexBuilder
         index, build_report = IndexBuilder(dimension=512).build(
             dataset_dir=str(ref_split_dir),
             output_dir=str(index_dir),

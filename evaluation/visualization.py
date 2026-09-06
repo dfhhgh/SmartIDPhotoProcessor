@@ -10,7 +10,7 @@ import numpy as np
 from insightface.app.common import Face
 
 from evaluation.overlay_renderer import OverlayRenderer
-from models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
 
 
 class Visualization:

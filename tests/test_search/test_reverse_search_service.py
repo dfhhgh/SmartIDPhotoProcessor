@@ -23,10 +23,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from search.embedding_validator import EmbeddingError
-from search.flat_index import FlatIndex
-from search.index_builder import IndexBuilder
-from search.reverse_search_service import (
+from smartidphotoprocessor.search.embedding_validator import EmbeddingError
+from smartidphotoprocessor.search.flat_index import FlatIndex
+from smartidphotoprocessor.search.index_builder import IndexBuilder
+from smartidphotoprocessor.search.reverse_search_service import (
     ArtifactError,
     CandidateMatch,
     ReverseSearchResult,

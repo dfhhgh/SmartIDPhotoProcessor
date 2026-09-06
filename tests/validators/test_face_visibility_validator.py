@@ -3,17 +3,17 @@
 import numpy as np
 import pytest
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     FACE_VISIBILITY_COMPOSITE_REGION_COUNT,
     FACE_VISIBILITY_MIN_PART_RATIOS,
     FACE_VISIBILITY_PARTIAL_PENALTY_FACTOR,
     FACE_VISIBILITY_REQUIRED_PARTS,
 )
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.face_visibility_validator import FaceVisibilityValidator
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.face_visibility_validator import FaceVisibilityValidator
 
 _IMAGE_HEIGHT = 100
 _IMAGE_WIDTH = 100

@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from unittest.mock import MagicMock, patch
 
-from pipeline.cropper import FaceCropper
-from exceptions.face_exceptions import FaceCroppingError
-from models.crop_result import CropResult
-from config.constants import TARGET_CROP_ASPECT_RATIO
+from smartidphotoprocessor.pipeline.cropper import FaceCropper
+from smartidphotoprocessor.exceptions.face_exceptions import FaceCroppingError
+from smartidphotoprocessor.models.crop_result import CropResult
+from smartidphotoprocessor.config.constants import TARGET_CROP_ASPECT_RATIO
 
 @pytest.fixture
 def cropper():

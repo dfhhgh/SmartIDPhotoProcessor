@@ -2,7 +2,7 @@
 
 import pytest
 
-from models.ranked_face import RankedFace
+from smartidphotoprocessor.models.ranked_face import RankedFace
 from tests.factories import create_face
 
 

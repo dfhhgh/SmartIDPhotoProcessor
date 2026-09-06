@@ -20,16 +20,16 @@ import numpy as np
 import pytest
 
 from insightface.app.common import Face
-from models.alignment_result import AlignmentResult
-from models.crop_result import CropResult
-from models.photo_processing_result import PhotoProcessingResult
-from models.ranked_face import RankedFace
-from models.selection_result import SelectionResult
-from models.validation_metric import ValidationMetric
-from models.validation_result import ValidationResult
-from models.validation_type import ValidationType
-from pipeline.photo_validation_pipeline import PhotoValidationPipeline
-from search.reverse_search_service import CandidateMatch, ReverseSearchResult, ReverseSearchService, ReverseSearchStatus
+from smartidphotoprocessor.models.alignment_result import AlignmentResult
+from smartidphotoprocessor.models.crop_result import CropResult
+from smartidphotoprocessor.models.photo_processing_result import PhotoProcessingResult
+from smartidphotoprocessor.models.ranked_face import RankedFace
+from smartidphotoprocessor.models.selection_result import SelectionResult
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_result import ValidationResult
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.pipeline.photo_validation_pipeline import PhotoValidationPipeline
+from smartidphotoprocessor.search.reverse_search_service import CandidateMatch, ReverseSearchResult, ReverseSearchService, ReverseSearchStatus
 
 
 @pytest.fixture

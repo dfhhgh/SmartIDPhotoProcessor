@@ -11,11 +11,11 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from config.settings import Settings
-from pipeline.photo_validation_pipeline import PhotoValidationPipeline
-from models.validation_execution_mode import ValidationExecutionMode
-from services.face_parser_service import FaceParserService
-from services.fine_tuned_face_parser_service import FineTunedFaceParserService
+from smartidphotoprocessor.config.settings import Settings
+from smartidphotoprocessor.pipeline.photo_validation_pipeline import PhotoValidationPipeline
+from smartidphotoprocessor.models.validation_execution_mode import ValidationExecutionMode
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.services.fine_tuned_face_parser_service import FineTunedFaceParserService
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)

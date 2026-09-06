@@ -13,8 +13,8 @@ import sys
 import time
 import logging
 
-from services.face_service import FaceService
-from services.face_parser_service import FaceParserService
+from smartidphotoprocessor.services.face_service import FaceService
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
 
 logger = logging.getLogger(__name__)
 

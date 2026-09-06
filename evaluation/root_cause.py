@@ -5,8 +5,8 @@ Root cause analyzer for identifying the exact primary failure reason of failed v
 from __future__ import annotations
 
 from evaluation.models import FacePartEvaluation, RootCauseResult, ValidatorEvaluation
-from models.parsing.face_part import FacePart
-from models.validation_type import ValidationType
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.validation_type import ValidationType
 
 
 # Canonical root cause mapping from ValidationType.

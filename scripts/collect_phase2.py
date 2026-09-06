@@ -84,7 +84,7 @@ def get_detector():
     global _detector
     if _detector is None:
         sys.path.insert(0, str(PROJECT_ROOT))
-        from pipeline.detector import FaceDetector
+        from smartidphotoprocessor.pipeline.detector import FaceDetector
         _detector = FaceDetector()
     return _detector
 

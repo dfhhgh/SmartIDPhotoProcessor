@@ -10,15 +10,15 @@ import numpy as np
 import pytest
 import torch
 
-from config.parser_mode import ParserMode
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from models.validation_execution_mode import ValidationExecutionMode
-from models.validation_metric import ValidationMetric
-from models.validation_stage import ValidationStage
-from models.validation_type import ValidationType
-from pipeline.validation_orchestrator import ValidationOrchestrator
-from services.face_parser_service import (
+from smartidphotoprocessor.config.parser_mode import ParserMode
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.models.validation_execution_mode import ValidationExecutionMode
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_stage import ValidationStage
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.pipeline.validation_orchestrator import ValidationOrchestrator
+from smartidphotoprocessor.services.face_parser_service import (
     CLASS_MAP_19_TO_6,
     CLASS_MAP_6_TO_19,
     TARGET_CLASSES_19,

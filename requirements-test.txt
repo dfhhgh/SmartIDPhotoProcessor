@@ -1,0 +1,15 @@
+# requirements-test.txt
+# Test dependencies for SmartIDPhotoProcessor
+# Install: pip install -r requirements-prod.txt -r requirements-test.txt
+
+# Test framework
+pytest
+pytest-cov
+pytest-mock
+
+# Test-only third-party imports
+onnx
+Pillow
+imagehash
+requests
+scikit-learn

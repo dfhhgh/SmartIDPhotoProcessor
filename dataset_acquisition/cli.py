@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
 
     face_service = None
     try:
-        from services.face_service import FaceService
+        from smartidphotoprocessor.services.face_service import FaceService
         face_service = FaceService()
         print("InsightFace/FaceService loaded for face validation.")
     except Exception as exc:

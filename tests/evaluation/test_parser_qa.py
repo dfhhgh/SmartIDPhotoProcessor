@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from config.parser_mode import ParserMode
+from smartidphotoprocessor.config.parser_mode import ParserMode
 from evaluation.parser_qa import (
     ParserQA,
     ImageResult,
@@ -28,9 +28,9 @@ from evaluation.parser_qa import (
     TARGET_CLASSES,
     TARGET_CLASS_IDS,
 )
-from models.parsing.face_part import FacePart
-from models.parsing.face_parsing_result import FaceParsingResult
-from services.face_parser_service import FaceParserService
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.models.parsing.face_parsing_result import FaceParsingResult
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
 
 
 def _reset():
@@ -380,13 +380,13 @@ class TestQAToolSafety:
         assert h.hexdigest()[:16] == "961e08bf64fdd0b8"
 
     def test_fusion_config_unchanged(self):
-        from config.settings import Settings
+        from smartidphotoprocessor.config.settings import Settings
         assert Settings.EYE_BROW_FUSION_STRATEGY == 1
         assert Settings.EYE_BROW_FUSION_THRESHOLD == 0.0
         assert Settings.EYE_BROW_FUSION_MIN_COMPONENT_SIZE == 10
 
     def test_default_parser_mode_unchanged(self):
-        from config.settings import Settings
+        from smartidphotoprocessor.config.settings import Settings
         assert Settings().PARSER_MODE == ParserMode.ORIGINAL
 
 

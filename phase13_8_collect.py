@@ -194,7 +194,7 @@ def _diversity_aware_select(records: list, n: int, rng: random.Random) -> list:
 
 
 def build_faiss_index() -> dict[str, Any]:
-    from search.index_builder import IndexBuilder
+    from smartidphotoprocessor.search.index_builder import IndexBuilder
     ref_dir = V4_DATASET / "reference"
     index_dir = V4_DATASET / "search_index"
     index_dir.mkdir(parents=True, exist_ok=True)
@@ -332,7 +332,7 @@ def run_gallery_size_analysis(
             subset_records = [ref_records[i] for i in subset_indices]
 
             subset_metadata = {"records": subset_records, "dimension": metadata["dimension"]}
-            from search.flat_index import FlatIndex
+            from smartidphotoprocessor.search.flat_index import FlatIndex
             subset_index = FlatIndex(dimension=metadata["dimension"])
             subset_index.add(subset_embeddings)
 
@@ -460,7 +460,7 @@ def _score_stats(scores: np.ndarray) -> dict[str, float]:
 def _load_face_service():
     import sys
     sys.path.insert(0, ".")
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     return FaceService()
 
 

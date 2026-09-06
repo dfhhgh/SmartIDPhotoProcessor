@@ -13,9 +13,9 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from models.parsing.face_part import FacePart
-from services.face_parser_service import FaceParserService
-from services.fine_tuned_face_parser_service import FineTunedFaceParserService
+from smartidphotoprocessor.models.parsing.face_part import FacePart
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.services.fine_tuned_face_parser_service import FineTunedFaceParserService
 
 EXPANDED_DIR = PROJECT_ROOT / "dataset_builder" / "dataset" / "parser_finetune_expanded"
 PILOT_DIR = PROJECT_ROOT / "dataset_builder" / "dataset" / "parser_finetune"

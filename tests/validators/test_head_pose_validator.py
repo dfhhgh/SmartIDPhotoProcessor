@@ -6,14 +6,14 @@ import numpy as np
 import pytest
 from unittest.mock import MagicMock
 
-from config.constants import (
+from smartidphotoprocessor.config.constants import (
     HEAD_POSE_PITCH_MAX_DEGREES,
     HEAD_POSE_ROLL_MAX_DEGREES,
     HEAD_POSE_YAW_MAX_DEGREES,
 )
-from models.validation_metric import ValidationMetric
-from models.validation_type import ValidationType
-from validators.head_pose_validator import HeadPoseValidator
+from smartidphotoprocessor.models.validation_metric import ValidationMetric
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.head_pose_validator import HeadPoseValidator
 
 
 def _make_face(pose) -> MagicMock:

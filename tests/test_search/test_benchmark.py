@@ -16,7 +16,7 @@ import time
 import numpy as np
 import pytest
 
-from search.flat_index import FlatIndex
+from smartidphotoprocessor.search.flat_index import FlatIndex
 
 
 DIM = 512

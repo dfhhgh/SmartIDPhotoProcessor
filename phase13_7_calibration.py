@@ -673,7 +673,7 @@ def main() -> None:
     logger.info("Loaded %d people from manifest", len(people))
 
     # Load face model
-    from services.face_service import FaceService
+    from smartidphotoprocessor.services.face_service import FaceService
     face_service = FaceService()
     model = face_service.get_model()
     logger.info("FaceService loaded.")

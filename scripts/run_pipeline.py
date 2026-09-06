@@ -19,16 +19,16 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from pipeline.detector import FaceDetector
-from pipeline.selector import FaceSelector
-from pipeline.cropper import FaceCropper
-from pipeline.face_coordinate_transformer import FaceCoordinateTransformer
-from pipeline.aligner import FaceAligner
-from pipeline.photo_exporter import PhotoExporter
-from services.face_parser_service import FaceParserService
-from pipeline.validation_orchestrator import ValidationOrchestrator
-from validators.face_ambiguity_validator import FaceAmbiguityValidator
-from models.validation_result import ValidationResult
+from smartidphotoprocessor.pipeline.detector import FaceDetector
+from smartidphotoprocessor.pipeline.selector import FaceSelector
+from smartidphotoprocessor.pipeline.cropper import FaceCropper
+from smartidphotoprocessor.pipeline.face_coordinate_transformer import FaceCoordinateTransformer
+from smartidphotoprocessor.pipeline.aligner import FaceAligner
+from smartidphotoprocessor.pipeline.photo_exporter import PhotoExporter
+from smartidphotoprocessor.services.face_parser_service import FaceParserService
+from smartidphotoprocessor.pipeline.validation_orchestrator import ValidationOrchestrator
+from smartidphotoprocessor.validators.face_ambiguity_validator import FaceAmbiguityValidator
+from smartidphotoprocessor.models.validation_result import ValidationResult
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
@@ -116,7 +116,7 @@ def process_image(
             ambiguity_validator = FaceAmbiguityValidator()
             parser_service = FaceParserService()
             exporter = PhotoExporter()
-            from models.validation_execution_mode import ValidationExecutionMode
+            from smartidphotoprocessor.models.validation_execution_mode import ValidationExecutionMode
 
             orchestrator = ValidationOrchestrator(
                 parser_service=parser_service,

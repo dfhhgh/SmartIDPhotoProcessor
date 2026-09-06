@@ -1,0 +1,15 @@
+# requirements-research.txt
+# Research-only dependencies for SmartIDPhotoProcessor
+# Install: pip install -r requirements-prod.txt -r requirements-research.txt
+# NOTE: NOT required for production deployment
+
+# Dataset builder
+requests
+python-dotenv
+Pillow
+imagehash
+
+# Evaluation / calibration
+scikit-learn
+matplotlib
+onnx

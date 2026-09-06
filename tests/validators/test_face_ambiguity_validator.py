@@ -2,10 +2,10 @@
 
 import pytest
 
-from models.ranked_face import RankedFace
-from models.selection_result import SelectionResult
-from models.validation_type import ValidationType
-from validators.face_ambiguity_validator import FaceAmbiguityValidator
+from smartidphotoprocessor.models.ranked_face import RankedFace
+from smartidphotoprocessor.models.selection_result import SelectionResult
+from smartidphotoprocessor.models.validation_type import ValidationType
+from smartidphotoprocessor.validators.face_ambiguity_validator import FaceAmbiguityValidator
 from tests.factories import create_face
 
 
