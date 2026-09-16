@@ -18,6 +18,9 @@ dependencies = [
     "numpy",
     "scipy",
     "torch",
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
 ]
 
 [project.optional-dependencies]

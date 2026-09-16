@@ -19,13 +19,24 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-import faiss
 import numpy as np
 import numpy.typing as npt
 
 from smartidphotoprocessor.search.embedding_validator import EmbeddingError, EmbeddingValidator
 
 logger = logging.getLogger(__name__)
+
+
+def _get_faiss():
+    """Lazy import of faiss (optional dependency)."""
+    try:
+        import faiss
+        return faiss
+    except ImportError:
+        raise ImportError(
+            "faiss is required for Reverse Search. "
+            "Install with: pip install smartidphotoprocessor[reverse-search]"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +83,7 @@ class FlatIndex:
         self._dimension = dimension
         self._normalize = normalize
         self._validator = EmbeddingValidator(dimension=dimension, normalize=normalize)
-        self._index: faiss.IndexFlatIP = faiss.IndexFlatIP(dimension)
+        self._index = _get_faiss().IndexFlatIP(dimension)
         self._next_id: int = 0
 
     # ------------------------------------------------------------------
@@ -193,7 +204,7 @@ class FlatIndex:
         """
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        faiss.write_index(self._index, str(path))
+        _get_faiss().write_index(self._index, str(path))
         logger.info("Index saved to %s (%d vectors, dim=%d).", path, self.size, self._dimension)
 
     @classmethod
@@ -222,6 +233,7 @@ class FlatIndex:
         if not path.exists():
             raise FileNotFoundError(f"Index file not found: {path}")
 
+        faiss = _get_faiss()
         faiss_index = faiss.read_index(str(path))
         if not isinstance(faiss_index, faiss.IndexFlatIP):
             raise ValueError(

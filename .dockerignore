@@ -1,0 +1,68 @@
+# .dockerignore
+# Exclude development/test/research artifacts from Docker build context
+
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv312/
+venv/
+.venv/
+
+# Development
+.codex_pytest_tmp/
+.env
+
+# Research & calibration (not needed for production runtime)
+datasets/
+dataset_builder/
+evaluation_results/
+experiments/
+reports/
+research/
+calibration/
+
+# Output directories (generated at runtime)
+outputs/
+
+# Tests (not needed in production image)
+tests/
+
+# Test images (not needed in production image)
+test_images/
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Build artifacts
+requirements-research.txt
+requirements-test.txt
+
+# Model archives (not needed in container)
+ai_models/models/buffalo_l.zip

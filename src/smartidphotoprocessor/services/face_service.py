@@ -1,4 +1,5 @@
 import logging
+import threading
 from smartidphotoprocessor.config.settings import Settings
 
 from insightface.app import FaceAnalysis
@@ -13,12 +14,18 @@ class FaceService:
     - Read application settings.
     - Load the model (later).
     - Provide a single model instance.
+
+    Thread-safe: Uses double-checked locking for both singleton creation
+    and lazy model loading.
     """
     _instance = None
     _initialized = False
+    _instance_lock = threading.Lock()
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
 
         return cls._instance
 
@@ -28,6 +35,7 @@ class FaceService:
             return
 
         self._model: FaceAnalysis| None = None
+        self._model_lock = threading.Lock()
 
         self.model_name = Settings.MODEL_NAME
         self.model_root = Settings.MODEL_ROOT
@@ -78,9 +86,15 @@ class FaceService:
         """
         Return the loaded InsightFace model.
         Load it only once if it has not been loaded yet.
+
+        Thread-safe: Uses double-checked locking.
         """
 
-        if self._model is None:
-            self._load_model()
+        if self._model is not None:
+            return self._model
 
-        return self._model
+        with self._model_lock:
+            if self._model is not None:
+                return self._model
+            self._load_model()
+            return self._model

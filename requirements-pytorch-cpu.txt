@@ -1,0 +1,4 @@
+# requirements-pytorch-cpu.txt
+# CPU-only PyTorch for production Docker builds.
+# Install: pip install -r requirements-pytorch-cpu.txt --index-url https://download.pytorch.org/whl/cpu
+torch

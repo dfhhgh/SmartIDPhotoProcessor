@@ -41,9 +41,12 @@ class PhotoExporter:
         cropped_image: np.ndarray | None,
         settings: dict[str, Any] | None = None,
     ) -> ExportResult:
-        """Resize a validated crop to a fixed ID-photo size safely."""
-        if settings is not None:
-            self._settings = self._merge_settings(settings)
+        """Resize a validated crop to a fixed ID-photo size safely.
+
+        Uses a local settings copy when per-call overrides are provided,
+        avoiding mutation of shared instance state (thread-safe).
+        """
+        effective_settings = self._merge_settings(settings) if settings is not None else self._settings
 
         if cropped_image is None:
             raise ValueError("Cropped image must be a non-empty numpy array.")
@@ -58,10 +61,10 @@ class PhotoExporter:
             raise ValueError("Cropped image must be a 3-channel BGR image.")
 
         original_height, original_width = cropped_image.shape[:2]
-        target_width = int(self._settings["target_width"])
-        target_height = int(self._settings["target_height"])
+        target_width = int(effective_settings["target_width"])
+        target_height = int(effective_settings["target_height"])
         self._validate_target_size(target_width, target_height)
-        interpolation = self._settings["interpolation_method"]
+        interpolation = effective_settings["interpolation_method"]
 
         content_size = self._compute_content_size(original_height, original_width, target_width, target_height)
         resize_factor = self._compute_upscale_factor(original_width, original_height, content_size[0], content_size[1])
@@ -74,22 +77,22 @@ class PhotoExporter:
         quality = ExportQuality.SAFE
 
         if was_upscaled:
-            if upscale_factor > self._settings["safe_upscale_factor"]:
+            if upscale_factor > effective_settings["safe_upscale_factor"]:
                 quality = ExportQuality.WARNING
                 export_warnings.append(
-                    f"excessive upscaling detected: factor {upscale_factor:.2f} exceeds safe threshold {self._settings['safe_upscale_factor']:.2f}."
+                    f"excessive upscaling detected: factor {upscale_factor:.2f} exceeds safe threshold {effective_settings['safe_upscale_factor']:.2f}."
                 )
 
-            if self._settings["reject_on_excessive_upscale"] and upscale_factor > self._settings["max_allowed_upscale"]:
+            if effective_settings["reject_on_excessive_upscale"] and upscale_factor > effective_settings["max_allowed_upscale"]:
                 raise ValueError(
-                    f"Export image upscale factor {upscale_factor:.2f} exceeds the maximum allowed upscale {self._settings['max_allowed_upscale']:.2f}."
+                    f"Export image upscale factor {upscale_factor:.2f} exceeds the maximum allowed upscale {effective_settings['max_allowed_upscale']:.2f}."
                 )
 
         export_image = self._compose_export_image(
             resized,
             target_width,
             target_height,
-            self._settings["background_color"],
+            effective_settings["background_color"],
         )
 
         return ExportResult(
@@ -99,7 +102,7 @@ class PhotoExporter:
             content_size=content_size,
             offset_x=max(0, (target_width - content_size[0]) // 2),
             offset_y=max(0, (target_height - content_size[1]) // 2),
-            padding_color=self._settings["background_color"],
+            padding_color=effective_settings["background_color"],
             interpolation_used=interpolation_method,
             was_upscaled=was_upscaled,
             upscale_factor=upscale_factor,
