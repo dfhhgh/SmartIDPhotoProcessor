@@ -64,3 +64,6 @@ class Settings:
     REVERSE_SEARCH_ENABLED: bool = False
     REVERSE_SEARCH_INDEX_PATH: Path | None = None
     REVERSE_SEARCH_METADATA_PATH: Path | None = None
+
+    # Async execution boundary: max concurrent ML pipeline executions per worker
+    ML_MAX_CONCURRENCY: int = int(os.environ.get("ML_MAX_CONCURRENCY", "4"))

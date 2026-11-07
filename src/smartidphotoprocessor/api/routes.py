@@ -28,6 +28,7 @@ from smartidphotoprocessor.api.schemas import (
     ValidationMetricSchema,
     ValidationResultSchema,
 )
+from smartidphotoprocessor.api.executor import run_in_executor
 from smartidphotoprocessor.exceptions.face_exceptions import FacePipelineError
 from smartidphotoprocessor.models.photo_processing_result import PhotoProcessingResult
 
@@ -305,10 +306,10 @@ async def validate(file: UploadFile = File(...)):
     # 4. Decode image
     image = _decode_image(contents)
 
-    # 5. Run pipeline
+    # 5. Run pipeline (offloaded to bounded executor to avoid blocking event loop)
     try:
         pipeline = _get_pipeline()
-        result = pipeline.validate(image)
+        result = await run_in_executor(pipeline.validate, image)
     except FacePipelineError as exc:
         logger.warning("Pipeline validation error: %s", exc)
         raise HTTPException(status_code=422, detail=str(exc))

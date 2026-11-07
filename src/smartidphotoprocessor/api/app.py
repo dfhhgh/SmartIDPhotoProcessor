@@ -13,6 +13,7 @@ import logging
 from fastapi import FastAPI
 
 from smartidphotoprocessor.api.routes import router
+from smartidphotoprocessor.api.executor import shutdown_executor
 
 logger = logging.getLogger(__name__)
 
@@ -32,3 +33,10 @@ app.include_router(router)
 async def startup_event():
     """Log application startup."""
     logger.info("SmartIDPhotoProcessor API starting up.")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Shut down the ML executor cleanly."""
+    shutdown_executor()
+    logger.info("SmartIDPhotoProcessor API shut down.")

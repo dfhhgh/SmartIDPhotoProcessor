@@ -63,11 +63,13 @@ class BenchResult:
     cpu_samples_pct: list[float] = field(default_factory=list)
     correctness: list[dict] = field(default_factory=list)
 
-def docker_run(workers: int, port: int) -> str:
-    name = f"{CONTAINER_PREFIX}-w{workers}"
+def docker_run(workers: int, port: int, ml_concurrency: int = 2) -> str:
+    name = f"{CONTAINER_PREFIX}-w{workers}-e{ml_concurrency}"
     cmd = [
         "docker", "run", "-d", "--name", name,
-        "-p", f"{port}:8000", "-e", "PYTHONUNBUFFERED=1",
+        "-p", f"{port}:8000",
+        "-e", "PYTHONUNBUFFERED=1",
+        "-e", f"ML_MAX_CONCURRENCY={ml_concurrency}",
         IMAGE_NAME,
         "uvicorn", "smartidphotoprocessor.api.app:app",
         "--host", "0.0.0.0", "--port", "8000", "--workers", str(workers),
@@ -242,11 +244,11 @@ def lat_stats(lats: list[float]) -> dict[str, float]:
     }
 
 
-def measure_cold_start(port: int, workers: int) -> dict[str, Any]:
-    name = f"{CONTAINER_PREFIX}-w{workers}"
+def measure_cold_start(port: int, workers: int, ml_concurrency: int = 2) -> dict[str, Any]:
+    name = f"{CONTAINER_PREFIX}-w{workers}-e{ml_concurrency}"
     docker_stop(name)
     t0 = time.perf_counter()
-    docker_run(workers, port)
+    docker_run(workers, port, ml_concurrency)
     t_health = None
     for _ in range(TIMEOUT):
         s, _ = http_get(f"http://localhost:{port}/api/v1/health", timeout=5)
@@ -263,14 +265,14 @@ def measure_cold_start(port: int, workers: int) -> dict[str, Any]:
     mem = docker_stats(name)
     return {"health_s": t_health, "ready_s": t_ready, "baseline_mem_mb": round(mem["mem_mb"], 1)}
 
-def run_worker_config(workers: int, base_port: int) -> dict[str, Any]:
-    port = base_port + workers
-    name = f"{CONTAINER_PREFIX}-w{workers}"
+def run_worker_config(workers: int, base_port: int, ml_concurrency: int = 2) -> dict[str, Any]:
+    port = base_port + workers * 100 + ml_concurrency
+    name = f"{CONTAINER_PREFIX}-w{workers}-e{ml_concurrency}"
     print(f"\n{'='*60}")
-    print(f"  WORKERS: {workers}")
+    print(f"  WORKERS: {workers}  EXECUTOR: {ml_concurrency}")
     print(f"{'='*60}")
 
-    cold = measure_cold_start(port, workers)
+    cold = measure_cold_start(port, workers, ml_concurrency)
     print(f"  Cold start health={cold['health_s']}s ready={cold['ready_s']}s mem={cold['baseline_mem_mb']}MB")
 
     image = BENCHMARK_IMAGES[0]
@@ -311,6 +313,7 @@ def run_worker_config(workers: int, base_port: int) -> dict[str, Any]:
     final_mem = docker_stats(name)
     return {
         "workers": workers,
+        "ml_concurrency": ml_concurrency,
         "cold_start": cold,
         "concurrency_results": results,
         "peak_mem_mb": round(peak_mem, 1),
@@ -323,15 +326,21 @@ def main():
     all_results = []
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    for w in WORKER_CONFIGS:
+    # Benchmark matrix: (workers, ml_concurrency)
+    configs = [
+        (1, 1), (1, 2), (1, 4),
+        (2, 2),
+    ]
+
+    for w, e in configs:
         try:
-            wr = run_worker_config(w, 9100)
+            wr = run_worker_config(w, 9100, e)
             all_results.append(wr)
-        except Exception as e:
-            print(f"\n  FAILED for {w} workers: {e}")
-            all_results.append({"workers": w, "error": str(e)})
+        except Exception as ex:
+            print(f"\n  FAILED for {w} workers, {e} executor: {ex}")
+            all_results.append({"workers": w, "ml_concurrency": e, "error": str(ex)})
         finally:
-            docker_stop(f"{CONTAINER_PREFIX}-w{w}")
+            docker_stop(f"{CONTAINER_PREFIX}-w{w}-e{e}")
 
     # Save raw results
     out = RESULTS_DIR / f"benchmark_{timestamp}.json"
@@ -345,9 +354,9 @@ def main():
     print(f"{'='*60}")
     for wr in all_results:
         if "error" in wr:
-            print(f"\n  {wr['workers']} workers: FAILED - {wr['error']}")
+            print(f"\n  {wr['workers']}w/{wr.get('ml_concurrency', '?')}e: FAILED - {wr['error']}")
             continue
-        print(f"\n  {wr['workers']} workers:")
+        print(f"\n  {wr['workers']} workers / {wr.get('ml_concurrency', '?')} executor:")
         print(f"    Cold start: health={wr['cold_start']['health_s']}s ready={wr['cold_start']['ready_s']}s")
         print(f"    Baseline mem: {wr['cold_start']['baseline_mem_mb']}MB")
         print(f"    Peak mem: {wr['peak_mem_mb']}MB")
